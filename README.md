@@ -86,9 +86,20 @@ output = 7
 
 ------------------------Project Description----------------------------
 
-The risk_env file defines two classes:
-board - which creates a user-defined Risk board from a .risk file
+##risk_env.py
+risk_env file defines two classes:
+Territory - which contains the names of all edge territories, name, territory id, number of troops, and player id
 env - the environment which defines the states, actions, rewards, and transition function for any given board
 
+
+##.risk files
+.risk files are kept in the boards directory
+The file structure is as follows:
+<territory_0_name>: <neighbor_1_name>, <neighbor_2_name>, ..., <neighbor_N_name>
+<territory_1_name>: ....
+<territory_T_name>: ...
+Borders do not have to be defined in both directions, but it is recommended
+
+##agent_simple.py
 The agent_simple class defines an agent to perform a basic policy in an environment
 
