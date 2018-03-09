@@ -56,11 +56,31 @@ class RiskEnv():
 			fboard.close()
 
 		# Member variables - total_states - The number of states
-		self.total_states = terr_id
+		self.total_states = len(self.territories)
 
+		# Member variable - edges - set of edge tuples by territory ID
+		# Note - edges always referred to in min-max order to prevent aliasing
+		self.edge_set = set()
+		for terr_id in range(self.total_states):
+			for neighbor_name in (self.get_terr_by_id(terr_id).neighbor_names):
+				dest_terr_id = self.get_terr_id_by_name(neighbor_name)
+				if not (dest_terr_id == -1):
+					self.edge_set.add((min(terr_id, dest_terr_id),max(terr_id, dest_terr_id)))
 
-
+		print("Edge set is as follows: \n{}".format(self.edge_set))
 		return
+		
+
+	def get_terr_by_id(self, terr_id):
+		#Function that returns territories from environment by id
+		return self.territories[terr_id]
+
+	def get_terr_id_by_name(self, terr_name):
+		# Function that returns a territory ID given its name
+		for territory in self.territories:
+			if (territory.name == terr_name):
+				return territory.terr_id
+		return -1
 
 
 class Territory():

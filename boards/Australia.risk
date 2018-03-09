@@ -1,0 +1,4 @@
+Western_Australia: Eastern_Australia, Indonesia, New_Guinea
+Eastern_Australia: Western_Australia, New_Guinea
+New_Guinea: Eastern_Australia, Indonesia
+Indonesia: Western_Australia, New_Guinea
