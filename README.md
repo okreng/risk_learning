@@ -30,6 +30,7 @@ DO NOT DEVELOP IN OTHER ENVIRONMENTS
 Required:
 Python 3.5
 Tensorflow 2.0
+Keras 2.0 
 
 Recommended:
 Cuda 9.0, CuDNN 7.0
@@ -40,51 +41,44 @@ Include file headers for each unique file
 Use tabs for spacing
 Maximum 80 characters per line
 
-Variables:
-local: begin with undercase (even for acronyms), use uppercase for new words, no underscores
-e.g. valueFunc, borderTerritories
-global: Begin with uppercase, use uppercase for new words, no underscores
-Always include comment explaining why variable is global
-e.g.
-# variable for keeping log files uniquely named across multiple test agents and networks
-global TestNum
-
-Classes:
-Begin all words with uppercase, underscore between words, include underscore at end for single words
-e.g. Agent_, Dueling_Network
-
-Functions:
-Begin all words with lowercase, underscore between words, include underscore at end for single words
-e.g. load_Memory, step_
+Naming: 
+module_name, package_name, ClassName, method_name, ExceptionName, function_name, GLOBAL_CONSTANT_NAME, 
+global_var_name, instance_var_name, function_parameter_name, local_var_name
 
 files:
 Begin all words with lowercase, underscore between words, end in .py
 
 Comments:
-Include function and class headers for every function and class
-Include comments above all member variables in classes
-Always comment above or inline - never below
-Include comment above each global variable
-Include comment before large/confusing blocks of text
-e.g. 
-# Define a new layer with 128 units and ReLu activation function, densely connected to input
-dense1 = tf.layers.dense(input='features', units=128, activation=tf.nn.relu, name='dense1')
-Keep inline comments short - adhere to 80 characters or use comment in line above
-Include comment at end of large loops or conditional statements
+Use Pydocs to enable autogeneration of docs 
+```[python]
+class Foo(object):
+    """
+    Foo encapsulates a name and an age.
+    """
+    def __init__(self, name, age):
+        """
+        Construct a new 'Foo' object.
+
+        :param name: The name of foo
+        :param age: The ageof foo
+        :return: returns nothing
+        """
+        self.name = name
+        self.age = age
+```
+
 
 Spacing:
-One line before and after large/confusing code blocks
-One line between functions within class
-One line before any comment
-Two lines between end of class and new class
+Two blank lines between top-level definitions, one blank line between method definitions.
+
 Space between every argument
 Maintain clarity with large equations
 
 Exceptions:
-Mark in-progress code as WIP above working section
+Mark in-progress code as TODO above working section, as TODO is caught by pycharm 
 e.g.
 
-###### WIP ########
+#TODO: change output nums ########
 # output = 6
 output = 7
 
