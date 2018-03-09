@@ -10,13 +10,13 @@ This project attempts to learn "Risk" (board game) strategy through reinforcemen
 
 --------------------- Coding and Data Management Standards ----------------------------
 
-Directories: 
+##Directories: 
 If multiple of the same basic file type/class begin to accumulate, put them in a subdirectory under the name <class> e.g. boards
 
 
-Git: 
+##Git: 
 Commit often
-Create new files, do not branch, if starting new agent or network classes
+Work only on branches, do not push to protected branches 
 Branch if editing classes in-use
 Merge only after testing
 DO NOT DELETE ANY FILES - move to archives if code/data is no longer in use
@@ -24,7 +24,7 @@ DO NOT DELETE ANY FILES - move to archives if code/data is no longer in use
 UNANTICIPATED CONFLICTS - Retain local repository and post on Issues tab in github
 
 
-Environment:
+##Environment:
 DO NOT DEVELOP IN OTHER ENVIRONMENTS
 
 Required:
@@ -36,19 +36,19 @@ Recommended:
 Cuda 9.0, CuDNN 7.0
 
 
-Python standards:
+#Python standards:
 Include file headers for each unique file
 Use tabs for spacing
 Maximum 80 characters per line
 
-Naming: 
+##Naming: 
 module_name, package_name, ClassName, method_name, ExceptionName, function_name, GLOBAL_CONSTANT_NAME, 
 global_var_name, instance_var_name, function_parameter_name, local_var_name
 
-files:
+##files:
 Begin all words with lowercase, underscore between words, end in .py
 
-Comments:
+##Comments:
 Use Pydocs to enable autogeneration of docs 
 ```[python]
 class Foo(object):
@@ -68,13 +68,13 @@ class Foo(object):
 ```
 
 
-Spacing:
+##Spacing:
 Two blank lines between top-level definitions, one blank line between method definitions.
 
 Space between every argument
 Maintain clarity with large equations
 
-Exceptions:
+##Exceptions:
 Mark in-progress code as TODO above working section, as TODO is caught by pycharm 
 e.g.
 
