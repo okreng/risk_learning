@@ -1,0 +1,14 @@
+Authors: Oliver Krengel, Henry Chen, Edward Terry
+Carnegie Mellon University
+10703: Deep Reinforcement Learning
+Spring 2018
+
+
+This project attempts to learn "Risk" (board game) strategy through reinforcement learning methods.  
+
+The risk_env file defines two classes:
+map - which creates a user-defined Risk map from a .risk file
+env - the environment which defines the states, actions, rewards, and transition function for any given map
+
+The agent_simple class defines an agent to perform a basic policy in an environment
+
