@@ -57,6 +57,9 @@ Functions:
 Begin all words with lowercase, underscore between words, include underscore at end for single words
 e.g. load_Memory, step_
 
+files:
+Begin all words with lowercase, underscore between words, end in .py
+
 Comments:
 Include function and class headers for every function and class
 Include comments above all member variables in classes

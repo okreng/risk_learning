@@ -20,8 +20,10 @@ class Risk_Env():
 		# The function assumes this file is in the boards folder
 
 		# Member variables:
-		# territories - list of territories by name
+		# territories - list of territories
 		self.territories = []
+
+############### WIP #######################
 
 		# Read through the .risk file and convert it to graph
 		print('Opening file: {}'.format('./boards/' + str(board) + '.risk'))
@@ -30,11 +32,14 @@ class Risk_Env():
 
 			tID = 0
 			for line in lines:
+				territory = lines.
 				print(line)
 
 
 				tID += 1
-			pass
+
+			fboard.close()
+		return
 
 
 class Territory_():
