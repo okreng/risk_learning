@@ -11,7 +11,7 @@ This project attempts to learn "Risk" (board game) strategy through reinforcemen
 --------------------- Coding and Data Management Standards ----------------------------
 
 Directories: 
-If multiple of the same basic file type/class begin to accumulate, put them in a subdirectory under the name <class> e.g. maps
+If multiple of the same basic file type/class begin to accumulate, put them in a subdirectory under the name <class> e.g. boards
 
 
 Git: 
@@ -59,6 +59,7 @@ e.g. load_Memory, step_
 
 Comments:
 Include function and class headers for every function and class
+Include comments above all member variables in classes
 Always comment above or inline - never below
 Include comment above each global variable
 Include comment before large/confusing blocks of text
@@ -89,8 +90,8 @@ output = 7
 ------------------------Project Description----------------------------
 
 The risk_env file defines two classes:
-map - which creates a user-defined Risk map from a .risk file
-env - the environment which defines the states, actions, rewards, and transition function for any given map
+board - which creates a user-defined Risk board from a .risk file
+env - the environment which defines the states, actions, rewards, and transition function for any given board
 
 The agent_simple class defines an agent to perform a basic policy in an environment
 
