@@ -6,6 +6,88 @@ Spring 2018
 
 This project attempts to learn "Risk" (board game) strategy through reinforcement learning methods.  
 
+
+
+--------------------- Coding and Data Management Standards ----------------------------
+
+Directories: 
+If multiple of the same basic file type/class begin to accumulate, put them in a subdirectory under the name <class> e.g. maps
+
+
+Git: 
+Commit often
+Create new files, do not branch, if starting new agent or network classes
+Branch if editing classes in-use
+Merge only after testing
+DO NOT DELETE ANY FILES - move to archives if code/data is no longer in use
+.gitignore if adding large files (extended screen captures, etc)
+UNANTICIPATED CONFLICTS - Retain local repository and post on Issues tab in github
+
+
+Environment:
+DO NOT DEVELOP IN OTHER ENVIRONMENTS
+
+Required:
+Python 3.5
+Tensorflow 2.0
+
+Recommended:
+Cuda 9.0, CuDNN 7.0
+
+
+Python standards:
+Include file headers for each unique file
+Use tabs for spacing
+Maximum 80 characters per line
+
+Variables:
+local: begin with undercase (even for acronyms), use uppercase for new words, no underscores
+e.g. valueFunc, borderTerritories
+global: Begin with uppercase, use uppercase for new words, no underscores
+Always include comment explaining why variable is global
+e.g.
+# variable for keeping log files uniquely named across multiple test agents and networks
+global TestNum
+
+Classes:
+Begin all words with uppercase, underscore between words, include underscore at end for single words
+e.g. Agent_, Dueling_Network
+
+Functions:
+Begin all words with lowercase, underscore between words, include underscore at end for single words
+e.g. load_Memory, step_
+
+Comments:
+Include function and class headers for every function and class
+Always comment above or inline - never below
+Include comment above each global variable
+Include comment before large/confusing blocks of text
+e.g. 
+# Define a new layer with 128 units and ReLu activation function, densely connected to input
+dense1 = tf.layers.dense(input='features', units=128, activation=tf.nn.relu, name='dense1')
+Keep inline comments short - adhere to 80 characters or use comment in line above
+Include comment at end of large loops or conditional statements
+
+Spacing:
+One line before and after large/confusing code blocks
+One line between functions within class
+One line before any comment
+Two lines between end of class and new class
+Space between every argument
+Maintain clarity with large equations
+
+Exceptions:
+Mark in-progress code as WIP above working section
+e.g.
+
+###### WIP ########
+# output = 6
+output = 7
+
+
+
+------------------------Project Description----------------------------
+
 The risk_env file defines two classes:
 map - which creates a user-defined Risk map from a .risk file
 env - the environment which defines the states, actions, rewards, and transition function for any given map
