@@ -15,25 +15,25 @@ If multiple of the same basic file type/class begin to accumulate, put them in a
 
 
 ## Git: 
-Commit often
-Work only on branches, do not push to protected branches 
-Branch if editing classes in-use
-Merge only after testing
-DO NOT DELETE ANY FILES - move to archives if code/data is no longer in use
-.gitignore if adding large files (extended screen captures, etc)
-UNANTICIPATED CONFLICTS - Retain local repository and post on Issues tab in github
+- Commit often
+- Work only on branches, do not push to protected branches 
+- Branch if editing classes in-use
+- Merge only after testing
+- DO NOT DELETE ANY FILES - move to archives if code/data is no longer in use
+- .gitignore if adding large files (extended screen captures, etc)
+- UNANTICIPATED CONFLICTS - Retain local repository and post on Issues tab in github
 
 
 ## Environment:
 DO NOT DEVELOP IN OTHER ENVIRONMENTS
 
-Required:
-Python 3.5
-Tensorflow 2.0
-Keras 2.0 
+### Required:
+- Python 3.5
+-Tensorflow 2.0
+- Keras 2.0 
 
-Recommended:
-Cuda 9.0, CuDNN 7.0
+### Recommended:
+- Cuda 9.0, CuDNN 7.0
 
 
 # Python standards:
