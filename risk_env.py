@@ -19,11 +19,8 @@ class Risk_Env():
 		# board - string - the filename of the .risk file being used as a board
 		# The function assumes this file is in the boards folder
 
-		# Member variables:
-		# territories - list of territories
+		# Member variable - territories - list of territories
 		self.territories = []
-
-############### WIP #######################
 
 		# Read through the .risk file and convert it to graph
 		print('Opening file: {}'.format('./boards/' + str(board) + '.risk'))
@@ -32,29 +29,45 @@ class Risk_Env():
 
 			tID = 0
 			for line in lines:
-				territory = lines.
+
+############### WIP ######################
+
+				territory = line.
 				print(line)
 
 
 				tID += 1
 
 			fboard.close()
+
+		# Member variables - nS - The number of states
+		self.nS = tID
+
+
+
 		return
 
 
 class Territory_():
 	# This class defines a Territory or node in the graph
 
-	def __init__(name, borders, tID):
+	def __init__(name, borders, nAMax, tID, armies=0, playerID=0):
 		# This is the constructor for the Territory_ class
 		# Arguments:
 		# name - string - the name of the territory
 		# borders - list of territory IDs - the names of bordering territories
+		# nAMax - the maximum number of possible actions for a given territory
 		# tID - int - the unique id of the territory on the board
-
+		# armies - int - the number of armies on the territory
+		# playerID - int - the unique ID of the player occupying the territory
 		self.name = name
 		self.borders = borders
+		self.nAMax = nAMax
 		self.tID = tID
+		self.armies = armies
+
+		# Note - the default playerID of 0 will give an error in the environment
+		self.playerID = playerID
 
 def parse_arguments():
 	# This function helps main read command line arguments
