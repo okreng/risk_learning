@@ -30,27 +30,12 @@ class RiskEnv():
 			terr_id = 0
 			for line in lines:
 
-
+				# Parse .risk file into territories
 				terr_edges = line.split(': ')
 				neighbor_names = terr_edges[1].split(', ')
 				neighbor_names[-1] = neighbor_names[-1].strip('\n')
 				new_territory = Territory(terr_edges[0], neighbor_names, len(neighbor_names), terr_id)
-
-############### WIP ######################
-
-				# Check if territory is valid
-				# for existing_terr in self.territories:
-				# 	for existing_neighbor_name in existing_terr.neighbor_names:
-				# 		# print(existing_neighbor_name)
-				# 		for new_neighbor_name in new_territory.neighbor_names:
-				# 			print(new_neighbor_name)
-				# 			if (new_neighbor_name is existing_terr.name) | (existing_neighbor_name is new_neighbor_name):
-				# 				print("Error in {}.risk. Territories {} and {} have uneven edges."
-				# 					  .format(board,new_territory.name, existing_terr.name))
-				# 				exit()
-
 				self.territories.append(new_territory)
-
 				terr_id += 1
 
 			fboard.close()
