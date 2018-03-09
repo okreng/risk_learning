@@ -8,7 +8,7 @@ import matplotlib as plot
 import sys
 import argparse
 
-class Risk_Env():
+class RiskEnv():
 	# This class defines an environment with which an agent can interact
 	# The environment is based on the Risk board game
 	# KEY ASSUMPTION: The agent will act optimally for a single battle
@@ -27,47 +27,64 @@ class Risk_Env():
 		with open('./boards/' + board + '.risk') as fboard:
 			lines = fboard.readlines()
 
-			tID = 0
+			terr_id = 0
 			for line in lines:
+
+
+				terr_edges = line.split(': ')
+				neighbor_names = terr_edges[1].split(', ')
+				neighbor_names[-1] = neighbor_names[-1].strip('\n')
+				new_territory = Territory(terr_edges[0], neighbor_names, len(neighbor_names), terr_id)
 
 ############### WIP ######################
 
-				territory = line.
-				print(line)
+				# Check if territory is valid
+				# for existing_terr in self.territories:
+				# 	for existing_neighbor_name in existing_terr.neighbor_names:
+				# 		# print(existing_neighbor_name)
+				# 		for new_neighbor_name in new_territory.neighbor_names:
+				# 			print(new_neighbor_name)
+				# 			if (new_neighbor_name is existing_terr.name) | (existing_neighbor_name is new_neighbor_name):
+				# 				print("Error in {}.risk. Territories {} and {} have uneven edges."
+				# 					  .format(board,new_territory.name, existing_terr.name))
+				# 				exit()
 
+				self.territories.append(new_territory)
 
-				tID += 1
+				terr_id += 1
 
 			fboard.close()
 
-		# Member variables - nS - The number of states
-		self.nS = tID
+		# Member variables - total_states - The number of states
+		self.total_states = terr_id
 
 
 
 		return
 
 
-class Territory_():
+class Territory():
 	# This class defines a Territory or node in the graph
 
-	def __init__(name, borders, nAMax, tID, armies=0, playerID=0):
+	def __init__(self, name, neighbor_names, edge_num, terr_id, armies=0, player_id=0):
 		# This is the constructor for the Territory_ class
 		# Arguments:
 		# name - string - the name of the territory
-		# borders - list of territory IDs - the names of bordering territories
-		# nAMax - the maximum number of possible actions for a given territory
-		# tID - int - the unique id of the territory on the board
+		# neighbor_names - list of territory names - the names of bordering territories
+		# edge_num - the maximum number of possible actions for a given territory
+		# terr_id - int - the unique id of the territory on the board
 		# armies - int - the number of armies on the territory
-		# playerID - int - the unique ID of the player occupying the territory
+		# player_id - int - the unique ID of the player occupying the territory
 		self.name = name
-		self.borders = borders
-		self.nAMax = nAMax
-		self.tID = tID
+		self.neighbor_names = neighbor_names
+		self.edge_num = edge_num
+		self.terr_id = terr_id
 		self.armies = armies
 
-		# Note - the default playerID of 0 will give an error in the environment
-		self.playerID = playerID
+		print('Created territory {}: {} \n\tNeighboring: {}'.format(terr_id, name, neighbor_names))
+
+		# Note - the default player_id of 0 will give an error in the environment
+		self.player_id = player_id
 
 def parse_arguments():
 	# This function helps main read command line arguments
@@ -82,7 +99,7 @@ def main(args):
 	args = parse_arguments()
 	board = args.board
 
-	environment = Risk_Env(board)
+	environment = RiskEnv(board)
 
 
 # This is something you have to do in Python... I don't really know why	
