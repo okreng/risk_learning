@@ -18,19 +18,19 @@ class RiskGraph():
 	The graph is based on the Risk board game
 	KEY ASSUMPTION: The agent will act optimally for a single battle
 	"""
-	def __init__(self, board):
+	def __init__(self, board, verbose):
 		"""
 		This is the constructor for the RiskGraph class
-		Arguments:
-		board - string - the filename of the .risk file being used as a board
 		The function assumes this file is in the boards folder
+		:param board: - string - the filename of the .risk file being used as a board
 		"""
 
 		# Member variable - territories - list of territories
 		self.territories = []
 
 		# Read through the .risk file and convert it to graph
-		print('Opening file: {}'.format('./boards/' + str(board) + '.risk'))
+		if verbose:
+			print('Opening file: {}'.format('./boards/' + str(board) + '.risk'))
 		with open('./boards/' + board + '.risk') as fboard:
 			lines = fboard.readlines()
 
@@ -43,6 +43,10 @@ class RiskGraph():
 				neighbor_names[-1] = neighbor_names[-1].strip('\n')
 				new_territory = Territory(terr_edges[0], neighbor_names, len(neighbor_names), terr_id)
 				self.territories.append(new_territory)
+				if verbose:
+					print('Created territory {}: {}'.format(terr_id, name))
+
+
 				terr_id += 1
 
 			fboard.close()
@@ -62,7 +66,8 @@ class RiskGraph():
 					new_edge = Edge(self,terr_id, dest_terr_id)
 					if (self.edge_set.add_edge(new_edge, edge_id)):
 						edge_id += 1
-		self.edge_set.print_edge_list()
+		if verbose:
+			self.edge_set.print_edge_list()
 
 		return
 		
@@ -155,8 +160,6 @@ class EdgeSet():
 		if (self.edges.isdisjoint([(new_edge.get_node_id_1(),new_edge.get_node_id_2())])):
 			self.edges.add((new_edge.get_node_id_1(), new_edge.get_node_id_2()))
 			self.edge_list.append(new_edge)
-			# print("Adding edge between: {} and {}".format(new_edge.get_node_id_1(),new_edge.get_node_2()))
-			# print(self.edges)
 			new_edge.assign_id(edge_id)
 			self.num_edges += 1
 	
@@ -194,28 +197,37 @@ class Territory():
 		self.terr_id = terr_id
 		self.armies = armies
 
-		print('Created territory {}: {}'.format(terr_id, name))
-
-		# Note - the default player_id of 0 will give an error in the environment
+		# Note - the default player_id of 0 will give an error after the game has begun
 		self.player_id = player_id
 
+	def set_player_id(self, player_id):
+		"""
+		This function sets the player ID to a new value
+		:param player_id: the player ID to set the territory to
+		:return : No return value
+		"""
+		self.player_id = player_id
 
-def parse_arguments():
-	# This function helps main read command line arguments
-	parser = argparse.ArgumentParser(description=
-		'Risk Environment Argument Parser')
-	parser.add_argument('--board',dest='board',type=str)
-	return parser.parse_args()
+	def remove_armies(self, num_armies):
+		"""
+		This function removes armies from a territory
+		:param num_armies: the number of armies to remove
+		:return defeated: True if the number of armies on a territory is 0 or less after removal
+		"""
+		self.armies -= num_armies
+		if self.armies <= 0:
+			return True
+		else:
+			return False
 
-
-def main(args):
-	# The main function for this file will print out environment details 
-	args = parse_arguments()
-	board = args.board
-
-	environment = RiskGraph(board)
-
-
-# This is something you have to do in Python... I don't really know why	
-if __name__ == '__main__':
-	main(sys.argv)
+	def add_armies(self, num_armies):
+		"""
+		Add armies of the same player to a territory
+		Will print out to the console if number of armies is over 30
+		:param num_armies: the number of armies to add to the territory
+		:return : No return value
+		"""
+		self.armies += num_armies
+		if self.armies > 30:
+			print("More than 30 armies on {}".format(self.name))
+		return

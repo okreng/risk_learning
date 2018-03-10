@@ -1,5 +1,5 @@
 """
-This file provides the environment for a player to interact with the Risk game board
+This file defines the environment in which an agent can play the Risk game
 """
 
 import tensorflow as tf
@@ -9,18 +9,15 @@ import time
 import matplotlib as plot
 import sys
 import argparse
-import risk_graph as rg
+import risk_env as env
 
-class RiskEnv():
-	"""
-	This class provides the functions for a player to interact with a Risk board game
-	"""
-	def __init__(self, board):
-		"""
-		The constructor for the risk environment
-		:param board: the string of the .risk file to be loaded
-		"""
-		self.graph = rg.RiskGraph(board)
+
+
+
+
+
+
+
 
 
 
@@ -29,6 +26,7 @@ def parse_arguments():
 	parser = argparse.ArgumentParser(description=
 		'Risk Environment Argument Parser')
 	parser.add_argument('--board',dest='board',type=str)
+	parser.add_argument('--players',dest='players', type=str, default="")
 	return parser.parse_args()
 
 
@@ -36,8 +34,9 @@ def main(args):
 	# The main function for this file will print out environment details 
 	args = parse_arguments()
 	board = args.board
+	num_players = args.num_players
 
-	environment = RiskEnv(board)
+	environment = RiskEnv(board, num_players)
 
 
 # This is something you have to do in Python... I don't really know why	

@@ -86,10 +86,18 @@ output = 7
 
 ------------------------Project Description----------------------------
 
-##risk_env.py
-risk_env file defines two classes:
+##risk_graph.py
+risk_graph file defines Four classes:
+RiskGraph
+Edge
+EdgeSet
 Territory - which contains the names of all edge territories, name, territory id, number of troops, and player id
-env - the environment which defines the states, actions, rewards, and transition function for any given board
+
+##risk_game.py
+risk_game file takes the graph and makes it into a game, adding an initialization, players, actions, and a win condition
+
+##risk_env.py
+risk_env takes the game and plays it to completion, given a board and player policies, it also provides rewards to players 
 
 
 ##.risk files
@@ -99,6 +107,13 @@ The file structure is as follows:
 <territory_1_name>: ....
 <territory_T_name>: ...
 Borders do not have to be defined in both directions, but it is recommended
+
+##.mu files
+.mu (matchup) files are kept in the matchups directory
+The file structure is as follows:
+<player_1_type>, <player_2_type>, ... <player_P_type>,
+These are for specifying which policies are being run by the different players
+
 
 ##agent_simple.py
 The agent_simple class defines an agent to perform a basic policy in an environment
