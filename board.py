@@ -31,7 +31,7 @@ class Territory:
         self.name = name
         self.neighbors = neighbors
         self.continent = continent
+        self.num_armies = 0
         self.owner = None
-        self.num_troops = 0
 
 
