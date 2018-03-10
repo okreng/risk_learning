@@ -1,6 +1,6 @@
 """
 This file builds a risk graph from a .risk file
-
+# TODO: smart importing
 
 """
 
@@ -22,11 +22,12 @@ class RiskGraph():
 		"""
 		This is the constructor for the RiskGraph class
 		The function assumes this file is in the boards folder
-		:param board: - string - the filename of the .risk file being used as a board
+		:param board: string the filename of the .risk file being used as a board
+		:param verbose: bool whether to print a lot of information
 		"""
 
-		# Member variable - territories - list of territories
-		self.territories = []
+		# Member variable - territory_list - list of territory_list
+		self.territory_list = []
 
 		# Read through the .risk file and convert it to graph
 		if verbose:
@@ -37,12 +38,12 @@ class RiskGraph():
 			terr_id = 0
 			for line in lines:
 
-				# Parse .risk file into territories
+				# Parse .risk file into territory_list
 				terr_edges = line.split(': ')
 				neighbor_names = terr_edges[1].split(', ')
 				neighbor_names[-1] = neighbor_names[-1].strip('\n')
 				new_territory = Territory(terr_edges[0], neighbor_names, len(neighbor_names), terr_id)
-				self.territories.append(new_territory)
+				self.territory_list.append(new_territory)
 				if verbose:
 					print('Created territory {}: {}'.format(terr_id, new_territory.name))
 				terr_id += 1
@@ -50,12 +51,11 @@ class RiskGraph():
 			fboard.close()
 
 		# Member variables - total_territories - The number of states
-		self.total_territories = len(self.territories)
+		self.total_territories = len(self.territory_list)
 
 		# Member variable - edge_set - set of  edges accessible by unique id
 		# Note - edges always referred to in min-max order to prevent aliasing
 		self.edge_set = EdgeSet()
-		self.ordered_edge_list = []
 		edge_id = 0
 		for terr_id in range(self.total_territories):
 			for neighbor_name in (self.get_terr_by_id(terr_id).neighbor_names):
@@ -72,12 +72,20 @@ class RiskGraph():
 		
 
 	def get_terr_by_id(self, terr_id):
-		#Function that returns territories from environment by id
-		return self.territories[terr_id]
+		"""
+		Function that returns territory_list from environment by id
+		:param terr_id: int unique id of territory
+		:return Territory: Territory identified by ID
+		"""
+		return self.territory_list[terr_id]
 
 	def get_terr_id_by_name(self, terr_name):
-		# Function that returns a territory ID given its name
-		for territory in self.territories:
+		"""
+		Function that returns a territory ID given its name
+		:param terr_name: string the name of the territory
+		:return Territory: returns a territory or -1 if unsuccessful
+		"""
+		for territory in self.territory_list:
 			if (territory.name == terr_name):
 				return territory.terr_id
 		return -1
@@ -97,7 +105,7 @@ class RiskGraph():
 
 class Edge():
 	"""
-	This object is an edge with a unique ID that points to 2 territories (nodes)
+	This object is an edge with a unique ID that points to 2 territory_list (nodes)
 	"""
 
 	def __init__(self, risk_graph, terr_1_id, terr_2_id):
@@ -184,7 +192,7 @@ class Territory():
 		This is the constructor for the Territory_ class
 		Arguments:
 		name - string - the name of the territory
-		neighbor_names - list of territory names - the names of bordering territories
+		neighbor_names - list of territory names - the names of bordering territory_list
 		edge_num - the maximum number of possible actions for a given territory
 		terr_id - int - the unique id of the territory on the board
 		armies - int - the number of armies on the territory

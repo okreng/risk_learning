@@ -1,5 +1,6 @@
 """
 This file defines the environment in which an agent can play the Risk game
+# TODO: smart importing
 """
 
 import tensorflow as tf
@@ -23,8 +24,7 @@ class RiskEnv():
 		:param verbose: boolean whether to print large amounts of text
 		"""
 		
-		self.players = []
-
+		# parse .mu file into player types
 		if verbose:
 			print('Reading file: {}'.format('./matchups/' + matchup + '.mu'))
 		with open('./matchups/' + matchup + '.mu') as fmu:
@@ -45,10 +45,9 @@ class RiskEnv():
 
 			# TODO - add policy with player
 			new_player = self.game.get_player_from_id(player_num)
-			new_player.set_player_attributes(self.player_names[player_num], isAgent, isActive=True, policy="")
+			new_player.set_player_attributes(self.player_names[player_num], isAgent)
 			if verbose:
-				print("Created player {}: {}".format(player_num, self.player_names[player_num]))
-
+				new_player.print_player_details()
 
 		return
 
@@ -57,9 +56,9 @@ def parse_arguments():
 	# This function helps main read command line arguments
 	parser = argparse.ArgumentParser(description=
 		'Risk Environment Argument Parser')
-	parser.add_argument('--board', dest='board', type=str)
-	parser.add_argument('--matchup', dest='matchup', type=str, default="default")
-	parser.add_argument('-v', dest='verbose', type=str, default='False')
+	parser.add_argument('-b', dest='board', type=str)
+	parser.add_argument('-m', dest='matchup', type=str, default="default")
+	parser.add_argument('-v', dest='verbose', type=bool, default=False)
 	return parser.parse_args()
 
 
@@ -68,11 +67,7 @@ def main(args):
 	args = parse_arguments()
 	board = args.board
 	matchup = args.matchup
-	verbose_str = args.verbose
-	if (verbose_str is 'True'):
-		verbose = True
-	else:
-		verbose = False
+	verbose = args.verbose
 
 	environment = RiskEnv(board, matchup, verbose)
 
