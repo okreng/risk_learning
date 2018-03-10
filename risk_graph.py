@@ -30,7 +30,7 @@ class RiskGraph():
 
 		# Read through the .risk file and convert it to graph
 		if verbose:
-			print('Opening file: {}'.format('./boards/' + str(board) + '.risk'))
+			print('Reading file: {}'.format('./boards/' + str(board) + '.risk'))
 		with open('./boards/' + board + '.risk') as fboard:
 			lines = fboard.readlines()
 
@@ -45,8 +45,6 @@ class RiskGraph():
 				self.territories.append(new_territory)
 				if verbose:
 					print('Created territory {}: {}'.format(terr_id, new_territory.name))
-
-
 				terr_id += 1
 
 			fboard.close()
