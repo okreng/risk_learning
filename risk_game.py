@@ -198,12 +198,12 @@ class Player():
 			print("Player {}, {}, is a bot following {} policy".format(self.player_id, self.name, self.policy))
 		if self.isActive:
 			if not self.isAlive:
-				print("But it has lost the game")
+				print("\tBut it has lost the game")
 			else:
-				print("It is still in the game with {} territories and {} armies".format(self.total_territories,self.total_armies))
+				print("\tIt is still in the game with {} territories and {} armies".format(self.total_territories,self.total_armies))
 			return
 		else:
-			print("But it has not been activated yet")
+			print("\tBut it has not been activated yet")
 
 	def add_armies(self, num_armies):
 		"""

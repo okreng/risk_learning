@@ -93,12 +93,16 @@ class RiskGraph():
 	def get_player_id_by_terr_id(self, terr_id):
 		"""
 		Function to retrieve which player is in control of a territory
+		:param terr_id: int the unique ID of the territory
+		:return player_id: int the unique ID of the player occupying the territory
 		"""
 		return self.get_terr_by_id(terr_id).player_id
 
 	def get_armies_by_terr_id(self, terr_id):
 		"""
 		Function to retrieve how many armies are on a territory
+		:param terr_id: int the unique ID of the territory
+		:return armies: int the number of armies on the territory
 		"""
 		return self.get_terr_by_id(terr_id).armies
 
@@ -111,6 +115,10 @@ class Edge():
 	def __init__(self, risk_graph, terr_1_id, terr_2_id):
 		"""
 		Constructor for the Edge class
+		:param risk_graph: RiskGraph object holding list of all territories
+		:param terr_1_id: int the unique ID of the first territory on the edge
+		:param terr_2_id: int the unique ID of the second territory on the edge
+		:return : none
 		"""
 
 
@@ -129,33 +137,60 @@ class Edge():
 		return
 
 	def assign_id(self, edge_id):
-		# Set unique edge_id
+		"""
+		Assigns a unique ID to an edge
+		:param edge_id: int a unique edge_id
+		:return : none
+		"""
 		self.edge_id = edge_id
 		return
 
 	def get_node_id_1(self):
+		"""
+		Fetches the first node ID
+		:param : none
+		:return node_id_1: int the ID of the first territory in the edge
+		"""
 		return self.node_id_1
 
 	def get_node_1(self):
+		"""
+		Fetches the first territory pointed to by the edge
+		:param : none
+		:return node_1: Territory the first territory pointed to by the edge
+		"""
 		return self.node_1
 
 	def get_node_2(self):
+		"""
+		Fetches the second node ID
+		:param : none
+		:return node_id_1: int the ID of the second territory in the edge
+		"""
 		return self.node_2
 
 	def get_node_id_2(self):
+		"""
+		Fetches the first territory pointed to by the edge
+		:param : none
+		:return node_1: Territory the first territory pointed to by the edge
+		"""
 		return self.node_id_2
 
 
 class EdgeSet():
 	"""
 	This object holds a set of unique edges that can be accessed by id
+	This provides random access while preventing duplicate edges in the graph
 	"""
 
 	def __init__(self):
 		"""
 		Constructor for the edge set class
-
+		:params : none
+		:return : none
 		"""
+
 		# Member variable: a set of unique edges
 		self.edges = set()
 		self.edge_list = []
@@ -163,7 +198,13 @@ class EdgeSet():
 		return
 
 	def add_edge(self, new_edge, edge_id):
-		# Add an edge to the set, if the edge already exists, return false and do not add
+		"""
+		Add an edge to the set, if the edge already exists, return false and do not add'
+		:param new_edge: Edge object created with two node ID''s
+		:return : boolean True if edge object had unique ID's and it was added to the set,
+		false otherwise
+		"""
+
 		if (self.edges.isdisjoint([(new_edge.get_node_id_1(),new_edge.get_node_id_2())])):
 			self.edges.add((new_edge.get_node_id_1(), new_edge.get_node_id_2()))
 			self.edge_list.append(new_edge)
@@ -175,9 +216,19 @@ class EdgeSet():
 			return False
 
 	def get_edge_by_id(self, edge_id):
+		"""
+		Returns edge object by unique ID
+		:param edge_id: int unique ID of an edge
+		:return Edge: returns the edge in the graph
+		"""
 		return self.edge_list[edge_id]
 
 	def print_edge_list(self):
+		"""
+		Prints details about the whole list of edges
+		:params : none
+		:return : none
+		"""
 		print("Created edges between:")
 		for edge in range(self.num_edges):
 			print("\t{} and {}".format(self.edge_list[edge].get_node_1().name,self.edge_list[edge].get_node_2().name))
@@ -185,18 +236,19 @@ class EdgeSet():
 
 
 class Territory():
-	# This class defines a Territory or node in the graph
+	"""
+	This class defines a Territory or node in the graph
+	"""
 
 	def __init__(self, name, neighbor_names, edge_num, terr_id, armies=0, player_id=-1):
 		"""
-		This is the constructor for the Territory_ class
-		Arguments:
-		name - string - the name of the territory
-		neighbor_names - list of territory names - the names of bordering territory_list
-		edge_num - the maximum number of possible actions for a given territory
-		terr_id - int - the unique id of the territory on the board
-		armies - int - the number of armies on the territory
-		player_id - int - the unique ID of the player occupying the territory
+		This is the constructor for the Territory class
+		:param name: string the name of the territory
+		:param neighbor_names: list of territory names - the names of bordering territory_list
+		:param edge_num: int the number of territories attached to this Territory
+		:param terr_id: int the unique id of the territory on the board
+		:param armies: int the number of armies on the territory
+		:param player_id: int the unique ID of the player occupying the territory
 		"""
 		self.name = name
 		self.neighbor_names = neighbor_names

@@ -53,7 +53,11 @@ class RiskEnv():
 
 
 def parse_arguments():
-	# This function helps main read command line arguments
+	"""
+	This function helps main read command line arguments
+	:params : none
+	:return Parser: parser object containing arguments passed from command line
+	"""
 	parser = argparse.ArgumentParser(description=
 		'Risk Environment Argument Parser')
 	parser.add_argument('-b', dest='board', type=str)
@@ -63,7 +67,12 @@ def parse_arguments():
 
 
 def main(args):
-	# The main function for this file will print out environment details 
+	"""
+	This function initializes a game inside an environment and uses is to train an agent
+	:param args: Command line arguments
+	:return : this function does not return
+	"""
+
 	args = parse_arguments()
 	board = args.board
 	matchup = args.matchup
