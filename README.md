@@ -112,6 +112,7 @@ Borders do not have to be defined in both directions, but it is recommended
 .mu (matchup) files are kept in the matchups directory
 The file structure is as follows:
 <player_1_type>, <player_2_type>, ... <player_P_type>,
+Player types are strings
 These are for specifying which policies are being run by the different players
 
 

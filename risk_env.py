@@ -9,24 +9,51 @@ import time
 import matplotlib as plot
 import sys
 import argparse
-import risk_env as env
+import risk_game as gm
+
+class RiskEnv():
+	"""
+	This class converts the game of risk into a Markov Decision Process environment
+	"""
+	def __init__(self, board, matchup="default", verbose=False):
+		"""
+		Environment constructor
+		:param board: string name of the board being played
+		:param matchup: string name of file containing players in the game (Corresponding to policies)
+		:param verbose: boolean whether to print large amounts of text
+		"""
+		
 
 
+		if verbose:
+			print('Opening file: {}'.format('./matchups/' + str(matchup) + '.mu'))
+		with open('./matchups/' + matchup + '.mu') as fmu:
+			line = fmu.read()
+			self.players = line.split(', ')
+			self.players[-1] = self.players[-1].strip('\n')
+			num_players = len(self.players)
+			for player_num in range(num_players):
+				
+			self.game = gm.RiskGame(board,num_players,verbose)
+
+		#self.game = gm.RiskGame(board, num_players, verbose)
+		
+
+		# TODO: Assign policies to players
+		if verbose:
+			print("Created player {}: {}".format(player_num, self.players[player_num]))
 
 
-
-
-
-
-
+		return
 
 
 def parse_arguments():
 	# This function helps main read command line arguments
 	parser = argparse.ArgumentParser(description=
 		'Risk Environment Argument Parser')
-	parser.add_argument('--board',dest='board',type=str)
-	parser.add_argument('--players',dest='players', type=str, default="")
+	parser.add_argument('--board', dest='board', type=str)
+	parser.add_argument('--matchup', dest='matchup', type=str, default="default")
+	parser.add_argument('--verbose', dest='verbose', type=bool, default=False)
 	return parser.parse_args()
 
 
@@ -34,9 +61,10 @@ def main(args):
 	# The main function for this file will print out environment details 
 	args = parse_arguments()
 	board = args.board
-	num_players = args.num_players
+	matchup = args.matchup
+	verbose = args.verbose
 
-	environment = RiskEnv(board, num_players)
+	environment = RiskEnv(board, matchup, verbose)
 
 
 # This is something you have to do in Python... I don't really know why	

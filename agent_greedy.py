@@ -1,1 +1,0 @@
-# This file defines an agent to act greedily wrt RISK rewards

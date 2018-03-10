@@ -44,7 +44,7 @@ class RiskGraph():
 				new_territory = Territory(terr_edges[0], neighbor_names, len(neighbor_names), terr_id)
 				self.territories.append(new_territory)
 				if verbose:
-					print('Created territory {}: {}'.format(terr_id, name))
+					print('Created territory {}: {}'.format(terr_id, new_territory.name))
 
 
 				terr_id += 1
@@ -69,6 +69,7 @@ class RiskGraph():
 		if verbose:
 			self.edge_set.print_edge_list()
 
+		print ("Graph Initialized")
 		return
 		
 
@@ -180,7 +181,7 @@ class EdgeSet():
 class Territory():
 	# This class defines a Territory or node in the graph
 
-	def __init__(self, name, neighbor_names, edge_num, terr_id, armies=0, player_id=0):
+	def __init__(self, name, neighbor_names, edge_num, terr_id, armies=0, player_id=-1):
 		"""
 		This is the constructor for the Territory_ class
 		Arguments:
@@ -195,9 +196,9 @@ class Territory():
 		self.neighbor_names = neighbor_names
 		self.edge_num = edge_num
 		self.terr_id = terr_id
+		
+		# Note - armies of size <= 0 and player_id of <0 will produced errors after initalization
 		self.armies = armies
-
-		# Note - the default player_id of 0 will give an error after the game has begun
 		self.player_id = player_id
 
 	def set_player_id(self, player_id):

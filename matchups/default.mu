@@ -1,1 +1,1 @@
-agent, greedy
+agent, greed
