@@ -40,19 +40,30 @@ class RiskEnv():
 
 			fboard.close()
 
-		# Member variables - total_states - The number of states
-		self.total_states = len(self.territories)
+		# Member variables - total_territories - The number of states
+		self.total_territories = len(self.territories)
 
-		# Member variable - edges - set of edge tuples by territory ID
+		# Member variable - edges - set of edges by ID
 		# Note - edges always referred to in min-max order to prevent aliasing
-		self.edge_set = set()
-		for terr_id in range(self.total_states):
+		self.edge_set = EdgeSet()
+		self.ordered_edge_list = []
+		edge_id = 0
+		for terr_id in range(self.total_territories):
 			for neighbor_name in (self.get_terr_by_id(terr_id).neighbor_names):
 				dest_terr_id = self.get_terr_id_by_name(neighbor_name)
 				if not (dest_terr_id == -1):
-					self.edge_set.add((min(terr_id, dest_terr_id),max(terr_id, dest_terr_id)))
+					new_edge = Edge(terr_id, dest_terr_id)
+					if (self.edge_set.add_edge(new_edge, edge_id)):
+						edge_id += 1
 
-		print("Edge set is as follows: \n{}".format(self.edge_set))
+
+		for edge_num in range(edge_id):
+			this_edge = self.edge_set.get_edge_by_id(edge_num)
+			#print("Edge connects nodes: {}, {}".format(this_edge.get_node_1, this_edge.get_node_2))
+
+					
+
+		# print("Edge set is: \n{}".format(self.edges))
 		return
 		
 
@@ -66,6 +77,63 @@ class RiskEnv():
 			if (territory.name == terr_name):
 				return territory.terr_id
 		return -1
+
+
+class Edge():
+	# This object is an edge with a unique ID that points to 2 territories by id
+
+	def __init__(self, terr_1_id, terr_2_id):
+		# Member variables:
+		if (terr_1_id == terr_2_id):
+			print("Cannot create an edge within a territory")
+			exit()
+		else:
+			self.node_1 = min(terr_1_id, terr_2_id)
+			self.node_2 = max(terr_1_id, terr_2_id)
+			# print("Creating edge between nodes {} and {}".format(self.node_1, self.node_2))
+
+
+		# Give invalid value until assignment
+		self.edge_id = -1
+		return
+
+	def assign_id(self, edge_id):
+		# Set unique edge_id
+		self.edge_id = edge_id
+		return
+
+	def get_node_1(self):
+		return self.node_1
+
+	def get_node_2(self):
+		return self.node_2
+
+class EdgeSet():
+	# This object holds a set of unique edges
+
+	def __init__(self):
+		# Member variable: a set of unique edges
+		self.edges = set()
+		self.edge_list = []
+		self.num_edges = 0
+		return
+
+	def add_edge(self, new_edge, edge_id):
+		# Add an edge to the set, if the edge already exists, return false and do not add
+		if (self.edges.isdisjoint((0,1))):
+			self.edges.add((new_edge.get_node_1(), new_edge.get_node_2()))
+			self.edge_list.append(new_edge)
+			print("Adding edge between: {} and {}".format(new_edge.get_node_1(),new_edge.get_node_2()))
+			print(self.edges)
+			new_edge.assign_id(edge_id)
+			self.num_edges += 1
+	
+			return True
+		else:
+			return False
+
+	def get_edge_by_id(self, edge_id):
+		return self.edge_list[edge_id]
 
 
 class Territory():
