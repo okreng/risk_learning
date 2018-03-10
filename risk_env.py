@@ -8,13 +8,13 @@ import matplotlib as plot
 import sys
 import argparse
 
-class RiskEnv():
+class RiskGraph():
 	# This class defines an environment with which an agent can interact
 	# The environment is based on the Risk board game
 	# KEY ASSUMPTION: The agent will act optimally for a single battle
 
 	def __init__(self, board):
-		# This is the constructor for the Risk_Env class
+		# This is the constructor for the RiskGraph class
 		# Arguments:
 		# board - string - the filename of the .risk file being used as a board
 		# The function assumes this file is in the boards folder
@@ -43,7 +43,7 @@ class RiskEnv():
 		# Member variables - total_territories - The number of states
 		self.total_territories = len(self.territories)
 
-		# Member variable - edges - set of edges by ID
+		# Member variable - edge_set - set of  edges accessible by unique id
 		# Note - edges always referred to in min-max order to prevent aliasing
 		self.edge_set = EdgeSet()
 		self.ordered_edge_list = []
@@ -51,19 +51,12 @@ class RiskEnv():
 		for terr_id in range(self.total_territories):
 			for neighbor_name in (self.get_terr_by_id(terr_id).neighbor_names):
 				dest_terr_id = self.get_terr_id_by_name(neighbor_name)
-				if not (dest_terr_id == -1):
-					new_edge = Edge(terr_id, dest_terr_id)
+				if not (dest_terr_id == -1):  #Check if territory is a neighobr
+					new_edge = Edge(self,terr_id, dest_terr_id)
 					if (self.edge_set.add_edge(new_edge, edge_id)):
 						edge_id += 1
+		self.edge_set.print_edge_list()
 
-
-		for edge_num in range(edge_id):
-			this_edge = self.edge_set.get_edge_by_id(edge_num)
-			#print("Edge connects nodes: {}, {}".format(this_edge.get_node_1, this_edge.get_node_2))
-
-					
-
-		# print("Edge set is: \n{}".format(self.edges))
 		return
 		
 
@@ -82,16 +75,16 @@ class RiskEnv():
 class Edge():
 	# This object is an edge with a unique ID that points to 2 territories by id
 
-	def __init__(self, terr_1_id, terr_2_id):
+	def __init__(self, risk_graph, terr_1_id, terr_2_id):
 		# Member variables:
 		if (terr_1_id == terr_2_id):
 			print("Cannot create an edge within a territory")
 			exit()
 		else:
-			self.node_1 = min(terr_1_id, terr_2_id)
-			self.node_2 = max(terr_1_id, terr_2_id)
-			# print("Creating edge between nodes {} and {}".format(self.node_1, self.node_2))
-
+			self.node_id_1 = min(terr_1_id, terr_2_id)
+			self.node_1 = risk_graph.get_terr_by_id(self.node_id_1)
+			self.node_id_2 = max(terr_1_id, terr_2_id)
+			self.node_2 = risk_graph.get_terr_by_id(self.node_id_2)
 
 		# Give invalid value until assignment
 		self.edge_id = -1
@@ -102,11 +95,18 @@ class Edge():
 		self.edge_id = edge_id
 		return
 
+	def get_node_id_1(self):
+		return self.node_id_1
+
 	def get_node_1(self):
 		return self.node_1
 
 	def get_node_2(self):
 		return self.node_2
+
+	def get_node_id_2(self):
+		return self.node_id_2
+
 
 class EdgeSet():
 	# This object holds a set of unique edges
@@ -120,11 +120,11 @@ class EdgeSet():
 
 	def add_edge(self, new_edge, edge_id):
 		# Add an edge to the set, if the edge already exists, return false and do not add
-		if (self.edges.isdisjoint((0,1))):
-			self.edges.add((new_edge.get_node_1(), new_edge.get_node_2()))
+		if (self.edges.isdisjoint([(new_edge.get_node_id_1(),new_edge.get_node_id_2())])):
+			self.edges.add((new_edge.get_node_id_1(), new_edge.get_node_id_2()))
 			self.edge_list.append(new_edge)
-			print("Adding edge between: {} and {}".format(new_edge.get_node_1(),new_edge.get_node_2()))
-			print(self.edges)
+			# print("Adding edge between: {} and {}".format(new_edge.get_node_id_1(),new_edge.get_node_2()))
+			# print(self.edges)
 			new_edge.assign_id(edge_id)
 			self.num_edges += 1
 	
@@ -134,6 +134,12 @@ class EdgeSet():
 
 	def get_edge_by_id(self, edge_id):
 		return self.edge_list[edge_id]
+
+	def print_edge_list(self):
+		print("Created edges between:")
+		for edge in range(self.num_edges):
+			print("\t{} and {}".format(self.edge_list[edge].get_node_1().name,self.edge_list[edge].get_node_2().name))
+		return
 
 
 class Territory():
@@ -154,10 +160,11 @@ class Territory():
 		self.terr_id = terr_id
 		self.armies = armies
 
-		print('Created territory {}: {} \n\tNeighboring: {}'.format(terr_id, name, neighbor_names))
+		print('Created territory {}: {}'.format(terr_id, name))
 
 		# Note - the default player_id of 0 will give an error in the environment
 		self.player_id = player_id
+
 
 def parse_arguments():
 	# This function helps main read command line arguments
@@ -172,7 +179,7 @@ def main(args):
 	args = parse_arguments()
 	board = args.board
 
-	environment = RiskEnv(board)
+	environment = RiskGraph(board)
 
 
 # This is something you have to do in Python... I don't really know why	
