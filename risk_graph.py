@@ -290,3 +290,23 @@ class Territory():
 		if self.armies > 30:
 			print("More than 30 armies on {}".format(self.name))
 		return
+
+	def set_armies(self, num_armies):
+		"""
+		Set armies of the same player to a territory
+		Will print out to the console if number of armies is over 30
+		:param num_armies: the number of armies to add to the territory
+		:return : No return value
+		"""
+		self.armies = num_armies
+		if self.armies > 30:
+			print("More than 30 armies on {}".format(self.name))
+		return
+
+	def get_armies(self):
+		"""
+		Fetcharmies of the same player to a territory
+		:param : none
+		:return self.num_armies: 
+		"""
+		return self.armies

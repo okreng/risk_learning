@@ -26,10 +26,22 @@ class RiskGame():
 		self.player_list = []
 		for player_id in range(self.num_players):
 			self.add_player(player_id)
-			self.activate_player(player_id)
-		if verbose:
-			print("Created player: {}".format(player_id))
+			# self.activate_player(player_id) # Maybe do this here
+			if verbose:
+				print("Created inactive player: {}".format(player_id))
 
+
+
+
+	def random_start(self, verbose):
+		"""
+		This function shuffles the territories and distributes them amongst the players
+		:param verbose: bool whether to talk about who has what initialization
+		:return none:
+		"""
+
+		for player in self.player_list:
+			self.activate_player(player.get_id())
 
 		self.player_placement_order = np.random.permutation(len(self.player_list))
 		self.terr_placement_order = np.random.permutation(self.graph.total_territories)
@@ -43,11 +55,15 @@ class RiskGame():
 
 		self.player_turn_order = np.random.permutation(len(self.player_list))
 
+		terr_armies = 0
+		player_armies = 0
 		for terr in self.graph.territory_list:
+			terr_armies += terr.get_armies()
 			if terr.player_id == -1:
 				print("Not all territories assigned")
 				exit()
 		for player in self.player_list:
+			player_armies += player.get_total_armies()
 			if player.isAlive == False:
 				print("Not all players alive")
 				exit()
@@ -82,7 +98,7 @@ class RiskGame():
 		player = self.get_player_from_id(player_id)
 
 		# Player effects
-		player.total_territories += 1
+		player.add_territory()
 		player.add_armies(1)
 		player.territory_list.append(terr)
 
@@ -90,7 +106,7 @@ class RiskGame():
 		if terr.player_id == player_id:
 			print("Assigning territory to current occupant")
 		terr.player_id = player_id
-		terr.add_armies(1)
+		terr.set_armies(1)
 		return
 
 	def set_player_id_to_terr(self, player_id, terr_id):
@@ -120,6 +136,8 @@ class RiskGame():
 		player = self.get_player_from_id(player_id)
 		player.isActive = True
 		player.isAlive = True
+		player.total_armies = 0
+		player.total_territories = 0
 		return
 
 	def player_loses(self, player_id):
@@ -215,3 +233,27 @@ class Player():
 		self.total_armies += num_armies
 		return
 
+	def get_total_armies(self,):
+		"""
+		Fetch total armies controlled by players
+		:param none: 
+		:return self.total_armies: int 
+		"""
+		return self.total_armies
+
+	def add_territory(self):
+		"""
+		Add to the total of territories
+		:param none: 
+		:return : No return value
+		"""
+		self.total_territories += 1
+		return
+
+	def get_id(self):
+		"""
+		Fetch the ID of the player
+		:param none:
+		:return none:
+		"""
+		return self.player_id

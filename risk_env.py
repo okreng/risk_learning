@@ -49,6 +49,10 @@ class RiskEnv():
 			if verbose:
 				new_player.print_player_details()
 
+		self.game.random_start(verbose)
+		self.game.random_start(verbose)
+
+
 		return
 
 
