@@ -86,7 +86,7 @@ output = 7
 
 ------------------------Project Description----------------------------
 
-##risk_graph.py
+## risk_graph.py:
 risk_graph file defines Four classes:
 RiskGraph - The state of the board, as defined by the fully connected graph, territories with army numbers and player_ids
 Edge - points at two connected territories and two connected nodes
@@ -100,7 +100,7 @@ TODO: Order the graph (territories AND edges) in a consistent way that can be ap
 TODO: Clean up the API, secure private member variables
 
 
-##risk_game.py
+## risk_game.py:
 risk_game file defines Two classes:
 RiskGame - The rules of playing the game, actions that can be taken by players (as functions of this class), initialization and win conditions
 Player - Basic player implementation i.e. player_id, territories occupied, total_armies, isAlive, etc. 
@@ -116,7 +116,7 @@ TODO: All the gameplay still needs to be defined, all I have done so far is init
 TODO: Clean up the API, secure private member variables.
 TODO: Create agent-specific functions for each action that return the next state the agent regains control.
 
-##risk_env.py
+## risk_env.py:
 this file contains only one class:
 RiskEnv - This class manages the Markov Decision Processes of all agents acting in the environment.  
 This is deliberately abstracted from the game itself because we will be attempting to use different representations of the states in order to represent the MDP.
@@ -127,7 +127,7 @@ TODO: Create functions for agents to utilize the environment
 TODO: Functions for model-based approaches if this is something we want to pursue
 
 
-##Further classes .pymeariver
+## Further classes .pymeariver:
 TODO: Agents, recorders (we are recording EVERYTHING, including low-level game behavior), policies esp. Greedy, and obviously networks (I am hoping to use Tensorflow)
 
 ######### Note from Oliver 3/9-3/10 ########################
