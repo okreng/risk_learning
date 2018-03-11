@@ -42,6 +42,8 @@ def main(args):
 	s_v_list.append(np.array([1, -1]))
 	s_v_list.append(np.array([1, 2, -1]))
 	s_v_list.append(np.array([2, -2, -1]))
+	s_v_list.append(np.array([1, -2, -1]))
+
 
 	# Begin test
 	print("Testing policy {}".format(module_name))

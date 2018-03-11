@@ -7,7 +7,7 @@ So the pass-turn point comes when all borders are negative army difference
 
 Note: 
 "Battle" refers to a sequence of attacks between two territories
-"Attack refers to a single "
+"Attack" refers to a single engagement
 
 This policy assumes a knowledge of the game 
 i.e. not a policy for learning agents
@@ -65,17 +65,17 @@ def max_success(state_vector):
 		for terr_col in range(T):
 			terr_row_armies = state_vector[terr_row]
 			terr_col_armies = state_vector[terr_col]
-			if np.sign(terr_row_armies) == np.sign(terr_col_armies):
+			if np.sign(terr_row_armies) == np.sign(terr_col_armies): # Can't attack yourself!
 				# edge_matrix[terr_row, terr_col] = 0
 				action_vector[terr_row*T + terr_col] = 0
-			elif terr_row_armies < 0:
+			elif terr_row_armies < 0: # Opponent territories
 				# edge_matrix[terr_row, terr_col] = 0
 				action_vector[terr_row*T + terr_col] = 0
 			else:
 				army_difference = abs(terr_row_armies) - abs(terr_col_armies)
-				if army_difference < 0:
+				if army_difference < 0: # If worse than passing, decrement so less than pass_value
 					# edge_matrix[terr_row, terr_col] = 0
-					action_vector[terr_row*T + terr_col] = 0
+					action_vector[terr_row*T + terr_col] = army_difference + army_offset -1
 				else:
 					# edge_matrix[terr_row, terr_col] = army_difference + army_offset
 					action_vector[terr_row*T + terr_col] = army_difference + army_offset
