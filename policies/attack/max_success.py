@@ -37,7 +37,7 @@ import numpy as np
 
 global MAX_ARMIES #max armies per player
 
-def max_success_attack(state_vector):
+def max_success(state_vector):
 	"""
 	Function for executing maximum battle success
 	:param state_vector: np-array 1D vector of armies on territory
