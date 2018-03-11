@@ -59,7 +59,7 @@ def max_success(state_vector):
 	# Leaving edge_matrix in as a visualization
 	# edge_matrix[row, col] = action_vector[row*T + col]
 	# edge_matrix = np.zeros((T,T), dtype=int)
-	action_vector = np.zeros((T**2 + 1, 1), dtype=int)
+	action_vector = np.zeros((T**2 + 1), dtype=int)
 
 	for terr_row in range(T):
 		for terr_col in range(T):

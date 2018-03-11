@@ -29,13 +29,27 @@ def main(args):
 	#import attack.max_success as pol0
 	args = parse_arguments()
 	directory = args.directory
-	policy = args.policy
-	module_name = directory + '.' + policy
-	importlib.import_module(module_name, package=None)
+	policy_string = args.policy
+	module_name = directory + '.' + policy_string
+	policy_module = importlib.import_module(module_name, package=None)
+	policy = getattr(policy_module, policy_string)
 
 
-	
+	# Define a list of state vectors
+	s_v_list = []
 
+	# Add state vectors to the list
+	s_v_list.append(np.array([1, -1]))
+	s_v_list.append(np.array([1, 2, -1]))
+	s_v_list.append(np.array([2, -2, -1]))
+
+	# Begin test
+	print("Testing policy {}".format(module_name))
+	for s_v in s_v_list:
+		print("State : {}".format(s_v))
+		print("Action:")
+		print(policy(s_v))
+		print("\n")
 	return
 
 
