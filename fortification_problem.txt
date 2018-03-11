@@ -1,0 +1,25 @@
+Consider the game of Risk
+Consider the fortification phase, where a player can move any number of armies from a single territory to a neighboring territory also under that player's control
+
+Given:	an action specified by the tuple (territory_from, territory_to)
+	graph G with nodes occupied by known players with known number of armies
+	
+Determine: If there is an optimal number of armies >0 to move between the territories (CAN ONLY MOVE IN ONE DIRECTION).  
+What is the optimal number?
+If not, under what conditions are there optimal policies? Also specify the conditions for which there are no optimal policies.
+What are those policies and under what conditions does optimality exist?
+
+Assumptions: 	The player prefers not to lose armies or territories
+		The player prefers to capture enemy territories and destroy enemy armies
+			While you cannot assume any preference ranking of enemy territories,
+			you know that modules with only 1 access node prefer armies closer to that node
+		The more armies that exist on a territory, the less likely it is to be lost
+		The territory being fortified is the least desirable to lose of all occupied territories
+		
+You can incorporate more assumptions, but state them explicitly if so
+
+To start, consider the two simple cases of a three node graph with sequential connection:
+	A<->B, B<->C
+And the case of a three node graph with full connectivity
+	A<->B, B<->C, A<->C
+
