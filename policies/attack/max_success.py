@@ -44,7 +44,7 @@ def max_success(state_vector):
 	:return action_vector: np-array 1D vector of edges to attack along
 	"""
 
-	# TODO: Remove this code
+	# TODO: Remove this code once global armies number is defined
 	MAX_ARMIES = 100 # For testing
 
 	# For prioritizing bad actions between player and opponent over player-player actions
