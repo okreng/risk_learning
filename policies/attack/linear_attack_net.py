@@ -7,7 +7,8 @@ Once this net is developed and works on simple models, deeper nets will be devel
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-import sys
+import os, sys
+from .. import model_tree
 
 class LinearAttackNet():
 	"""
@@ -37,5 +38,7 @@ class LinearAttackNet():
 		self.module_string = 'linear_attack_net'
 		self.action_type_string = 'attack'
 
+		# Add ./policies folder to path for model_tree
 		restore_path = model_tree(model_instance, module_string, action_type_string)
 
+		return
