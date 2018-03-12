@@ -48,7 +48,7 @@ class LinearAttackNet():
 		self.module_string = 'linear_attack_net'
 		self.action_type_string = 'attack'
 
-		# Add ./policies folder to path for model_tree
 		restore_path = model_tree(model_instance, checkpoint_number, self.module_string, self.action_type_string, verbose)
+		# print (restore_path)
 
 		return
