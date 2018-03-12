@@ -8,14 +8,19 @@ import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 import os, sys
-from .. import model_tree
+
+
+
+import repackage
+repackage.up(2)
+from policies.model_tree import model_tree
 
 class LinearAttackNet():
 	"""
 	Class to hold a linear neural network
 	Will be used to learn Attacks in RISK
 	"""
-	def __init__(num_territories, is_training=False, model_instance='', checkpoint_number=-1):
+	def __init__(self,num_territories, is_training=False, model_instance='', checkpoint_number=-1):
 		"""
 		Creates a session of the tensorflow graph defined in this module
 		:param num_territories: int required, will throw error if does not agree 
@@ -35,10 +40,13 @@ class LinearAttackNet():
 		config = tf.ConfigProto(gpu_options=gpu_ops)
 		self.sess = tf.Session(config=config)
 
+		self.model_instance = model_instance
 		self.module_string = 'linear_attack_net'
 		self.action_type_string = 'attack'
 
 		# Add ./policies folder to path for model_tree
-		restore_path = model_tree(model_instance, module_string, action_type_string)
+		print("calling model tree")
+		restore_path = model_tree(self.model_instance, self.module_string, self.action_type_string)
+		print("exited model tree")
 
 		return

@@ -4,7 +4,7 @@ This module holds the function for creating and loading models
 
 import sys
 
-def model_tree(model_instance, module_name, action_type_nome):
+def model_tree(model_instance, module_name, action_type_name):
 	"""
 	Returns a model string of the model name to be loaded
 	Updates .instance files so subsequent models will have unique ID's
@@ -15,7 +15,7 @@ def model_tree(model_instance, module_name, action_type_nome):
 	'head' is returned if no model name exists
 	:return string: filepath (not including log file) of instance to be read
 	"""
-	print("Called model tree with arguments: {}, {}, {}".format(module_instance, module_name, action_type_name))
+	print("Called model tree with arguments: {}, {}, {}".format(model_instance, module_name, action_type_name))
 
 	return
 	
