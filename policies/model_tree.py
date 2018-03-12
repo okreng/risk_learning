@@ -3,8 +3,9 @@ This module holds the function for creating and loading models
 """
 
 import sys
+import os.path
 
-def model_tree(model_instance, module_name, action_type_name):
+def model_tree(model_instance, checkpoint_number, module_name, action_type_name, verbose):
 	"""
 	Returns a model string of the model name to be loaded
 	Updates .instance files so subsequent models will have unique ID's
@@ -15,7 +16,27 @@ def model_tree(model_instance, module_name, action_type_name):
 	'head' is returned if no model name exists
 	:return string: filepath (not including log file) of instance to be read
 	"""
-	print("Called model tree with arguments: {}, {}, {}".format(model_instance, module_name, action_type_name))
+	print("Calling model tree with arguments: {}, {}, {}".format(model_instance, module_name, action_type_name))
+	instance_path = './' + action_type_name + '/' + module_name + '.logs/' + model_instance + '.instance'
+	
+	is_Instance = os.path.isfile(instance_path)
+	if is_Instance:
+		if verbose:
+			print("Branching off of {}".format(instance_path))
+		with open(instance_path, 'r') as instance:
+			instance_num = int(instance.read())
+			instance.close()
+		with open(instance_path, 'w') as instance:
+			instance.write(str(instance_num+1))
+			new_instance_path = instance_path + "-" + str(instance_num)
+			print(instance_num)
+			print(new_instance_path)
+			instance.close()
+		if verbose:
+			print("Creating new instance {}".format(new_instance_path))
+	else:
+		print("Path: {} is not a valid instance".format(instance_path))
+		# instance_path = action_type_name + '/' + module_name + '.logs/head.instance'
 
 	return
 	

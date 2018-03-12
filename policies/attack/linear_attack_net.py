@@ -20,7 +20,7 @@ class LinearAttackNet():
 	Class to hold a linear neural network
 	Will be used to learn Attacks in RISK
 	"""
-	def __init__(self,num_territories, is_training=False, model_instance='', checkpoint_number=-1):
+	def __init__(self,num_territories, is_training=False, model_instance='head', checkpoint_number=-1, verbose=True):
 		"""
 		Creates a session of the tensorflow graph defined in this module
 		:param num_territories: int required, will throw error if does not agree 
@@ -40,13 +40,10 @@ class LinearAttackNet():
 		config = tf.ConfigProto(gpu_options=gpu_ops)
 		self.sess = tf.Session(config=config)
 
-		self.model_instance = model_instance
 		self.module_string = 'linear_attack_net'
 		self.action_type_string = 'attack'
 
 		# Add ./policies folder to path for model_tree
-		print("calling model tree")
-		restore_path = model_tree(self.model_instance, self.module_string, self.action_type_string)
-		print("exited model tree")
+		restore_path = model_tree(model_instance, checkpoint_number, self.module_string, self.action_type_string, verbose)
 
 		return
