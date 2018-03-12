@@ -15,7 +15,7 @@ import os
 # GLOBAL_NAME = 'I IS A GLOB'
 # print(GLOBAL_NAME)
 
-def model_tree(model_instance, checkpoint_number, module_name, action_type_name, verbose):
+def model_tree(model_instance, module_name, action_type_name, verbose):
 	"""
 	Returns a model string of the model name to be loaded
 	Updates .instance files so subsequent models will have unique ID's
