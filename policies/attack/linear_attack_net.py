@@ -10,17 +10,22 @@ import matplotlib.pyplot as plt
 import os, sys
 
 
-
+# Define Root directory
+# TODO: figure out best way to do this
+# TODO: Until then, this must be run from the root directory of the project
 import repackage
-repackage.up(2)
+repackage.up(1)
+# statement below appears to re-run from inner directory
+# from risk_definitions import ROOT_DIR
 from policies.model_tree import model_tree
+
 
 class LinearAttackNet():
 	"""
 	Class to hold a linear neural network
 	Will be used to learn Attacks in RISK
 	"""
-	def __init__(self,num_territories, is_training=False, model_instance='head', checkpoint_number=-1, verbose=True):
+	def __init__(self,num_territories, is_training=False, model_instance='0', checkpoint_number=-1, verbose=True):
 		"""
 		Creates a session of the tensorflow graph defined in this module
 		:param num_territories: int required, will throw error if does not agree 

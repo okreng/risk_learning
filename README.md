@@ -156,11 +156,17 @@ Player types are strings
 These are for specifying which policies are being run by the different players
 
 
+## Log directories
+Whenever creating a new policy class which contains a network, create a log directory
+called <module>.logs in the same folder as the module
+Also create a 0.instance file with '0' as the only content
+This is the head that other instance files will branch off of
+
 ## .instance files 
 These files are made to hold unique ID's of models
 .instance files are kept in log directories
 These codify a tree structure for model growth
-The head.instance file is the base from which new models branch
+The .instance file is the base from which new models branch
 Each file contains a single number that will be the unique ID of the next model built off that one
 Newly constructed models built off existing models will have the structure:
 c1-c2-c3 where c1 is the number from the tree base
