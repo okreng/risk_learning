@@ -10,32 +10,44 @@ import random
 
 global MAX_ARMIES #max armies per player
 
-def random_allot(state_vector):
+class RandomAllot():
 	"""
-	Function for executing maximum battle success
-	:param state_vector: np-array 1D vector of armies on territory
-	:return action_vector: np-array 1D vector of edges to attack along
+	Class to hold the maximum success policy
 	"""
+	def __init__(self):
+		"""
+		Empty constructor so MaxSuccess can be held as an object
+		:params: none
+		:return : none
+		"""
+		return
+
+	def enact_policy(state_vector):
+		"""
+		Function for executing maximum battle success
+		:param state_vector: np-array 1D vector of armies on territory
+		:return action_vector: np-array 1D vector of edges to attack along
+		"""
 
 
-	T = len(state_vector)
-	# Leaving edge_matrix in as a visualization
-	# edge_matrix[row, col] = action_vector[row*T + col]
-	# edge_matrix = np.zeros((T,T), dtype=int)
-	
-	action_vector = np.random.rand(T)	
+		T = len(state_vector)
+		# Leaving edge_matrix in as a visualization
+		# edge_matrix[row, col] = action_vector[row*T + col]
+		# edge_matrix = np.zeros((T,T), dtype=int)
+		
+		action_vector = np.random.rand(T)	
 
-	# Code below will work but is unnecessary
-	# Since action_vector can be naive to game validity, a random vector will suffice
-	# action_vector = np.zeros(T, dtype=int)
-	# valid_terrs = []
-	# for terr in range(T):
-	# 	if state_vector[terr] > 0:
-	# 		valid_terrs.append(terr)
+		# Code below will work but is unnecessary
+		# Since action_vector can be naive to game validity, a random vector will suffice
+		# action_vector = np.zeros(T, dtype=int)
+		# valid_terrs = []
+		# for terr in range(T):
+		# 	if state_vector[terr] > 0:
+		# 		valid_terrs.append(terr)
 
-	# allot_choice = random.choice(valid_terrs)
-	# action_vector[allot_choice] = 1
+		# allot_choice = random.choice(valid_terrs)
+		# action_vector[allot_choice] = 1
 
-	return action_vector
+		return action_vector
 
-	
+		

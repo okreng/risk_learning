@@ -30,8 +30,10 @@ class RiskGame():
 			if verbose:
 				print("Created inactive player: {}".format(player_id))
 
+		global MAX_ARMIES_PER_PLAYER
+		MAX_ARMIES_PER_PLAYER = 42
 
-
+		return
 
 	def random_start(self, verbose):
 		"""

@@ -14,8 +14,8 @@ def parse_arguments():
 	# This function helps main read command line arguments
 	parser = argparse.ArgumentParser(description=
 		'Risk Environment Argument Parser')
-	parser.add_argument('--dir',dest='directory',type=str)
-	parser.add_argument('--pol',dest='policy',type=str)
+	parser.add_argument('--module',dest='module',type=str)
+	parser.add_argument('--class',dest='policy',type=str)
 	return parser.parse_args()
 
 def main(args):
@@ -28,12 +28,13 @@ def main(args):
 
 	#import attack.max_success as pol0
 	args = parse_arguments()
-	directory = args.directory
-	policy_string = args.policy
-	module_name = directory + '.' + policy_string
-	policy_module = importlib.import_module(module_name, package=None)
-	policy = getattr(policy_module, policy_string)
+	module = args.module
+	policy_class = args.policy
 
+	policy_module = importlib.import_module(module, package=None)
+	policy_obj = getattr(policy_module, policy_class)
+
+	print(policy_obj)
 
 	# Define a list of state vectors
 	s_v_list = []
@@ -46,11 +47,11 @@ def main(args):
 
 
 	# Begin test
-	print("Testing policy {}".format(module_name))
+	print("Testing policy {}".format(module))
 	for s_v in s_v_list:
 		print("State : {}".format(s_v))
 		print("Action:")
-		print(policy(s_v))
+		print(policy_obj.enact_policy(s_v))
 		print("\n")
 	return
 

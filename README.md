@@ -140,7 +140,7 @@ I am keen to discuss the responsibilities of our env class, game class, and agen
 More TODO's in the code itself btw.
 
 Other file types:
-##.risk files
+## .risk files
 .risk files are kept in the boards directory
 The file structure is as follows:
 <territory_0_name>: <neighbor_1_name>, <neighbor_2_name>, ..., <neighbor_N_name>
@@ -148,7 +148,7 @@ The file structure is as follows:
 <territory_T_name>: ...
 Borders do not have to be defined in both directions, but it is recommended
 
-##.mu files
+## .mu files
 .mu (matchup) files are kept in the matchups directory
 The file structure is as follows:
 <player_1_type>, <player_2_type>, ... <player_P_type>,
@@ -156,3 +156,18 @@ Player types are strings
 These are for specifying which policies are being run by the different players
 
 
+## Log directories
+Whenever creating a new policy class which contains a network, create a log directory
+called <module>.logs in the same folder as the module
+Also create a 0.instance file with '0' as the only content
+This is the head that other instance files will branch off of
+
+## .instance files 
+These files are made to hold unique ID's of models
+.instance files are kept in log directories
+These codify a tree structure for model growth
+The .instance file is the base from which new models branch
+Each file contains a single number that will be the unique ID of the next model built off that one
+Newly constructed models built off existing models will have the structure:
+c1-c2-c3 where c1 is the number from the tree base
+These save a single number that indicates the number of models built off the tree head
