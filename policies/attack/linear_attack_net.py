@@ -55,73 +55,34 @@ class LinearAttackNet():
 		self.nA = nS**2  # Specific to this state-action representation
 		nA = self.nA
 
-		# the graph itself is here:
-		# features = tf.placeholder(dtype = tf.int32, shape = [None, nS])
-		# act = tf.placeholder(dtype = tf.float32, shape = [None, self.nA])
+		# Define the graph
 
-		# # Labels will be set using TD(0) learning in most cases
-		# labels = tf.placeholder(dtype = tf.float32, shape = [None, self.nA])
-
-		# # This will be the mask of which action was actually performed
-		# loss_weights = tf.placeholder(dtype = tf.int32, shape = [None, self.nA])
-
-		# hidden_layer = tf.layers.dense(inputs = features, units = nS, activation = None, use_bias = True, name = 'hidden_layer')
-		# output = tf.layers.dense(inputs = hidden_layer, units = self.nA, activation = None, use_bias = True, name = 'output')
-
-		# # TODO: Determine what is the best loss function
-		# loss = tf.losses.mean_squared_error(labels=labels, predictions=output, weights=loss_weights)
-
-		# print(tf.trainable_variables())
-
-		# TODO: Define good learning rates
-		# optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate)
-		# train_op = optimizer.minimize(loss = loss, global_step = tf.train.get_global_step())
-
-
-
-
-		# features = tf.reshape(features_,[1,nS])
-		features = tf.placeholder(dtype = tf.float32, shape = [1, nS])
+		features = tf.placeholder(dtype = tf.float32, shape = [None, nS])
 		act = tf.placeholder(dtype = tf.int32)
-		labels = tf.placeholder(dtype = tf.float32, shape = [1, nA])
-		loss_weights = tf.placeholder(dtype = tf.float32, shape = [1, nA])
-		
-		# W = tf.Variable(tf.random_uniform([nS,nA], 0, 0.01))
-		# output = tf.matmul(features, W)
 
-		####### Model #######
-		# TODO: CHECK THE MODEL SOMETHING PROBABLY WRONG!
+		# Labels will be set using TD(0) learning
+		labels = tf.placeholder(dtype = tf.float32, shape = [None, self.nA])
+
+		# mask of action performed to backpropagate
+		loss_weights = tf.placeholder(dtype = tf.float32, shape = [None, self.nA])
 
 		# Input layer
 		input_layer = features # tf.reshape(features_, [-1, 1])
 
 		# Dense Layer
-		# dense = tf.layers.dense(inputs = input_layer, units = nS, activation = None, name = 'dense')
-		dense1 = tf.layers.dense(inputs = input_layer, units = 32, activation = tf.nn.relu, name = 'dense1', use_bias=True)
-		dense2 = tf.layers.dense(inputs = dense1, units = 32, activation = tf.nn.relu, name='dense2', use_bias=True)
-		dense3 = tf.layers.dense(inputs = dense2, units = 32, activation = tf.nn.relu, name='dense3', use_bias=True)
-		# dense4 = tf.layers.dense(inputs=dense3, units=256, activation=tf.nn.relu, name='dense4', use_bias=True)
-
+		dense = tf.layers.dense(inputs = input_layer, units = nS, activation = None, use_bias = True, name = 'dense')
+	
 		# Output Layer
-		output = tf.layers.dense(inputs = dense3, units = nA, name = 'output')
+		output = tf.layers.dense(inputs = dense, units = nA, use_bias = True, name = 'output')
 		
 		#####################
-
-		# predict = output[0, act]
-		# predict_ = tf.reshape(predict, [1,1])
-		# labels_ = output
-		# labels_[0, act] = labels
 		loss = tf.losses.mean_squared_error(labels=labels, predictions=output, weights=loss_weights)
 
 		# optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.0001)
-		optimizer = tf.train.AdamOptimizer(learning_rate = 0.0001)
 
-		
-
-
-
-
-
+		# TODO: Define good learning rate
+		optimizer = tf.train.AdamOptimizer(learning_rate = 0.001)
+		train_op = optimizer.minimize(loss = loss, global_step = tf.train.get_global_step())
 
 
 
