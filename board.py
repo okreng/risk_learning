@@ -33,7 +33,6 @@ class Territory:
         self.continent = continent
         self.num_armies = 0
         self.owner = None
-        self.max_armies_per_territory = 30
 
     def add_armies(self, num_armies):
         """
@@ -43,13 +42,8 @@ class Territory:
 
         :return int Num armies not added
         """
-        num_over_limit = (self.num_armies + num_armies) - self.max_armies_per_territory
-        if num_over_limit <= 0:
-            self.num_armies += num_armies
-            return 0
-        else:
-            self.num_armies = self.max_armies_per_territory
-            return num_over_limit
+        self.num_armies = num_armies
+        return 0
 
     def remove_armies(self, num_armies):
         """

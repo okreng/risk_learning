@@ -1,11 +1,13 @@
 from abc import ABC, abstractmethod
+from board import Territory
 
-
-class Agent(ABC):
+class Player(ABC):
 
     @abstractmethod
     def get_attacks(self, valid):
-        """ Decide what to attack """
+        """ Decide what to attack
+        :return (Territory, Territory): (territory to attack from, territory to attack)
+        """
         return
 
     @abstractmethod
@@ -15,5 +17,8 @@ class Agent(ABC):
 
     @abstractmethod
     def get_allotments(self, valid):
-        """ Should return tuple of (territory, num_to_allot) """
+        """ Should return tuple of (territory, num_to_allot)
+            :return (Territory, int)
+        """
+
         return
