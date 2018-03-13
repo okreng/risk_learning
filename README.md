@@ -6,7 +6,7 @@ Spring 2018
 
 This project attempts to learn "Risk" (board game) strategy through reinforcement learning methods.  
 
-
+## TODO: create territory:border dict in game and update policies to use as action space
 
 --------------------- Coding and Data Management Standards ----------------------------
 
