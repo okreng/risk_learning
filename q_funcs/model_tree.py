@@ -46,7 +46,7 @@ def model_tree(model_instance, module_name, action_type_name, verbose):
 			if verbose:
 				print("Creating new folder {}".format(new_instance_path))
 		else:
-			print("Folder already exists, aborting attempt to overwrite data")
+			print("Folder already exists, aborting attempt to overwrite data, check network")
 			exit()
 
 	else:

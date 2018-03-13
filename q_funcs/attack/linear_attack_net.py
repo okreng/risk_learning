@@ -22,25 +22,25 @@ import os, sys
 import repackage
 repackage.up(1)
 from model_tree import model_tree
-##### Working from root directory #####
+##### End Working from root directory #####
 
 class LinearAttackNet():
 	"""
 	Class to hold a linear neural network
 	Will be used to learn Attacks in RISK
 	"""
-	def __init__(self, nS, model_instance='0', checkpoint_number=-1, learning_rate = 0.001, verbose=True):
+	def __init__(self, nS, model_instance='0', checkpoint_index=-1, learning_rate = 0.001, verbose=True):
 		"""
 		Creates a session of the tensorflow graph defined in this module
-		:param num_territories: int required, will throw error if does not agree 
+		:param nS: int required, will throw error if does not agree, the number of territories on the graph
 		with model/checkpoint, this one number fully defines state and action space
-		:param is_training: boolean whether to backpropagate and learn or use the model to predict
 		:param model_instance: string Which model_instance to load.  
 		The num.instance file will hold the next instance number
 		If this parameter is not specified a new random model will be instantiated under 0.instance
-		:param chekpoint_number: int the checkpoint number to load from
-		Defaults to latest checkpoint if model_instance is specified, otherwise no load is performed
+		:param chekpoint_index: int the checkpoint index in the checkpoint file of all_model_checkpoint_paths
+		Defaults to latest checkpoint
 		:return success: boolean whether the model could be loaded as specified
+
 		"""
 
 		# TODO: Check what other options are good for running multiple networks simultaneously
@@ -54,10 +54,16 @@ class LinearAttackNet():
 
 		self.module_string = 'linear_attack_net'
 		self.action_type_string = 'attack'
+		self.num_updates = 0
+		self.last_save = 0
+		self.exact_load = True
 
-		save_path, restore_path = model_tree(model_instance, self.module_string, self.action_type_string, verbose)
-		print ('save_path is {}'.format(save_path))
-		print ('restore_path is {}'.format(restore_path))
+		self.save_path, self.restore_path = model_tree(model_instance, self.module_string, self.action_type_string, verbose)
+
+		############ DO NOT DELETE - Valuable in the event of overwrite ###########
+		# print ('save_path is {}'.format(save_path))
+		# print ('restore_path is {}'.format(restore_path))
+		############ End DO NOT DELETE #######################
 
 		self.nS = nS
 		self.nA = nS**2 + 1  # Specific to this state-action representation
@@ -95,11 +101,34 @@ class LinearAttackNet():
 		# TODO: Load specified checkpoint, default to latest
 		# self.saver.restore(restore_path + '.checkpoint ')
 
+		# Load model
 		if not (model_instance is '0'):  # Not random initialization
-			self.saver.restore(restore_path)
+			ckpt = tf.train.get_checkpoint_state(self.restore_path)
+			if ckpt and ckpt.model_checkpoint_path:
+				if checkpoint_index == -1:
+					if verbose:
+						print("Loading model: ", ckpt.model_checkpoint_path)
+					self.saver.restore(self.sess, ckpt.model_checkpoint_path)
+				else:
+					if (checkpoint_index < len(all_model_checkpoint_paths)):
+						if verbose:
+							print("Loading model: ", ckpt.all_model_checkpoint_paths[checkpoint_index])
+						self.saver.restore(self.sess, ckpt.all_model_checkpoint_paths[checkpoint_index])
+					else:
+						print("Checkpoint index did not exist, random initialization")
+						self.exact_load = False
+			else:
+				print("Failed to load model from {}: random initialization".format(self.restore_path))
+				self.exact_load = False  
+
+		# Save first copy of model 
+		self.checkpoint_path = self.save_path + '/model.ckpt'
+		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+		if verbose:
+			print("Saved first copy in: {}".format(self.checkpoint_path))
 
 
-		return
+		return # False indicates the model was randomly initialized
 
 	def call_Q(self, state_vector, is_training=False, action_taken=0, target=0, loss_weights=None):
 		"""
@@ -114,5 +143,6 @@ class LinearAttackNet():
 		if not is_training:
 			return self.sess.run([self.output], feed_dict={self.features:state_vector})
 		else:
+			self.updates += 1
 			_, q_function, loss = self.sess.run([train_op, self.output, self.loss], feed_dict={self.features:state_vector, self.act: action_taken, self.labels:target, self.loss_weights:loss_weights})
-			return q_function
+			return q_function, loss

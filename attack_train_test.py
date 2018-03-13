@@ -28,7 +28,7 @@ def main(args):
 	state_vector = np.reshape(state_vector, (1, -1))
 
 	######### Hyperparameters  ########3
-	model_instance = '0-5'
+	model_instance = '0-5-9'
 	checkpoint_number = -1
 	learning_rate = 0.001
 
