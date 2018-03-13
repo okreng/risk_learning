@@ -77,14 +77,14 @@ Maintain clarity with large equations
 ## Exceptions:
 Mark in-progress code as TODO above working section, as TODO is caught by pycharm 
 e.g.
-
+```[python]
 #TODO: change output nums ########
 # output = 6
 output = 7
+```
 
 
-
-------------------------Project Description----------------------------
+# Project Description
 
 ## risk_graph.py:
 risk_graph file defines Four classes:
