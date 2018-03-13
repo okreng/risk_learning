@@ -44,6 +44,9 @@ class LinearAttackNet():
 		# Setting the session to allow growth, so it doesn't allocate all GPU memory. 
 		gpu_ops = tf.GPUOptions(allow_growth=True)
 		config = tf.ConfigProto(gpu_options=gpu_ops)
+
+		tf.reset_default_graph()
+
 		self.sess = tf.Session(config=config)
 
 		self.module_string = 'linear_attack_net'

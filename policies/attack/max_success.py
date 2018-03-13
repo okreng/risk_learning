@@ -67,16 +67,18 @@ class MaxSuccess():
 		pass_value = army_offset - 1
 
 
-		T = len(state_vector)
+		T = len(state_vector[0])
 		# Leaving edge_matrix in as a visualization
 		# edge_matrix[row, col] = action_vector[row*T + col]
 		# edge_matrix = np.zeros((T,T), dtype=int)
 		action_vector = np.zeros((T**2 + 1), dtype=int)
 
+
+		# Can assume state_vector will be a (None, nS) length vector
 		for terr_row in range(T):
 			for terr_col in range(T):
-				terr_row_armies = state_vector[terr_row]
-				terr_col_armies = state_vector[terr_col]
+				terr_row_armies = state_vector[0, terr_row]
+				terr_col_armies = state_vector[0, terr_col]
 				if np.sign(terr_row_armies) == np.sign(terr_col_armies): # Can't attack yourself!
 					# edge_matrix[terr_row, terr_col] = 0
 					action_vector[terr_row*T + terr_col] = 0

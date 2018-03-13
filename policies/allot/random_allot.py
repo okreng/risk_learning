@@ -30,7 +30,7 @@ class RandomAllot():
 		"""
 
 
-		T = len(state_vector)
+		T = len(state_vector[0])
 		# Leaving edge_matrix in as a visualization
 		# edge_matrix[row, col] = action_vector[row*T + col]
 		# edge_matrix = np.zeros((T,T), dtype=int)
