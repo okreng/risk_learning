@@ -29,12 +29,10 @@ def main(args):
 	#import attack.max_success as pol0
 	args = parse_arguments()
 	module = args.module
-	policy_class = args.policy
+	policy = args.policy
 
 	policy_module = importlib.import_module(module, package=None)
-	policy_obj = getattr(policy_module, policy_class)
-
-	print(policy_obj)
+	policy_class = getattr(policy_module, policy)
 
 	# Define a list of state vectors
 	s_v_list = []
@@ -49,6 +47,8 @@ def main(args):
 	# Begin test
 	print("Testing policy {}".format(module))
 	for s_v in s_v_list:
+		policy_obj = policy_class(len(s_v))
+		s_v = np.reshape(s_v, (1, -1))
 		print("State : {}".format(s_v))
 		print("Action:")
 		print(policy_obj.enact_policy(s_v))

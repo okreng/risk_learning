@@ -2,6 +2,7 @@
 This file contains the class LinearAttackNet which implements policies based on a linear neural net
 This is a simple net designed to be easy to train
 Once this net is developed and works on simple models, deeper nets will be developed
+The action_vector outputted is equivalent to a Q-function that will be learned
 """
 
 import numpy as np
@@ -13,11 +14,11 @@ import os, sys
 # Define Root directory
 # TODO: figure out best way to do this
 # TODO: Until then, this must be run from the root directory of the project
-import repackage
-repackage.up(1)
-# statement below appears to re-run from inner directory
-# from risk_definitions import ROOT_DIR
-from policies.model_tree import model_tree
+# import repackage
+# repackage.up(1)
+# # statement below appears to re-run from inner directory
+# # from risk_definitions import ROOT_DIR
+# from policies.model_tree import model_tree
 
 
 class LinearAttackNet():
@@ -48,46 +49,62 @@ class LinearAttackNet():
 		self.module_string = 'linear_attack_net'
 		self.action_type_string = 'attack'
 
-		restore_path = model_tree(model_instance, self.module_string, self.action_type_string, verbose)
+		# restore_path = model_tree(model_instance, self.module_string, self.action_type_string, verbose)
 		# print (restore_path)
 
 		self.nS = nS
-		self.nA = nS**2  # Specific to this state-action representation
-		nA = self.nA
+		self.nA = nS**2 + 1  # Specific to this state-action representation
 
 		# Define the graph
 
-		features = tf.placeholder(dtype = tf.float32, shape = [None, nS])
-		act = tf.placeholder(dtype = tf.int32)
+		self.features = tf.placeholder(dtype = tf.float32, shape = [None, self.nS])
+		self.act = tf.placeholder(dtype = tf.int32)
 
 		# Labels will be set using TD(0) learning
-		labels = tf.placeholder(dtype = tf.float32, shape = [None, self.nA])
+		self.labels = tf.placeholder(dtype = tf.float32, shape = [None, self.nA])
 
 		# mask of action performed to backpropagate
-		loss_weights = tf.placeholder(dtype = tf.float32, shape = [None, self.nA])
+		self.loss_weights = tf.placeholder(dtype = tf.float32, shape = [None, self.nA])
 
 		# Input layer
-		input_layer = features # tf.reshape(features_, [-1, 1])
+		# self.input_layer = features # tf.reshape(features_, [-1, 1])
 
 		# Dense Layer
-		dense = tf.layers.dense(inputs = input_layer, units = nS, activation = None, use_bias = True, name = 'dense')
+		self.dense = tf.layers.dense(inputs = self.features, units = self.nS, activation = None, use_bias = True, name = 'dense')
 	
 		# Output Layer
-		output = tf.layers.dense(inputs = dense, units = nA, use_bias = True, name = 'output')
+		self.output = tf.layers.dense(inputs = self.dense, units = self.nA, use_bias = True, name = 'output')
 		
 		#####################
-		loss = tf.losses.mean_squared_error(labels=labels, predictions=output, weights=loss_weights)
+		self.loss = tf.losses.mean_squared_error(labels=self.labels, predictions=self.output, weights=self.loss_weights)
 
 		# optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.0001)
 
 		# TODO: Define good learning rate
-		optimizer = tf.train.AdamOptimizer(learning_rate = 0.001)
-		train_op = optimizer.minimize(loss = loss, global_step = tf.train.get_global_step())
+		self.optimizer = tf.train.AdamOptimizer(learning_rate = 0.001)
+		self.train_op = self.optimizer.minimize(loss = self.loss, global_step = tf.train.get_global_step())
 
-
+		self.sess.run(tf.global_variables_initializer())
 
 		self.saver = tf.train.Saver()
 
-
+		# TODO: Load specified checkpoint, default to latest
+		# self.saver.restore(restore_path + '.checkpoint ')
 
 		return
+
+	def enact_policy(self, state_vector, is_training=False, action_taken=0, target=0, loss_weights=None):
+		"""
+		This policy will output the action specified by the function approximator
+		:param state_vector: int the state of the board
+		:param is_training: boolean whether to backpropagate
+		:param reward: 
+		:return action_vector: float The Q-function outputted by the network
+		"""
+		# print(is_training)
+
+		if not is_training:
+			return self.sess.run([self.output], feed_dict={self.features:state_vector})
+		else:
+			_, q_function, loss = self.sess.run([train_op, self.output, self.loss], feed_dict={self.features:state_vector, self.act: action_taken, self.labels:target, self.loss_weights:loss_weights})
+			return q_function

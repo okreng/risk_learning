@@ -19,7 +19,7 @@ class RandomFortify():
 	"""
 	Class to hold the maximum success policy
 	"""
-	def __init__(self):
+	def __init__(self, T):
 		"""
 		Empty constructor so MaxSuccess can be held as an object
 		:params: none
@@ -27,7 +27,7 @@ class RandomFortify():
 		"""
 		return
 
-	def enact_policy(state_vector):
+	def enact_policy(self, state_vector):
 		"""
 		Function for executing maximum battle success
 		:param state_vector: np-array 1D vector of armies on territory

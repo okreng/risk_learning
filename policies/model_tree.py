@@ -5,15 +5,10 @@ This module holds the function for creating and loading models
 import sys
 import os
 
-
 # TODO: figure out general way to do this
 # import repackage
 # repackage.up(1)
 # from risk_definitions import ROOT_DIR
-
-# Testing purposes
-# GLOBAL_NAME = 'I IS A GLOB'
-# print(GLOBAL_NAME)
 
 def model_tree(model_instance, module_name, action_type_name, verbose):
 	"""
