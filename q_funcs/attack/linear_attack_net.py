@@ -14,12 +14,15 @@ import os, sys
 # Define Root directory
 # TODO: figure out best way to do this
 # TODO: Until then, this must be run from the root directory of the project
-# import repackage
-# repackage.up(1)
 # # statement below appears to re-run from inner directory
 # # from risk_definitions import ROOT_DIR
-# from policies.model_tree import model_tree
 
+
+##### Working from root directory #####
+import repackage
+repackage.up(1)
+from model_tree import model_tree
+##### Working from root directory #####
 
 class LinearAttackNet():
 	"""
@@ -69,10 +72,7 @@ class LinearAttackNet():
 		# mask of action performed to backpropagate
 		self.loss_weights = tf.placeholder(dtype = tf.float32, shape = [None, self.nA])
 
-		# Input layer
-		# self.input_layer = features # tf.reshape(features_, [-1, 1])
-
-		# Dense Layer
+		# Single hidden Layer
 		self.dense = tf.layers.dense(inputs = self.features, units = self.nS, activation = None, use_bias = True, name = 'dense')
 	
 		# Output Layer
@@ -93,6 +93,7 @@ class LinearAttackNet():
 
 		# TODO: Load specified checkpoint, default to latest
 		# self.saver.restore(restore_path + '.checkpoint ')
+
 
 		return
 
