@@ -31,14 +31,32 @@ def main(args):
 	model_instance = '0'
 	checkpoint_number = -1
 	learning_rate = 0.001
-
 	verbose = True
 
 	agent = linear_attack_net.LinearAttackNet(T, model_instance, checkpoint_number, learning_rate)
-
-
 	opponent = max_success.MaxSuccess(T)
 
+	game_state = np.random.random_integers(1,12,size=(2))
+	enemy_territory = np.random.random_integers(0,1)
+	game_state[enemy_territory] = -game_state[enemy_territory]
+	game_state = np.reshape(game_state,(1,-1))
+
+	whose_turn = np.random.random_integers(0,1)
+	winner = -1
+
+	print(game_state)
+
+	while(winner == -1):
+
+		# Opponent strategy
+		while whose_turn == 1:
+			action = opponent.call_Q(game_state)
+			if action[1] > action[-1]: 
+				attack(enemy_territory)
+			else:
+				whose_turn = 0
+
+		# if 
 
 
 
