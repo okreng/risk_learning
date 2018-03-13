@@ -21,7 +21,7 @@ def model_tree(model_instance, module_name, action_type_name, verbose):
 	:return bool: whether the model_instance existed
 	:return string: filepath (not including log file) of new instance to be written
 	"""
-	instance_path = './policies/' + action_type_name + '/' + module_name + '.logs/' + model_instance
+	instance_path = './q_funcs/' + action_type_name + '/' + module_name + '.logs/' + model_instance
 	
 	is_Instance = os.path.isfile(instance_path + '.instance')
 	if is_Instance:
@@ -41,11 +41,18 @@ def model_tree(model_instance, module_name, action_type_name, verbose):
 		with open(new_instance_path + '.instance', 'w+') as new_instance:
 			new_instance.write(str(0))
 			new_instance.close()
+		if not os.path.exists(new_instance_path):
+			os.makedirs(new_instance_path)
+			if verbose:
+				print("Creating new folder {}".format(new_instance_path))
+		else:
+			print("Folder already exists, aborting attempt to overwrite data")
+			exit()
 
 	else:
-		print("Path: {} is not a valid instance".format(instance_path))
+		print("Path: {}.instance is not a valid instance".format(instance_path))
 		return False
 		# instance_path = action_type_name + '/' + module_name + '.logs/head.instance'
 
-	return new_instance_path
+	return new_instance_path, instance_path
 	

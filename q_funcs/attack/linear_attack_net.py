@@ -55,8 +55,9 @@ class LinearAttackNet():
 		self.module_string = 'linear_attack_net'
 		self.action_type_string = 'attack'
 
-		# restore_path = model_tree(model_instance, self.module_string, self.action_type_string, verbose)
-		# print (restore_path)
+		save_path, restore_path = model_tree(model_instance, self.module_string, self.action_type_string, verbose)
+		print ('save_path is {}'.format(save_path))
+		print ('restore_path is {}'.format(restore_path))
 
 		self.nS = nS
 		self.nA = nS**2 + 1  # Specific to this state-action representation
@@ -84,7 +85,7 @@ class LinearAttackNet():
 		# optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.0001)
 
 		# TODO: Define good learning rate
-		self.optimizer = tf.train.AdamOptimizer(learning_rate = 0.001)
+		self.optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate)
 		self.train_op = self.optimizer.minimize(loss = self.loss, global_step = tf.train.get_global_step())
 
 		self.sess.run(tf.global_variables_initializer())
@@ -93,6 +94,9 @@ class LinearAttackNet():
 
 		# TODO: Load specified checkpoint, default to latest
 		# self.saver.restore(restore_path + '.checkpoint ')
+
+		if not (model_instance is '0'):  # Not random initialization
+			self.saver.restore(restore_path)
 
 
 		return

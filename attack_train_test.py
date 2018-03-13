@@ -27,7 +27,16 @@ def main(args):
 	T = len(state_vector)
 	state_vector = np.reshape(state_vector, (1, -1))
 
-	agent = linear_attack_net.LinearAttackNet(T)
+	######### Hyperparameters  ########3
+	model_instance = '0-5'
+	checkpoint_number = -1
+	learning_rate = 0.001
+
+	verbose = True
+
+	agent = linear_attack_net.LinearAttackNet(T, model_instance, checkpoint_number, learning_rate)
+
+
 	opponent = max_success.MaxSuccess(T)
 
 
