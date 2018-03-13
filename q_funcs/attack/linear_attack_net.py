@@ -1,5 +1,5 @@
 """
-This file contains the class LinearAttackNet which implements policies based on a linear neural net
+This file contains the class LinearAttackNet which calls Q functions based on a linear neural net
 This is a simple net designed to be easy to train
 Once this net is developed and works on simple models, deeper nets will be developed
 The action_vector outputted is equivalent to a Q-function that will be learned
@@ -96,9 +96,9 @@ class LinearAttackNet():
 
 		return
 
-	def enact_policy(self, state_vector, is_training=False, action_taken=0, target=0, loss_weights=None):
+	def call_Q(self, state_vector, is_training=False, action_taken=0, target=0, loss_weights=None):
 		"""
-		This policy will output the action specified by the function approximator
+		This Q function will output the action specified by the function approximator
 		:param state_vector: int the state of the board
 		:param is_training: boolean whether to backpropagate
 		:param reward: 
