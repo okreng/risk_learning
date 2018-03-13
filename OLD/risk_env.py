@@ -3,14 +3,10 @@ This file defines the environment in which an agent can play the Risk game
 # TODO: smart importing
 """
 
-import tensorflow as tf
-import numpy as np
-import random
-import time
-import matplotlib as plot
 import sys
 import argparse
-import risk_game as gm
+from OLD import risk_game as gm
+
 
 class RiskEnv():
 	"""

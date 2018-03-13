@@ -1,7 +1,13 @@
 from abc import ABC, abstractmethod
 from board import Territory
 
+
 class Player(ABC):
+    def __init__(self):
+        """
+        Initializes variables all subclasses of player should have
+        """
+        self.unallocated_armies = 0
 
     @abstractmethod
     def get_attacks(self, valid):

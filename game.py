@@ -1,7 +1,7 @@
 from board import Board, Territory
 from player import Player
 import math
-from random import shuffle
+from random import shuffle, randint
 
 
 class Game:
@@ -12,14 +12,13 @@ class Game:
         self.num_armies = int(math.floor(num_armies/len(agents)))
 
         self.agent_to_territories = {}  # type: dict(Player, [Territory])
-        self.max_armies_per_territory = 30
 
         # gameplay flags
         self. distributed = False
 
     def __allot(self):
         for player in self.player:
-            valid_allotments = [(territory, self.max_armies_per_territory - territory.num_armies)
+            valid_allotments = [(territory, self.player.unallocated_armies)
                                 for territory in self.agent_to_territories[player]]
             allotments = player.get_allotments(valid_allotments)
             for territory, num_armies in allotments:
@@ -46,10 +45,35 @@ class Game:
         :return:
         """
         for player in self.player:
+            # Player must have at least 2 armies in territory to attack
+            #TODO: generate valid attacks
             valid_attacks = []
             attacks = player.get_attacks(valid_attacks)
-            for territory_from, territory_to in attacks:
-                pass
+            for territory_from, territory_to in attacks:  # type: Territory, Territory
+                num_attacking = min(territory_from.num_armies - 1, 3)  # Leave one army behind in home
+                num_defending = min(min(territory_to.num_armies, 2), num_attacking)
+                attacking_dice = [randint(1, 6) for _ in range(num_attacking)].sort(reverse=True)  # Highest to lowest
+                defending_dice = [randint(1, 6) for _ in range(num_defending)].sort(reverse=True)
+
+                for i in range(num_defending):
+                    if attacking_dice[i] > defending_dice[i]:  # attacker is higher
+                        territory_to.num_armies -= 1
+                        # Check if territory is defeated
+                        # If territory is defeated, switch owner,
+                        if territory_to.num_armies <= 0:
+                            territory_to.owner = player
+                            territory_to.num_armies = num_attacking
+                            territory_from.num_armies -= num_attacking
+                    else:
+                        territory_from.num_armies -= 1
+
+
+
+
+
+
+
+
 
 
 
