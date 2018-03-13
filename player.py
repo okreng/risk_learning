@@ -18,7 +18,9 @@ class Player(ABC):
 
     @abstractmethod
     def get_fortifications(self, valid):
-        """ Decide where to fortify"""
+        """ Decide where to fortify
+            :return (Territory, Territory, int): (territory_from, territory_to, num to add)
+        """
         return
 
     @abstractmethod

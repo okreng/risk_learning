@@ -67,6 +67,21 @@ class Game:
                     else:
                         territory_from.num_armies -= 1
 
+    def __fortify(self):
+        """
+        Executes fortification round
+        :return:
+        """
+        for player in self.player:
+            #TODO generate valid fortifications
+            valid_fortifications = []
+            fortifications = player.get_fortifications(valid_fortifications)
+            for territory_from, territory_to, num in fortifications:  # type: Territory, Territory, int
+                territory_from -= num
+                territory_to += num
+
+
+
 
 
 
