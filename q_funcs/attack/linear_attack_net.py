@@ -14,30 +14,33 @@ import os, sys
 # Define Root directory
 # TODO: figure out best way to do this
 # TODO: Until then, this must be run from the root directory of the project
-# import repackage
-# repackage.up(1)
 # # statement below appears to re-run from inner directory
 # # from risk_definitions import ROOT_DIR
-# from policies.model_tree import model_tree
 
+
+##### Working from root directory #####
+import repackage
+repackage.up(1)
+from model_tree import model_tree
+##### End Working from root directory #####
 
 class LinearAttackNet():
 	"""
 	Class to hold a linear neural network
 	Will be used to learn Attacks in RISK
 	"""
-	def __init__(self, nS, model_instance='0', checkpoint_number=-1, learning_rate = 0.001, verbose=True):
+	def __init__(self, nS, model_instance='0', checkpoint_index=-1, learning_rate = 0.001, verbose=True):
 		"""
 		Creates a session of the tensorflow graph defined in this module
-		:param num_territories: int required, will throw error if does not agree 
+		:param nS: int required, will throw error if does not agree, the number of territories on the graph
 		with model/checkpoint, this one number fully defines state and action space
-		:param is_training: boolean whether to backpropagate and learn or use the model to predict
 		:param model_instance: string Which model_instance to load.  
 		The num.instance file will hold the next instance number
 		If this parameter is not specified a new random model will be instantiated under 0.instance
-		:param chekpoint_number: int the checkpoint number to load from
-		Defaults to latest checkpoint if model_instance is specified, otherwise no load is performed
+		:param chekpoint_index: int the checkpoint index in the checkpoint file of all_model_checkpoint_paths
+		Defaults to latest checkpoint
 		:return success: boolean whether the model could be loaded as specified
+
 		"""
 
 		# TODO: Check what other options are good for running multiple networks simultaneously
@@ -47,13 +50,24 @@ class LinearAttackNet():
 
 		tf.reset_default_graph()
 
-		self.sess = tf.Session(config=config)
 
 		self.module_string = 'linear_attack_net'
 		self.action_type_string = 'attack'
+		self.num_updates = 0
+		self.next_save = 1
+		self.max_saves = 1000
+		self.exact_load = True
 
-		# restore_path = model_tree(model_instance, self.module_string, self.action_type_string, verbose)
-		# print (restore_path)
+		self.save_folder, self.restore_folder = model_tree(model_instance, self.module_string, self.action_type_string, verbose)
+
+		num_chars = len(model_instance)
+		if not (self.restore_folder[-num_chars:] is model_instance):
+			self.exact_load = False
+
+		############ DO NOT DELETE - Valuable in the event of overwrite ###########
+		# print ('save_folder is {}'.format(save_folder))
+		# print ('restore_folder is {}'.format(restore_folder))
+		############ End DO NOT DELETE #######################
 
 		self.nS = nS
 		self.nA = nS**2 + 1  # Specific to this state-action representation
@@ -69,10 +83,7 @@ class LinearAttackNet():
 		# mask of action performed to backpropagate
 		self.loss_weights = tf.placeholder(dtype = tf.float32, shape = [None, self.nA])
 
-		# Input layer
-		# self.input_layer = features # tf.reshape(features_, [-1, 1])
-
-		# Dense Layer
+		# Single hidden Layer
 		self.dense = tf.layers.dense(inputs = self.features, units = self.nS, activation = None, use_bias = True, name = 'dense')
 	
 		# Output Layer
@@ -84,17 +95,44 @@ class LinearAttackNet():
 		# optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.0001)
 
 		# TODO: Define good learning rate
-		self.optimizer = tf.train.AdamOptimizer(learning_rate = 0.001)
+		self.optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate)
 		self.train_op = self.optimizer.minimize(loss = self.loss, global_step = tf.train.get_global_step())
 
+		# Begin session, initialize variables
+		self.sess = tf.Session(config=config)
 		self.sess.run(tf.global_variables_initializer())
+		
+		# Create saver
+		self.saver = tf.train.Saver(max_to_keep=self.max_saves, keep_checkpoint_every_n_hours=1)
 
-		self.saver = tf.train.Saver()
+		# Load model
+		if not (model_instance is '0'):  # Not random initialization
+			ckpt = tf.train.get_checkpoint_state(self.restore_folder)
+			if ckpt and ckpt.model_checkpoint_path:
+				if checkpoint_index == -1:
+					if verbose:
+						print("Loading model: ", ckpt.model_checkpoint_path)
+					self.saver.restore(self.sess, ckpt.model_checkpoint_path)
+				else:
+					if (checkpoint_index < len(all_model_checkpoint_paths)):
+						if verbose:
+							print("Loading model: ", ckpt.all_model_checkpoint_paths[checkpoint_index])
+						self.saver.restore(self.sess, ckpt.all_model_checkpoint_paths[checkpoint_index])
+					else:
+						print("Checkpoint index did not exist, random initialization")
+						self.exact_load = False
+			else:
+				print("Failed to load model from {}: random initialization".format(self.restore_folder))
+				self.exact_load = False  
 
-		# TODO: Load specified checkpoint, default to latest
-		# self.saver.restore(restore_path + '.checkpoint ')
+		# Save first copy of model 
+		self.checkpoint_path = self.save_folder + '/model.ckpt'
+		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+		if verbose:
+			print("Saved first copy in: {}".format(self.checkpoint_path))
 
-		return
+
+		return # False indicates the model was randomly initialized
 
 	def call_Q(self, state_vector, is_training=False, action_taken=0, target=0, loss_weights=None):
 		"""
@@ -109,5 +147,9 @@ class LinearAttackNet():
 		if not is_training:
 			return self.sess.run([self.output], feed_dict={self.features:state_vector})
 		else:
+			self.num_updates += 1
 			_, q_function, loss = self.sess.run([train_op, self.output, self.loss], feed_dict={self.features:state_vector, self.act: action_taken, self.labels:target, self.loss_weights:loss_weights})
-			return q_function
+			if self.num_updates == self.next_save:
+				self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+				self.next_save += np.ceil(np.sqrt(self.num_updates))
+			return q_function, loss
