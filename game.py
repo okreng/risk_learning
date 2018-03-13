@@ -52,8 +52,8 @@ class Game:
             for territory_from, territory_to in attacks:  # type: Territory, Territory
                 num_attacking = min(territory_from.num_armies - 1, 3)  # Leave one army behind in home
                 num_defending = min(min(territory_to.num_armies, 2), num_attacking)
-                attacking_dice = [randint(1, 6) for _ in range(num_attacking)].sort(reverse=True)  # Highest to lowest
-                defending_dice = [randint(1, 6) for _ in range(num_defending)].sort(reverse=True)
+                attacking_dice = sorted([randint(1, 6) for _ in range(num_attacking)], reverse=True)
+                defending_dice = sorted([randint(1, 6) for _ in range(num_defending)], reverse=True)
 
                 for i in range(num_defending):
                     if attacking_dice[i] > defending_dice[i]:  # attacker is higher
