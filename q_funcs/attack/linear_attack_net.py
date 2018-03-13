@@ -50,19 +50,23 @@ class LinearAttackNet():
 
 		tf.reset_default_graph()
 
-		self.sess = tf.Session(config=config)
 
 		self.module_string = 'linear_attack_net'
 		self.action_type_string = 'attack'
 		self.num_updates = 0
-		self.last_save = 0
+		self.next_save = 1
+		self.max_saves = 1000
 		self.exact_load = True
 
-		self.save_path, self.restore_path = model_tree(model_instance, self.module_string, self.action_type_string, verbose)
+		self.save_folder, self.restore_folder = model_tree(model_instance, self.module_string, self.action_type_string, verbose)
+
+		num_chars = len(model_instance)
+		if not (self.restore_folder[-num_chars:] is model_instance):
+			self.exact_load = False
 
 		############ DO NOT DELETE - Valuable in the event of overwrite ###########
-		# print ('save_path is {}'.format(save_path))
-		# print ('restore_path is {}'.format(restore_path))
+		# print ('save_folder is {}'.format(save_folder))
+		# print ('restore_folder is {}'.format(restore_folder))
 		############ End DO NOT DELETE #######################
 
 		self.nS = nS
@@ -94,16 +98,16 @@ class LinearAttackNet():
 		self.optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate)
 		self.train_op = self.optimizer.minimize(loss = self.loss, global_step = tf.train.get_global_step())
 
+		# Begin session, initialize variables
+		self.sess = tf.Session(config=config)
 		self.sess.run(tf.global_variables_initializer())
-
-		self.saver = tf.train.Saver()
-
-		# TODO: Load specified checkpoint, default to latest
-		# self.saver.restore(restore_path + '.checkpoint ')
+		
+		# Create saver
+		self.saver = tf.train.Saver(max_to_keep=self.max_saves, keep_checkpoint_every_n_hours=1)
 
 		# Load model
 		if not (model_instance is '0'):  # Not random initialization
-			ckpt = tf.train.get_checkpoint_state(self.restore_path)
+			ckpt = tf.train.get_checkpoint_state(self.restore_folder)
 			if ckpt and ckpt.model_checkpoint_path:
 				if checkpoint_index == -1:
 					if verbose:
@@ -118,11 +122,11 @@ class LinearAttackNet():
 						print("Checkpoint index did not exist, random initialization")
 						self.exact_load = False
 			else:
-				print("Failed to load model from {}: random initialization".format(self.restore_path))
+				print("Failed to load model from {}: random initialization".format(self.restore_folder))
 				self.exact_load = False  
 
 		# Save first copy of model 
-		self.checkpoint_path = self.save_path + '/model.ckpt'
+		self.checkpoint_path = self.save_folder + '/model.ckpt'
 		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 		if verbose:
 			print("Saved first copy in: {}".format(self.checkpoint_path))
@@ -143,6 +147,9 @@ class LinearAttackNet():
 		if not is_training:
 			return self.sess.run([self.output], feed_dict={self.features:state_vector})
 		else:
-			self.updates += 1
+			self.num_updates += 1
 			_, q_function, loss = self.sess.run([train_op, self.output, self.loss], feed_dict={self.features:state_vector, self.act: action_taken, self.labels:target, self.loss_weights:loss_weights})
+			if self.num_updates == self.next_save:
+				self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+				self.next_save += np.ceil(np.sqrt(self.num_updates))
 			return q_function, loss

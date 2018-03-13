@@ -24,35 +24,32 @@ def model_tree(model_instance, module_name, action_type_name, verbose):
 	instance_path = './q_funcs/' + action_type_name + '/' + module_name + '.logs/' + model_instance
 	
 	is_Instance = os.path.isfile(instance_path + '.instance')
-	if is_Instance:
-		if verbose:
-			print("Branching off of {}".format(instance_path))
-		with open(instance_path + '.instance', 'r') as instance:
-			instance_num = int(instance.read())
-			instance.close()
-		with open(instance_path + '.instance', 'w') as instance:
-			instance.write(str(instance_num+1))
-			new_instance_path = instance_path + "-" + str(instance_num)
-			# print(instance_num)
-			# print(new_instance_path)
-			instance.close()
-		if verbose:
-			print("Creating new instance {}.instance".format(new_instance_path))
-		with open(new_instance_path + '.instance', 'w+') as new_instance:
-			new_instance.write(str(0))
-			new_instance.close()
-		if not os.path.exists(new_instance_path):
-			os.makedirs(new_instance_path)
-			if verbose:
-				print("Creating new folder {}".format(new_instance_path))
-		else:
-			print("Folder already exists, aborting attempt to overwrite data, check network")
-			exit()
-
-	else:
+	if not is_Instance:
 		print("Path: {}.instance is not a valid instance".format(instance_path))
-		return False
-		# instance_path = action_type_name + '/' + module_name + '.logs/head.instance'
+		instance_path = './q_funcs/' + action_type_name + '/' + module_name + '.logs/0'
+	if verbose:
+		print("Branching off of {}".format(instance_path))
+	with open(instance_path + '.instance', 'r') as instance:
+		instance_num = int(instance.read())
+		instance.close()
+	with open(instance_path + '.instance', 'w') as instance:
+		instance.write(str(instance_num+1))
+		new_instance_path = instance_path + "-" + str(instance_num)
+		# print(instance_num)
+		# print(new_instance_path)
+		instance.close()
+	if verbose:
+		print("Creating new instance {}.instance".format(new_instance_path))
+	with open(new_instance_path + '.instance', 'w+') as new_instance:
+		new_instance.write(str(0))
+		new_instance.close()
+	if not os.path.exists(new_instance_path):
+		os.makedirs(new_instance_path)
+		if verbose:
+			print("Creating new folder {}".format(new_instance_path))
+	else:
+		print("Folder already exists, aborting attempt to overwrite data, check network")
+		exit()
 
 	return new_instance_path, instance_path
 	
