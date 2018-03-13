@@ -9,8 +9,8 @@ Note:
 "Battle" refers to a sequence of attacks between two territories
 "Attack" refers to a single engagement
 
-This policy assumes a knowledge of the game 
-i.e. not a policy for learning agents
+This q function assumes a knowledge of the game 
+i.e. not a q function for learning agents
 
 State representation:
 Vector of army numbers by territory, size Tx1
@@ -39,7 +39,7 @@ global MAX_ARMIES #max armies per player
 
 class MaxSuccess():
 	"""
-	Class to hold the maximum success policy
+	Class to hold the maximum success q function
 	"""
 	def __init__(self, T):
 		"""
@@ -49,7 +49,7 @@ class MaxSuccess():
 		"""
 		return
 
-	def enact_policy(self, state_vector):
+	def call_Q(self, state_vector):
 		"""
 		Function for executing maximum battle success
 		:param state_vector: np-array 1D vector of armies on territory

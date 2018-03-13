@@ -1,7 +1,12 @@
 """
-This file contains the function for random allotment
+This file contains the Q function for random fortification
 Each territory held by the player has an equal probability of being selected
-Output is a one-hot vector corresponding to which territory to place armies on
+Output is a random vector of size T^2
+Assuming that it is strictly better to fortify somewhere rather than not fortify
+Env will not fortify only if there are no valid moves specified
+
+Env will determine how many troops to move
+TODO: How to determine this?  Is there an optimal decision?
 
 """
 
@@ -10,7 +15,7 @@ import random
 
 global MAX_ARMIES #max armies per player
 
-class RandomAllot():
+class RandomFortify():
 	"""
 	Class to hold the maximum success policy
 	"""
@@ -22,7 +27,7 @@ class RandomAllot():
 		"""
 		return
 
-	def enact_policy(self, state_vector):
+	def call_Q(self, state_vector):
 		"""
 		Function for executing maximum battle success
 		:param state_vector: np-array 1D vector of armies on territory
@@ -35,7 +40,7 @@ class RandomAllot():
 		# edge_matrix[row, col] = action_vector[row*T + col]
 		# edge_matrix = np.zeros((T,T), dtype=int)
 		
-		action_vector = np.random.rand(T)	
+		action_vector = np.random.rand(T**2)	
 
 		# Code below will work but is unnecessary
 		# Since action_vector can be naive to game validity, a random vector will suffice

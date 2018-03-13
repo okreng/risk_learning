@@ -15,7 +15,7 @@ def parse_arguments():
 	parser = argparse.ArgumentParser(description=
 		'Risk Environment Argument Parser')
 	parser.add_argument('--module',dest='module',type=str)
-	parser.add_argument('--class',dest='policy',type=str)
+	parser.add_argument('--class',dest='q_func',type=str)
 	return parser.parse_args()
 
 def main(args):
@@ -29,10 +29,10 @@ def main(args):
 	#import attack.max_success as pol0
 	args = parse_arguments()
 	module = args.module
-	policy = args.policy
+	q_func_str = args.q_func
 
-	policy_module = importlib.import_module(module, package=None)
-	policy_class = getattr(policy_module, policy)
+	q_func_module = importlib.import_module(module, package=None)
+	q_func_class = getattr(q_func_module, q_func_str)
 
 	# Define a list of state vectors
 	s_v_list = []
@@ -45,13 +45,13 @@ def main(args):
 
 
 	# Begin test
-	print("Testing policy {}".format(module))
+	print("Testing Q-function: {}".format(module))
 	for s_v in s_v_list:
-		policy_obj = policy_class(len(s_v))
+		q_func_obj = q_func_class(len(s_v))
 		s_v = np.reshape(s_v, (1, -1))
 		print("State : {}".format(s_v))
 		print("Action:")
-		print(policy_obj.enact_policy(s_v))
+		print(q_func_obj.call_Q(s_v))
 		print("\n")
 	return
 
