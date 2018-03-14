@@ -62,9 +62,9 @@ def main(args):
 			# Enemy acts the same regardless of real game action or simulated for reward
 			action = opponent.call_Q(enemy_game_state)
 			# Attack action, valid only if enemy has more than 1 army
-			if action[1] > action[-1] and enemy_game_state[enemy_territory] > 1:  # attack action
+			if action[1] > action[-1] and enemy_game_state[0, enemy_territory] > 1:  # attack action
 				enemy_game_state = attack(enemy_game_state, enemy_territory, agent_territory)
-				if game_state[agent_territory] == 0:
+				if game_state[0, agent_territory] == 0:
 					winner = 1
 					break
 			else:
@@ -89,6 +89,86 @@ def attack(game_state, from_territory, to_territory):
 	:param to_territory: the index of the territory defending
 	"""
 
+	enemy_territory
+	if game_state[0, from_territory] < 0:
+		enemy_territory = from_territory
+	elif game_state[0, to_territory] < 0:
+		enemy_territory = to_territory
+	else:
+		return game_state
+
+
+	from_armies = abs(game_state[0,from_territory])
+	to_armies = abs(game_state[0, to_territory])
+
+	determine_attack = np.random.uniform()
+	new_game_state = np.zeros(2)
+	if from_armies > 3: 
+		if to_armies > 1: # Three-Two
+			if determine_attack < (2890/7776):
+				new_game_state[from_territory] = from_armies
+				new_game_state[to_territory] = to_armies - 2
+			elif: determine_attack < (5165/7776):
+				new_game_state[from_territory] = from_armies - 2
+				new_game_state[to_territory] = to_armies
+			else:
+				new_game_state[from_territory] = from_armies - 1
+				new_game_state[to_territory] = to_armies - 1
+		elif start_state[0, to_territory] == 1: # Three-One
+			if determine_attack < (855/1296):
+				new_game_state[from_territory] = from_armies
+				new_game_state[to_territory] = to_armies - 1
+			else:
+				new_game_state[from_territory] = from_armies - 1
+				new_game_state[to_territory] = to_armies
+		else:
+			return game_state
+
+	elif from_armies == 3:  # Two-Two
+		if to_armies > 1:
+			if determine_attack < (295/1296):
+				new_game_state[from_territory] = from_armies
+				new_game_state[to_territory] = to_armies - 2
+			elif determine_attack < (876/1296):
+				new_game_state[from_territory] = from_armies - 2
+				new_game_state[to_territory] = to_armies
+			else:
+				new_game_state[from_territory] = from_armies - 1
+				new_game_state[to_territory] = to_armies - 1
+		elif start_state[0, to_territory] == 1: # Two-One
+			if determine_attack < (125/216):
+				new_game_state[from_territory] = from_armies
+				new_game_state[to_territory] = to_armies - 1
+			else:
+				new_game_state[from_territory] = from_armies - 1
+				new_game_state[to_territory] = to_armies
+		else:
+			return game_state
+
+	elif from_armies == 2: 
+		if to_armies > 1:  # One-Two
+			if determine_attack < (55/216):
+				new_game_state[from_territory] = from_armies
+				new_game_state[to_territory] = to_armies - 1
+			else:
+				new_game_state[from_territory] = from_armies - 1
+				new_game_state[to_territory] = to_territories
+
+		elif start_state[0, to_territory] == 1: # One-One
+			if determine_attack < (15/36):
+				new_game_state[from_territory] = from_armies
+				new_game_state[to_territory] = to_armies - 1
+			else:
+				new_game_state[from_territory] = from_armies - 1
+				new_game_state[to_territory] = to_armies
+		else:
+			return game_state
+
+	elif from_armies == 1:  # No possible attack	
+		return game_state
+
+	new_game_state[enemy_territory] = -new_game_state[enemy_territory]
+	new_game_state = np.reshape(new_game_state, (1, -1))
 
 	return new_game_state
 
