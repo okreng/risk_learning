@@ -29,13 +29,14 @@ def main(args):
 	verbose = args.verbose
 
 	# Simplest graph possible
-	state_vector = np.zeros(2)
+	T = 2
+	state_vector = np.zeros(T)
+	act_list = [[0,1],[-1]]
 
-	T = len(state_vector)
 	state_vector = np.reshape(state_vector, (1, -1))
 
 	######### Hyperparameters  ########
-	model_instance = '0-2'
+	model_instance = '0'
 	checkpoint_number = -1
 	LEARNING_RATE = 0.0001
 	GAMMA = 0.9
@@ -45,8 +46,8 @@ def main(args):
 
 	MAX_ARMIES = 12
 
-	agent = linear_attack_net.LinearAttackNet(T, model_instance, checkpoint_number, LEARNING_RATE)
-	opponent = max_success.MaxSuccess(T)
+	agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	opponent = max_success.MaxSuccess(T, act_list)
 
 	print("model_instance: {}\nLEARNING_RATE: {}\nGAMMA: {}\nEPSILON: {}\nT: {}"
 			   .format(model_instance, LEARNING_RATE, GAMMA, EPSILON, T))
@@ -81,14 +82,14 @@ def main(args):
 	# Set to prevent reference before assignment
 	looking_ahead = False
 	complete_pass_action = False
-	enemy_starts = True
-	agent_starts = True
+	enemy_starts = False
+	agent_starts = False
 
 	agent_wins = 0
 	enemy_wins = 0
 
 
-	for game in range(1000):
+	for game in range(1):
 		while(winner == -1):
 
 			# Opponent strategy
@@ -112,11 +113,16 @@ def main(args):
 							print("Game state is: {}".format(game_state))
 					enemy_starts = False
 		
-
-				opponent_q = opponent.call_Q(enemy_view(target_game_state))
-				opponent_action = np.argmax(opponent_q)
-				# Attack action, valid only if enemy has more than 1 army
 				if looking_ahead:
+					opponent_q = opponent.call_Q(enemy_view(target_game_state))
+					if target_game_state[0, enemy_territory] == -1:
+						opponent_valid_mask = [0, 1]
+					else:
+						opponent_valid_mask = [1, 1]
+					opponent_action = np.argmax(np.dot(opponent_valid_mask, opponent_q))
+					# print("Opponent chooses action: {}".format( opponent_action))
+
+					# Attack action, valid only if enemy has more than 1 army
 					if verbose:
 						print("Target fetch, enemy action is: ")
 					if (not opponent_action == 4) and target_game_state[0, enemy_territory] < -1 and (not target_game_state[0, agent_territory] == 0):  # attack action
@@ -133,19 +139,24 @@ def main(args):
 						agent_starts = True
 				else:
 					opponent_q = opponent.call_Q(enemy_view(game_state))
-					opponent_action = np.argmax(opponent_q)
+					if game_state[0, enemy_territory] == -1:
+						opponent_valid_mask = [0, 1]
+					else:
+						opponent_valid_mask = [1, 1]
+					opponent_action = np.argmax(np.dot(opponent_valid_mask, opponent_q))
+					# print("Opponent chooses action: {}".format( opponent_action))
 
 					if verbose:
 						print("Real game: enemy action is: ")
-					if (not opponent_action == 4) and game_state[0, enemy_territory] < -1 and (not game_state[0, agent_territory] == 0):
+					if (not opponent_action == 1) and game_state[0, enemy_territory] < -1 and (not game_state[0, agent_territory] == 0):
 						if verbose:
 							print("\tEnemy attacks")
 						game_state = attack(game_state, enemy_territory, agent_territory)
 						if verbose:
 							print("\tNew state is {}".format(game_state))
-					if game_state[0, agent_territory] == 0:  # Only true for game state, not target_game_state
-						winner = 1
-						break
+						if game_state[0, agent_territory] == 0:  # Only true for game state, not target_game_state
+							winner = 1
+							break
 					else:
 						if verbose:
 							print("\tEnemy ends real turn")
