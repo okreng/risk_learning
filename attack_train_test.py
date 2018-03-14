@@ -37,6 +37,7 @@ def main(args):
 	checkpoint_number = -1
 	learning_rate = 0.001
 	verbose = True
+	gamma = 0.9
 
 	agent = linear_attack_net.LinearAttackNet(T, model_instance, checkpoint_number, learning_rate)
 	opponent = max_success.MaxSuccess(T)
@@ -54,6 +55,7 @@ def main(args):
 
 	# Initially set as a reference
 	enemy_game_state = game_state 
+	looking_ahead = False
 
 	while(winner == -1):
 
@@ -70,14 +72,59 @@ def main(args):
 			else:
 				whose_turn = 0
 
-		# if winner == 1:
-		# 	break
+		if winner == 1:
+			break
 
-		# while whose_turn == 0:
-		# 	action = agent.call_Q(game_state)
-		# 	if action[1] > action[-1] # attack action
-		# 		next_game_state = attack(game_state, agent_territory, enemy_territory)
-		# 		if next_game_state
+		while whose_turn == 0:
+			if looking_ahead:
+				if next_game_state[0, enemy_territory] = 0:  # This shouldn't be possible
+					print("WARNING: Enemy lost on own turn during copy game")
+					exit()
+				else:
+					reward = 0  # We know that the current action is pass (i.e. -1)
+					target_q_func = agent.call_Q(enemy_game_state) # Run without update
+					
+					# TODO: Update indexing for improved state space
+					loss_weights = np.zeros(5)
+					loss_weights[4] = 1
+					target = reward + gamma * max(target_q_func[1], target_q_func[-1])  # max value
+					updated_q_func = agent.call_Q(nS=game_state, isTraining=True, action_taken=4, target=target, loss_weights=loss_weights)
+					
+					# Go back to real game once next state has been updated
+					looking_ahead = 0
+
+			action = agent.call_Q(game_state)
+
+			# TODO: Fix indexing for reasonable action space
+			if action[1] > action[-1]  # choose to attack
+				next_game_state = attack(game_state, agent_territory, enemy_territory)
+				if next_game_state[0, enemy_territory] = 0:  # Win condition for simple env
+					# terminal Q update
+					reward = 1
+					loss_weights = np.zeros(5)
+					loss_weights[1] = 1
+					target = reward
+					updated_q_func = updated_q_func = agent.call_Q(nS=game_state, isTraining=True, action_taken=1, target=target, loss_weights=loss_weights)
+
+
+				else:  # non-terminal q update
+					reward = 0
+					target_q_func = agent.call_Q(next_game_state)
+
+					# TODO: Update indexing
+					loss_weights = np.zeros(5)
+					loss_weights[4] = 1
+					target = reward + gamma * max(target_q_func[1], target_q_func[-1])
+					updated_q_func = updated_q_func = agent.call_Q(nS=game_state, isTraining=True, action_taken=1, target=target, loss_weights=loss_weights)
+
+				# Update the state of the game once complete, return to player turn while loop
+				game_state = np.copy(next_game_state)
+
+			else:  # choose to pass the turn
+				enemy_game_state = np.copy(game_state)
+				looking_ahead = True
+
+
 
 	return
 
