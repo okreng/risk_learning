@@ -55,7 +55,7 @@ def main(args):
 	# Initially set as a reference
 	enemy_game_state = game_state 
 
-	# while(winner == -1):
+	while(winner == -1):
 
 		# Opponent strategy
 		while whose_turn == 1:
@@ -89,7 +89,6 @@ def attack(game_state, from_territory, to_territory):
 	:param to_territory: the index of the territory defending
 	"""
 
-	enemy_territory
 	if game_state[0, from_territory] < 0:
 		enemy_territory = from_territory
 	elif game_state[0, to_territory] < 0:
@@ -108,7 +107,7 @@ def attack(game_state, from_territory, to_territory):
 			if determine_attack < (2890/7776):
 				new_game_state[from_territory] = from_armies
 				new_game_state[to_territory] = to_armies - 2
-			elif: determine_attack < (5165/7776):
+			elif determine_attack < (5165/7776):
 				new_game_state[from_territory] = from_armies - 2
 				new_game_state[to_territory] = to_armies
 			else:
@@ -154,7 +153,7 @@ def attack(game_state, from_territory, to_territory):
 				new_game_state[from_territory] = from_armies - 1
 				new_game_state[to_territory] = to_territories
 
-		elif start_state[0, to_territory] == 1: # One-One
+		elif to_armies == 1: # One-One
 			if determine_attack < (15/36):
 				new_game_state[from_territory] = from_armies
 				new_game_state[to_territory] = to_armies - 1
