@@ -59,12 +59,18 @@ def main(args):
 	# Set to prevent reference before assignment
 	looking_ahead = False
 	complete_pass_action = False
+	enemy_starts = False
+	player_starts = False
 
 	while(winner == -1):
 
 		# Opponent strategy
 		while whose_turn == 1:
 			# Enemy acts the same regardless of real game action or simulated for reward
+			if enemy_starts:
+				enemy_game_state[0, enemy_territory] += 1
+				enemy_starts = False
+
 			action = opponent.call_Q(enemy_game_state)
 			# Attack action, valid only if enemy has more than 1 army
 			if action[1] > action[-1] and enemy_game_state[0, enemy_territory] > 1:  # attack action
@@ -81,7 +87,14 @@ def main(args):
 
 		# Player strategy
 		while whose_turn == 0:
-			if looking_ahead:
+			
+			if (not looking_ahead) and player_starts:
+				game_state[0, agent_territory] += 1
+			# if looking_ahead:
+			else:
+				enemy_game_state[0, agent_territory] += 1
+				player_starts = False
+
 				if enemy_game_state[0, enemy_territory] == 0:  # This shouldn't be possible
 					print("WARNING: Enemy lost on own turn during copy game")
 					exit()
@@ -120,7 +133,7 @@ def main(args):
 					loss_weights[0][1] = 1
 					target = np.zeros(5)
 					target[1] = reward
-					target = np.reshape(targe, (1, -1))
+					target = np.reshape(target, (1, -1))
 					updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=True, action_taken=1, target=target, loss_weights=loss_weights)
 
 					# Set winner and break out of turn loop
@@ -146,8 +159,10 @@ def main(args):
 			elif complete_pass_action == False:  # choose to pass the turn, get target from next player's actions
 				enemy_game_state = np.copy(game_state)  # Create a copy for simulated portion
 				looking_ahead = True
+				enemy_starts = True
 			elif complete_pass_action == True:  # execute the pass_turn action
 				enemy_game_state = np.copy(game_state)  # Create a reference for actual game
+				enemy_starts = True
 			else:
 				print("Game has missed condition, exiting")
 				exit()
