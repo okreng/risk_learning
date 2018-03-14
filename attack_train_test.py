@@ -178,7 +178,16 @@ def main(args):
 						print("Agent starting turn")
 					if game_state[0, agent_territory] < MAX_ARMIES:
 						game_state[0, agent_territory] += 1
-					agent_action = epsilon_greedy(agent.call_Q(game_state), EPSILON)
+					
+			################# TODO: Determine standard shape for call_Q return #####
+
+					agent_big_q = agent.call_Q(game_state)
+					agent_q = agent_big_q[0][0]
+					if game_state[0, agent_territory] == 1:
+						agent_valid_mask = [0, 1]
+					else:
+						agent_valid_mask = [1, 1]
+					agent_action = epsilon_greedy(np.multiply(agent_valid_mask, agent_q), EPSILON)
 					agent_starts = False
 
 				# if looking_ahead:
@@ -199,7 +208,6 @@ def main(args):
 							reward = 0  # We know that the current action is pass (i.e. -1)
 							target_q_func = agent.call_Q(target_game_state) # Run without update
 							
-							# TODO: Update indexing for improved state space
 							loss_weights = np.zeros([1, len(act_list)])
 							loss_weights[0][-1] = 1
 							target = np.zeros(len(act_list))
@@ -209,8 +217,6 @@ def main(args):
 						
 						else:  # If agent lost in the enemy's game
 							reward = -1
-
-							# TODO: Update indexing for improved state space
 							loss_weights = np.zeros([1, len(act_list)])
 							loss_weights[0][-1] = 1
 							target = np.zeros(len(act_list))
@@ -228,8 +234,18 @@ def main(args):
 				else:
 					if verbose:
 						print("Agent choosing next action, game state:{}".format(game_state))
-					agent_action = epsilon_greedy(agent.call_Q(game_state), EPSILON)
 
+				############## TODO: Determine standard return shape for call_Q ###3
+
+					agent_big_q = agent.call_Q(game_state)
+					agent_q = agent_big_q[0][0]
+					if game_state[0, agent_territory] == 1:
+						agent_valid_mask = [0, 1]
+					else:
+						agent_valid_mask = [1, 1]
+					print(agent_valid_mask)
+					agent_action = epsilon_greedy(np.multiply(agent_valid_mask, agent_q), EPSILON)
+					print(agent_action)
 
 				######### Remember - return is 3 dimensional list
 				# print(action[0])
@@ -270,8 +286,16 @@ def main(args):
 
 					# Update the state of the game once complete, return to player turn while loop
 					game_state = np.copy(next_game_state)
-					agent_action = epsilon_greedy(agent.call_Q(game_state), EPSILON)
 
+			################## TODO: Determine standard shape for call_Q ########
+
+					agent_big_q = agent.call_Q(game_state)
+					agent_q = agent_big_q[0][0]
+					if game_state[0, agent_territory] == 1:
+						agent_valid_mask = [0, 1]
+					else:
+						agent_valid_mask = [1, 1]
+					agent_action = epsilon_greedy(np.multiply(agent_valid_mask, agent_q), EPSILON)
 					if verbose:
 						print("After agent attack, game is at: {}".format(game_state))
 
@@ -423,12 +447,10 @@ def epsilon_greedy(q_func, epsilon):
 	"""
 	choice = np.random.uniform()
 
-	short_q_func = np.array([q_func[0][0]])
-
 	if choice < epsilon:
-		action = np.argmax(short_q_func)
+		action = np.argmax(q_func)
 	else:
-		action = np.argmin(short_q_func)
+		action = np.argmin(q_func)
 	return action
 
 
