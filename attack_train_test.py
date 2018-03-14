@@ -89,7 +89,7 @@ def main(args):
 	enemy_wins = 0
 
 
-	for game in range(1):
+	for game in range(100):
 		while(winner == -1):
 
 			# Opponent strategy
@@ -200,23 +200,23 @@ def main(args):
 							target_q_func = agent.call_Q(target_game_state) # Run without update
 							
 							# TODO: Update indexing for improved state space
-							loss_weights = np.zeros([1, 5])
-							loss_weights[0][4] = 1
-							target = np.zeros(5)
-							target[-1] = reward + GAMMA * max(target_q_func[0][0][1], target_q_func[0][0][-1])  # max value
+							loss_weights = np.zeros([1, len(act_list)])
+							loss_weights[0][-1] = 1
+							target = np.zeros(len(act_list))
+							target[-1] = reward + GAMMA * max(target_q_func[0][0])  # max value
 							target = np.reshape(target, (1, -1))
-							updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=4, target=target, loss_weights=loss_weights)
+							updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=agent_action, target=target, loss_weights=loss_weights)
 						
 						else:  # If agent lost in the enemy's game
 							reward = -1
 
 							# TODO: Update indexing for improved state space
-							loss_weights = np.zeros([1, 5])
-							loss_weights[0][4] = 1
-							target = np.zeros(5)
+							loss_weights = np.zeros([1, len(act_list)])
+							loss_weights[0][-1] = 1
+							target = np.zeros(len(act_list))
 							target[-1] = reward
 							target = np.reshape(target, (1, -1))
-							updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=4, target=target, loss_weights=loss_weights)
+							updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=agent_action, target=target, loss_weights=loss_weights)
 
 
 						# Go back to real game once next state has been updated
@@ -235,8 +235,7 @@ def main(args):
 				# print(action[0])
 				# print(action[0][0][1])
 
-				# TODO: Fix indexing for reasonable action space
-				if agent_action == 1 and complete_pass_action == False:  # choose to attack
+				if (not agent_action == 1) and complete_pass_action == False:  # choose to attack
 
 					if verbose:
 						print("Agent chooses attack action")
@@ -248,12 +247,12 @@ def main(args):
 					if next_game_state[0, enemy_territory] == 0:  # Win condition for simple env
 						# terminal Q update
 						reward = 1
-						loss_weights = np.zeros([1, 5])
-						loss_weights[0][1] = 1
-						target = np.zeros(5)
-						target[1] = reward
+						loss_weights = np.zeros([1, len(act_list)])
+						loss_weights[0][agent_action] = 1
+						target = np.zeros(len(act_list))
+						target[agent_action] = reward
 						target = np.reshape(target, (1, -1))
-						updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=1, target=target, loss_weights=loss_weights)
+						updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=agent_action, target=target, loss_weights=loss_weights)
 
 						# Set winner and break out of turn loop
 						winner = 0
@@ -262,15 +261,12 @@ def main(args):
 					else:  # non-terminal q update
 						reward = 0
 						target_q_func = agent.call_Q(next_game_state)
-						# print(target_q_func)
-
-						# TODO: Update indexing
-						loss_weights = np.zeros([1, 5])
-						loss_weights[0][4] = 1
-						target = np.zeros(5)
-						target[1] = reward + GAMMA * max(target_q_func[0][0][1], target_q_func[0][0][-1])
+						loss_weights = np.zeros([1, len(act_list)])
+						loss_weights[0][-1] = 1
+						target = np.zeros(len(act_list))
+						target[-1] = reward + GAMMA * max(target_q_func[0][0])
 						target = np.reshape(target, (1, -1))
-						updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=1, target=target, loss_weights=loss_weights)
+						updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=agent_action, target=target, loss_weights=loss_weights)
 
 					# Update the state of the game once complete, return to player turn while loop
 					game_state = np.copy(next_game_state)
@@ -427,16 +423,12 @@ def epsilon_greedy(q_func, epsilon):
 	"""
 	choice = np.random.uniform()
 
-	short_q_func = np.array([q_func[0][0][4], q_func[0][0][1]])
+	short_q_func = np.array([q_func[0][0]])
 
 	if choice < epsilon:
 		action = np.argmax(short_q_func)
-		if action == 0:
-			action = 4
 	else:
 		action = np.argmin(short_q_func)
-		if action == 0:
-			action = 4
 	return action
 
 
