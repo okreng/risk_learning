@@ -66,15 +66,17 @@ def main(args):
 			# Attack action, valid only if enemy has more than 1 army
 			if action[1] > action[-1] and enemy_game_state[0, enemy_territory] > 1:  # attack action
 				enemy_game_state = attack(enemy_game_state, enemy_territory, agent_territory)
-				if game_state[0, agent_territory] == 0:
+				if game_state[0, agent_territory] == 0:  # Only true for game state, not enemy_game_state
 					winner = 1
 					break
 			else:
 				whose_turn = 0
 
 		if winner == 1:
+			print("Enemy wins")
 			break
 
+		# Player strategy
 		while whose_turn == 0:
 			if looking_ahead:
 				if next_game_state[0, enemy_territory] = 0:  # This shouldn't be possible
@@ -88,15 +90,16 @@ def main(args):
 					loss_weights = np.zeros(5)
 					loss_weights[4] = 1
 					target = reward + gamma * max(target_q_func[1], target_q_func[-1])  # max value
-					updated_q_func = agent.call_Q(nS=game_state, isTraining=True, action_taken=4, target=target, loss_weights=loss_weights)
+					updated_q_func = agent.call_Q(state_vector=game_state, isTraining=True, action_taken=4, target=target, loss_weights=loss_weights)
 					
 					# Go back to real game once next state has been updated
 					looking_ahead = 0
+					complete_pass_action = True
 
 			action = agent.call_Q(game_state)
 
 			# TODO: Fix indexing for reasonable action space
-			if action[1] > action[-1]  # choose to attack
+			if action[1] > action[-1] and complete_pass_action == False:  # choose to attack
 				next_game_state = attack(game_state, agent_territory, enemy_territory)
 				if next_game_state[0, enemy_territory] = 0:  # Win condition for simple env
 					# terminal Q update
@@ -104,8 +107,11 @@ def main(args):
 					loss_weights = np.zeros(5)
 					loss_weights[1] = 1
 					target = reward
-					updated_q_func = updated_q_func = agent.call_Q(nS=game_state, isTraining=True, action_taken=1, target=target, loss_weights=loss_weights)
+					updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, isTraining=True, action_taken=1, target=target, loss_weights=loss_weights)
 
+					# Set winner and break out of turn loop
+					winner == 0
+					break
 
 				else:  # non-terminal q update
 					reward = 0
@@ -115,16 +121,24 @@ def main(args):
 					loss_weights = np.zeros(5)
 					loss_weights[4] = 1
 					target = reward + gamma * max(target_q_func[1], target_q_func[-1])
-					updated_q_func = updated_q_func = agent.call_Q(nS=game_state, isTraining=True, action_taken=1, target=target, loss_weights=loss_weights)
+					updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, isTraining=True, action_taken=1, target=target, loss_weights=loss_weights)
 
 				# Update the state of the game once complete, return to player turn while loop
 				game_state = np.copy(next_game_state)
 
-			else:  # choose to pass the turn
-				enemy_game_state = np.copy(game_state)
+			elif complete_pass_action = False:  # choose to pass the turn, get target from next player's actions
+				enemy_game_state = np.copy(next_game_state)  # Create a copy for simulated portion
 				looking_ahead = True
+			elif complete_pass_action = True:  # execute the pass_turn action
+				game_state = np.copy(next_game_state)
+				enemy_game_state = game_state  # Create a reference for actual game
+			else:
+				print("Game has missed condition, exiting")
+				exit()
 
-
+		if winner == 0:
+			print("Player wins")
+			break
 
 	return
 
