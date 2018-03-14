@@ -74,14 +74,14 @@ class LinearAttackNet():
 
 		# Define the graph
 
-		self.features = tf.placeholder(dtype = tf.float32, shape = [None, self.nS])
-		self.act = tf.placeholder(dtype = tf.int32)
+		self.features = tf.placeholder(dtype = tf.float32, shape = [None, self.nS], name='features')
+		self.act = tf.placeholder(dtype = tf.int32, name='action_taken')
 
 		# Labels will be set using TD(0) learning
-		self.labels = tf.placeholder(dtype = tf.float32, shape = [None, self.nA])
+		self.labels = tf.placeholder(dtype = tf.float32, shape = [None, self.nA], name='labels')
 
 		# mask of action performed to backpropagate
-		self.loss_weights = tf.placeholder(dtype = tf.float32, shape = [None, self.nA])
+		self.loss_weights = tf.placeholder(dtype = tf.float32, shape = [None, self.nA], name='loss_weights')
 
 		# Single hidden Layer
 		self.dense = tf.layers.dense(inputs = self.features, units = self.nS, activation = None, use_bias = True, name = 'dense')
@@ -134,7 +134,7 @@ class LinearAttackNet():
 
 		return # False indicates the model was randomly initialized
 
-	def call_Q(self, state_vector, is_training=False, action_taken=0, target=0, loss_weights=None):
+	def call_Q(self, state_vector, update=False, action_taken=0, target=0, loss_weights=None):
 		"""
 		This Q function will output the action specified by the function approximator
 		:param state_vector: int the state of the board
@@ -144,11 +144,11 @@ class LinearAttackNet():
 		"""
 		# print(is_training)
 
-		if not is_training:
+		if not update:
 			return self.sess.run([self.output], feed_dict={self.features:state_vector})
 		else:
 			self.num_updates += 1
-			_, q_function, loss = self.sess.run([train_op, self.output, self.loss], feed_dict={self.features:state_vector, self.act: action_taken, self.labels:target, self.loss_weights:loss_weights})
+			_, q_function, loss = self.sess.run([self.train_op, self.output, self.loss], feed_dict={self.features:state_vector, self.act: action_taken, self.labels:target, self.loss_weights:loss_weights})
 			if self.num_updates == self.next_save:
 				self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 				self.next_save += np.ceil(np.sqrt(self.num_updates))
