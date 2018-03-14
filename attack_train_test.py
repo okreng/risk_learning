@@ -101,7 +101,8 @@ def attack(game_state, from_territory, to_territory):
 	to_armies = abs(game_state[0, to_territory])
 
 	determine_attack = np.random.uniform()
-	new_game_state = np.zeros(2)
+	# new_game_state = np.zeros(len(game_state[0]))
+	new_game_state = np.copy(game_state[0])
 	if from_armies > 3: 
 		if to_armies > 1: # Three-Two
 			if determine_attack < (2890/7776):
