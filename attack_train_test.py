@@ -113,7 +113,7 @@ def attack(game_state, from_territory, to_territory):
 			else:
 				new_game_state[from_territory] = from_armies - 1
 				new_game_state[to_territory] = to_armies - 1
-		elif start_state[0, to_territory] == 1: # Three-One
+		elif to_armies == 1: # Three-One
 			if determine_attack < (855/1296):
 				new_game_state[from_territory] = from_armies
 				new_game_state[to_territory] = to_armies - 1
@@ -134,7 +134,7 @@ def attack(game_state, from_territory, to_territory):
 			else:
 				new_game_state[from_territory] = from_armies - 1
 				new_game_state[to_territory] = to_armies - 1
-		elif start_state[0, to_territory] == 1: # Two-One
+		elif to_armies == 1: # Two-One
 			if determine_attack < (125/216):
 				new_game_state[from_territory] = from_armies
 				new_game_state[to_territory] = to_armies - 1
@@ -151,7 +151,7 @@ def attack(game_state, from_territory, to_territory):
 				new_game_state[to_territory] = to_armies - 1
 			else:
 				new_game_state[from_territory] = from_armies - 1
-				new_game_state[to_territory] = to_territories
+				new_game_state[to_territory] = to_armies
 
 		elif to_armies == 1: # One-One
 			if determine_attack < (15/36):

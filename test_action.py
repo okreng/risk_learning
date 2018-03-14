@@ -41,10 +41,18 @@ def main(args):
 
 	# Add state vectors to the list
 	s_v_list.append(np.array([1, -1]))
-	s_v_list.append(np.array([-1, 1]))
-	s_v_list.append(np.array([-1, -1]))
 	s_v_list.append(np.array([2, -1]))
-	s_v_list.append(np.array([-2, 1]))
+	s_v_list.append(np.array([3, -1]))
+	s_v_list.append(np.array([4, -1]))
+	s_v_list.append(np.array([-2, 2]))
+	s_v_list.append(np.array([-3, 2]))
+	s_v_list.append(np.array([-4, 2]))
+	# s_v_list.append(np.array([3, -1]))
+
+
+
+	# Add indices to test n-element states
+	indice_list = []
 
 
 	# Begin test
