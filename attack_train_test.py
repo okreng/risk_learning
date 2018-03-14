@@ -34,17 +34,19 @@ def main(args):
 	T = len(state_vector)
 	state_vector = np.reshape(state_vector, (1, -1))
 
-	######### Hyperparameters  ########3
+	######### Hyperparameters  ########
 	model_instance = '0'
 	checkpoint_number = -1
 	LEARNING_RATE = 0.001
 	GAMMA = 0.9
 	EPSILON = 0.2
 
+	MAX_ARMIES = 12
+
 	agent = linear_attack_net.LinearAttackNet(T, model_instance, checkpoint_number, LEARNING_RATE)
 	opponent = max_success.MaxSuccess(T)
 
-	game_state = np.random.random_integers(1,12,size=(2))
+	game_state = np.random.random_integers(1,MAX_ARMIES,size=(2))
 	enemy_territory = np.random.random_integers(0,1)
 	agent_territory = abs(1-enemy_territory)
 	game_state[enemy_territory] = -game_state[enemy_territory]
@@ -65,7 +67,11 @@ def main(args):
 	# print(game_state)
 
 	# Initially set as a reference
-	enemy_game_state = game_state 
+	target_game_state = game_state 
+
+	if verbose:
+		print("Game state starts at: {}".format(game_state))
+		print("Enemy_view starts at: {}".format(enemy_view(game_state)))
 
 	# Set to prevent reference before assignment
 	looking_ahead = False
@@ -85,25 +91,30 @@ def main(args):
 					else:
 						print("Target fetch: enemy starts turn")
 				if looking_ahead:
-					enemy_game_state[0, enemy_territory] -= 1
+					if target_game_state[0, enemy_territory] > -MAX_ARMIES:
+						target_game_state[0, enemy_territory] -= 1
+					if verbose:
+						print("   Enemy sees: {}\nTrue state is: {}".format(target_game_state, game_state))
 				else:
-					game_state[0, enemy_territory] -= 1
+					if game_state[0, enemy_territory] > -MAX_ARMIES:
+						game_state[0, enemy_territory] -= 1
+					if verbose:
+						print("Game state is: {}".format(game_state))
 				enemy_starts = False
-				if verbose:
-					print("   Enemy sees: {}\nTrue state is: {}".format(enemy_game_state, game_state))
+	
 
-			opponent_q = opponent.call_Q(enemy_view(enemy_game_state))
+			opponent_q = opponent.call_Q(enemy_view(target_game_state))
 			opponent_action = np.argmax(opponent_q)
 			# Attack action, valid only if enemy has more than 1 army
 			if looking_ahead:
 				if verbose:
 					print("Target fetch, enemy action is: ")
-				if opponent_action == 1 and enemy_game_state[0, enemy_territory] < -1 and (not enemy_game_state[0, agent_territory] == 0):  # attack action
+				if (not opponent_action == 4) and target_game_state[0, enemy_territory] < -1 and (not target_game_state[0, agent_territory] == 0):  # attack action
 					if verbose:
 						print("\tEnemy attacks")
-					enemy_game_state = attack(enemy_game_state, enemy_territory, agent_territory)
+					target_game_state = attack(target_game_state, enemy_territory, agent_territory)
 					if verbose:
-						print("\tEnemy sees {}".format(enemy_game_state))
+						print("\tEnemy sees {}".format(target_game_state))
 
 				else:
 					if verbose:
@@ -111,15 +122,18 @@ def main(args):
 					whose_turn = 0
 					agent_starts = True
 			else:
+				opponent_q = opponent.call_Q(enemy_view(game_state))
+				opponent_action = np.argmax(opponent_q)
+
 				if verbose:
 					print("Real game: enemy action is: ")
-				if opponent_action == 1 and game_state[0, enemy_territory] < -1 and (not game_state[0, agent_territory] == 0):
+				if (not opponent_action == 4) and game_state[0, enemy_territory] < -1 and (not game_state[0, agent_territory] == 0):
 					if verbose:
 						print("\tEnemy attacks")
 					game_state = attack(game_state, enemy_territory, agent_territory)
 					if verbose:
 						print("\tNew state is {}".format(game_state))
-				if game_state[0, agent_territory] == 0:  # Only true for game state, not enemy_game_state
+				if game_state[0, agent_territory] == 0:  # Only true for game state, not target_game_state
 					winner = 1
 					break
 				else:
@@ -140,7 +154,8 @@ def main(args):
 			if (not looking_ahead) and agent_starts:
 				if verbose:
 					print("Agent starting turn")
-				game_state[0, agent_territory] += 1
+				if game_state[0, agent_territory] < MAX_ARMIES:
+					game_state[0, agent_territory] += 1
 				agent_action = epsilon_greedy(agent.call_Q(game_state), EPSILON)
 				agent_starts = False
 
@@ -148,18 +163,19 @@ def main(args):
 			elif looking_ahead:
 				if verbose:
 					print("Target fetch: enemy has returned control")
-				enemy_game_state[0, agent_territory] += 1
+				if target_game_state[0, agent_territory] < MAX_ARMIES:
+					target_game_state[0, agent_territory] += 1
 				agent_starts = False
 
-				if enemy_game_state[0, enemy_territory] == 0:  # This shouldn't be possible
+				if target_game_state[0, enemy_territory] == 0:  # This shouldn't be possible
 					print("WARNING: Enemy lost on own turn during copy game")
 					exit()
 				else:
 					if verbose:
 						print("Updating function approximator with state after opponent's turn")
-					if enemy_game_state[0, agent_territory] > 0:
+					if target_game_state[0, agent_territory] > 0:
 						reward = 0  # We know that the current action is pass (i.e. -1)
-						target_q_func = agent.call_Q(enemy_game_state) # Run without update
+						target_q_func = agent.call_Q(target_game_state) # Run without update
 						
 						# TODO: Update indexing for improved state space
 						loss_weights = np.zeros([1, 5])
@@ -177,6 +193,7 @@ def main(args):
 						loss_weights[0][4] = 1
 						target = np.zeros(5)
 						target[-1] = reward
+						target = np.reshape(target, (1, -1))
 						updated_q_func = agent.call_Q(state_vector=game_state, update=True, action_taken=4, target=target, loss_weights=loss_weights)
 
 
@@ -242,13 +259,13 @@ def main(args):
 
 			elif complete_pass_action == False:  # choose to pass the turn, get target from next player's actions
 				print("Agent chooses pass action, creating target fetch copy and passing turn")
-				enemy_game_state = np.copy(game_state)  # Create a copy for simulated portion
+				target_game_state = np.copy(game_state)  # Create a copy for simulated portion
 				looking_ahead = True
 				enemy_starts = True
 				whose_turn = 1
 			elif complete_pass_action == True:  # execute the pass_turn action
 				print("Agent has completed target fetch, updating game state and passing turn")
-				enemy_game_state = np.copy(game_state)  # Create a reference for actual game
+				target_game_state = np.copy(game_state)  # Create a reference for actual game
 				complete_pass_action = False
 				looking_ahead = False
 				enemy_starts = True
@@ -386,7 +403,7 @@ def enemy_view(game_state):
 	:param game_state: the state vector of the game
 	:return new_game_state: the reversed state vector
 	"""
-	new_game_state = game_state
+	new_game_state = np.copy(game_state)
 	for state in range(len(game_state[0])):
 		new_game_state[0, state] = -game_state[0,state]
 	return new_game_state
