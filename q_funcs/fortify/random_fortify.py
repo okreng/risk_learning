@@ -58,7 +58,7 @@ class RandomFortify():
 
 
 		######### Code for updated action space using 2D List ################
-		action_vector = np.random(len(action_list))
+		action_vector = np.random.rand(len(self.act_list))
 
 		return action_vector
 

@@ -37,7 +37,7 @@ class RandomAllot():
 		# edge_matrix[row, col] = action_vector[row*T + col]
 		# edge_matrix = np.zeros((T,T), dtype=int)
 		
-		action_vector = np.random.rand(self.T)	
+		# action_vector = np.random.rand(self.T)	
 
 		# Code below will work but is unnecessary
 		# Since action_vector can be naive to game validity, a random vector will suffice
@@ -50,6 +50,8 @@ class RandomAllot():
 		# allot_choice = random.choice(valid_terrs)
 		# action_vector[allot_choice] = 1
 
+		############ Code for new action space ##############3
+		action_vector = np.random.rand(len(self.act_list))
 		return action_vector
 
 		
