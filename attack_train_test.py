@@ -35,11 +35,12 @@ def main(args):
 	state_vector = np.reshape(state_vector, (1, -1))
 
 	######### Hyperparameters  ########
-	model_instance = '0'
+	model_instance = '0-1'
 	checkpoint_number = -1
-	LEARNING_RATE = 0.001
+	LEARNING_RATE = 0.01
 	GAMMA = 0.9
 	EPSILON = 0.2
+	perform_update = True
 
 	MAX_ARMIES = 12
 
@@ -79,205 +80,233 @@ def main(args):
 	enemy_starts = True
 	agent_starts = True
 
-	while(winner == -1):
+	agent_wins = 0
+	enemy_wins = 0
 
-		# Opponent strategy
-		while whose_turn == 1:
-			# Enemy acts the same regardless of real game action or simulated for reward
-			if enemy_starts:
-				if verbose:
-					if looking_ahead == False:
-						print("Real game: enemy starts turn")
+
+	for game in range(1000):
+		while(winner == -1):
+
+			# Opponent strategy
+			while whose_turn == 1:
+				# Enemy acts the same regardless of real game action or simulated for reward
+				if enemy_starts:
+					if verbose:
+						if looking_ahead == False:
+							print("Real game: enemy starts turn")
+						else:
+							print("Target fetch: enemy starts turn")
+					if looking_ahead:
+						if target_game_state[0, enemy_territory] > -MAX_ARMIES:
+							target_game_state[0, enemy_territory] -= 1
+						if verbose:
+							print("   Enemy sees: {}\nTrue state is: {}".format(target_game_state, game_state))
 					else:
-						print("Target fetch: enemy starts turn")
-				if looking_ahead:
-					if target_game_state[0, enemy_territory] > -MAX_ARMIES:
-						target_game_state[0, enemy_territory] -= 1
-					if verbose:
-						print("   Enemy sees: {}\nTrue state is: {}".format(target_game_state, game_state))
-				else:
-					if game_state[0, enemy_territory] > -MAX_ARMIES:
-						game_state[0, enemy_territory] -= 1
-					if verbose:
-						print("Game state is: {}".format(game_state))
-				enemy_starts = False
-	
+						if game_state[0, enemy_territory] > -MAX_ARMIES:
+							game_state[0, enemy_territory] -= 1
+						if verbose:
+							print("Game state is: {}".format(game_state))
+					enemy_starts = False
+		
 
-			opponent_q = opponent.call_Q(enemy_view(target_game_state))
-			opponent_action = np.argmax(opponent_q)
-			# Attack action, valid only if enemy has more than 1 army
-			if looking_ahead:
-				if verbose:
-					print("Target fetch, enemy action is: ")
-				if (not opponent_action == 4) and target_game_state[0, enemy_territory] < -1 and (not target_game_state[0, agent_territory] == 0):  # attack action
-					if verbose:
-						print("\tEnemy attacks")
-					target_game_state = attack(target_game_state, enemy_territory, agent_territory)
-					if verbose:
-						print("\tEnemy sees {}".format(target_game_state))
-
-				else:
-					if verbose:
-						print("\tEnemy ends turn during fetch")
-					whose_turn = 0
-					agent_starts = True
-			else:
-				opponent_q = opponent.call_Q(enemy_view(game_state))
+				opponent_q = opponent.call_Q(enemy_view(target_game_state))
 				opponent_action = np.argmax(opponent_q)
+				# Attack action, valid only if enemy has more than 1 army
+				if looking_ahead:
+					if verbose:
+						print("Target fetch, enemy action is: ")
+					if (not opponent_action == 4) and target_game_state[0, enemy_territory] < -1 and (not target_game_state[0, agent_territory] == 0):  # attack action
+						if verbose:
+							print("\tEnemy attacks")
+						target_game_state = attack(target_game_state, enemy_territory, agent_territory)
+						if verbose:
+							print("\tEnemy sees {}".format(target_game_state))
 
-				if verbose:
-					print("Real game: enemy action is: ")
-				if (not opponent_action == 4) and game_state[0, enemy_territory] < -1 and (not game_state[0, agent_territory] == 0):
-					if verbose:
-						print("\tEnemy attacks")
-					game_state = attack(game_state, enemy_territory, agent_territory)
-					if verbose:
-						print("\tNew state is {}".format(game_state))
-				if game_state[0, agent_territory] == 0:  # Only true for game state, not target_game_state
-					winner = 1
-					break
+					else:
+						if verbose:
+							print("\tEnemy ends turn during fetch")
+						whose_turn = 0
+						agent_starts = True
 				else:
+					opponent_q = opponent.call_Q(enemy_view(game_state))
+					opponent_action = np.argmax(opponent_q)
+
 					if verbose:
-						print("\tEnemy ends real turn")
-					whose_turn = 0
-					agent_starts = True
+						print("Real game: enemy action is: ")
+					if (not opponent_action == 4) and game_state[0, enemy_territory] < -1 and (not game_state[0, agent_territory] == 0):
+						if verbose:
+							print("\tEnemy attacks")
+						game_state = attack(game_state, enemy_territory, agent_territory)
+						if verbose:
+							print("\tNew state is {}".format(game_state))
+					if game_state[0, agent_territory] == 0:  # Only true for game state, not target_game_state
+						winner = 1
+						break
+					else:
+						if verbose:
+							print("\tEnemy ends real turn")
+						whose_turn = 0
+						agent_starts = True
 
 
-		if winner == 1:
-			if verbose:
-				print("Enemy wins")
-			break
-
-		# Player strategy
-		while whose_turn == 0:
-			
-			if (not looking_ahead) and agent_starts:
+			if winner == 1:
 				if verbose:
-					print("Agent starting turn")
-				if game_state[0, agent_territory] < MAX_ARMIES:
-					game_state[0, agent_territory] += 1
-				agent_action = epsilon_greedy(agent.call_Q(game_state), EPSILON)
-				agent_starts = False
+					enemy_wins += 1
+					print("Enemy wins")
+				break
 
-			# if looking_ahead:
-			elif looking_ahead:
-				if verbose:
-					print("Target fetch: enemy has returned control")
-				if target_game_state[0, agent_territory] < MAX_ARMIES:
-					target_game_state[0, agent_territory] += 1
-				agent_starts = False
-
-				if target_game_state[0, enemy_territory] == 0:  # This shouldn't be possible
-					print("WARNING: Enemy lost on own turn during copy game")
-					exit()
-				else:
+			# Player strategy
+			while whose_turn == 0:
+				
+				if (not looking_ahead) and agent_starts:
 					if verbose:
-						print("Updating function approximator with state after opponent's turn")
-					if target_game_state[0, agent_territory] > 0:
-						reward = 0  # We know that the current action is pass (i.e. -1)
-						target_q_func = agent.call_Q(target_game_state) # Run without update
+						print("Agent starting turn")
+					if game_state[0, agent_territory] < MAX_ARMIES:
+						game_state[0, agent_territory] += 1
+					agent_action = epsilon_greedy(agent.call_Q(game_state), EPSILON)
+					agent_starts = False
+
+				# if looking_ahead:
+				elif looking_ahead:
+					if verbose:
+						print("Target fetch: enemy has returned control")
+					if target_game_state[0, agent_territory] < MAX_ARMIES:
+						target_game_state[0, agent_territory] += 1
+					agent_starts = False
+
+					if target_game_state[0, enemy_territory] == 0:  # This shouldn't be possible
+						print("WARNING: Enemy lost on own turn during copy game")
+						exit()
+					else:
+						if verbose:
+							print("Updating function approximator with state after opponent's turn")
+						if target_game_state[0, agent_territory] > 0:
+							reward = 0  # We know that the current action is pass (i.e. -1)
+							target_q_func = agent.call_Q(target_game_state) # Run without update
+							
+							# TODO: Update indexing for improved state space
+							loss_weights = np.zeros([1, 5])
+							loss_weights[0][4] = 1
+							target = np.zeros(5)
+							target[-1] = reward + GAMMA * max(target_q_func[0][0][1], target_q_func[0][0][-1])  # max value
+							target = np.reshape(target, (1, -1))
+							updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=4, target=target, loss_weights=loss_weights)
 						
-						# TODO: Update indexing for improved state space
-						loss_weights = np.zeros([1, 5])
-						loss_weights[0][4] = 1
-						target = np.zeros(5)
-						target[-1] = reward + GAMMA * max(target_q_func[0][0][1], target_q_func[0][0][-1])  # max value
-						target = np.reshape(target, (1, -1))
-						updated_q_func = agent.call_Q(state_vector=game_state, update=True, action_taken=4, target=target, loss_weights=loss_weights)
-					
-					else:  # If agent lost in the enemy's game
-						reward = -1
+						else:  # If agent lost in the enemy's game
+							reward = -1
 
-						# TODO: Update indexing for improved state space
-						loss_weights = np.zeros([1, 5])
-						loss_weights[0][4] = 1
-						target = np.zeros(5)
-						target[-1] = reward
-						target = np.reshape(target, (1, -1))
-						updated_q_func = agent.call_Q(state_vector=game_state, update=True, action_taken=4, target=target, loss_weights=loss_weights)
+							# TODO: Update indexing for improved state space
+							loss_weights = np.zeros([1, 5])
+							loss_weights[0][4] = 1
+							target = np.zeros(5)
+							target[-1] = reward
+							target = np.reshape(target, (1, -1))
+							updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=4, target=target, loss_weights=loss_weights)
 
 
-					# Go back to real game once next state has been updated
+						# Go back to real game once next state has been updated
+						if verbose:
+							print("Returning to real game")
+						looking_ahead = False
+						complete_pass_action = True
+
+				else:
 					if verbose:
-						print("Returning to real game")
+						print("Agent choosing next action, game state:{}".format(game_state))
+					agent_action = epsilon_greedy(agent.call_Q(game_state), EPSILON)
+
+
+				######### Remember - return is 3 dimensional list
+				# print(action[0])
+				# print(action[0][0][1])
+
+				# TODO: Fix indexing for reasonable action space
+				if agent_action == 1 and complete_pass_action == False:  # choose to attack
+
+					if verbose:
+						print("Agent chooses attack action")
+					# Execute attack
+					next_game_state = attack(game_state, agent_territory, enemy_territory)
+					if verbose:
+						print("Resulting in next state:{}".format(next_game_state))
+
+					if next_game_state[0, enemy_territory] == 0:  # Win condition for simple env
+						# terminal Q update
+						reward = 1
+						loss_weights = np.zeros([1, 5])
+						loss_weights[0][1] = 1
+						target = np.zeros(5)
+						target[1] = reward
+						target = np.reshape(target, (1, -1))
+						updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=1, target=target, loss_weights=loss_weights)
+
+						# Set winner and break out of turn loop
+						winner = 0
+						break
+
+					else:  # non-terminal q update
+						reward = 0
+						target_q_func = agent.call_Q(next_game_state)
+						# print(target_q_func)
+
+						# TODO: Update indexing
+						loss_weights = np.zeros([1, 5])
+						loss_weights[0][4] = 1
+						target = np.zeros(5)
+						target[1] = reward + GAMMA * max(target_q_func[0][0][1], target_q_func[0][0][-1])
+						target = np.reshape(target, (1, -1))
+						updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=1, target=target, loss_weights=loss_weights)
+
+					# Update the state of the game once complete, return to player turn while loop
+					game_state = np.copy(next_game_state)
+					agent_action = epsilon_greedy(agent.call_Q(game_state), EPSILON)
+
+					if verbose:
+						print("After agent attack, game is at: {}".format(game_state))
+
+				elif complete_pass_action == False:  # choose to pass the turn, get target from next player's actions
+					print("Agent chooses pass action, creating target fetch copy and passing turn")
+					target_game_state = np.copy(game_state)  # Create a copy for simulated portion
+					looking_ahead = True
+					enemy_starts = True
+					whose_turn = 1
+				elif complete_pass_action == True:  # execute the pass_turn action
+					print("Agent has completed target fetch, updating game state and passing turn")
+					target_game_state = np.copy(game_state)  # Create a reference for actual game
+					complete_pass_action = False
 					looking_ahead = False
-					complete_pass_action = True
+					enemy_starts = True
+					whose_turn = 1
+				else:
+					print("Game has missed condition, exiting")
+					exit()
 
-			else:
+			if winner == 0:
 				if verbose:
-					print("Agent choosing next action, game state:{}".format(game_state))
-				agent_action = epsilon_greedy(agent.call_Q(game_state), EPSILON)
+					agent_wins += 1
+					print("Agent wins")
+				break
+
+		# Restart the game
+		looking_ahead = False
+		complete_pass_action = False
+		enemy_starts = True
+		agent_starts = True
+
+		game_state = np.random.random_integers(1,MAX_ARMIES,size=(2))
+		enemy_territory = np.random.random_integers(0,1)
+		agent_territory = abs(1-enemy_territory)
+		game_state[enemy_territory] = -game_state[enemy_territory]
+		game_state = np.reshape(game_state,(1,-1))
+
+		whose_turn = np.random.random_integers(0,1)
+		winner = -1
+
+		target_game_state = game_state
 
 
-			######### Remember - return is 3 dimensional list
-			# print(action[0])
-			# print(action[0][0][1])
-
-			# TODO: Fix indexing for reasonable action space
-			if agent_action == 1 and complete_pass_action == False:  # choose to attack
-
-				if verbose:
-					print("Agent chooses attack action")
-				# Execute attack
-				next_game_state = attack(game_state, agent_territory, enemy_territory)
-				if verbose:
-					print("Resulting in next state:{}".format(next_game_state))
-
-				if next_game_state[0, enemy_territory] == 0:  # Win condition for simple env
-					# terminal Q update
-					reward = 1
-					loss_weights = np.zeros([1, 5])
-					loss_weights[0][1] = 1
-					target = np.zeros(5)
-					target[1] = reward
-					target = np.reshape(target, (1, -1))
-					updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=True, action_taken=1, target=target, loss_weights=loss_weights)
-
-					# Set winner and break out of turn loop
-					winner == 0
-					break
-
-				else:  # non-terminal q update
-					reward = 0
-					target_q_func = agent.call_Q(next_game_state)
-					# print(target_q_func)
-
-					# TODO: Update indexing
-					loss_weights = np.zeros([1, 5])
-					loss_weights[0][4] = 1
-					target = np.zeros(5)
-					target[1] = reward + GAMMA * max(target_q_func[0][0][1], target_q_func[0][0][-1])
-					target = np.reshape(target, (1, -1))
-					updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=True, action_taken=1, target=target, loss_weights=loss_weights)
-
-				# Update the state of the game once complete, return to player turn while loop
-				game_state = np.copy(next_game_state)
-				agent_action = epsilon_greedy(agent.call_Q(game_state), EPSILON)
-
-				if verbose:
-					print("After agent attack, game is at: {}".format(game_state))
-
-			elif complete_pass_action == False:  # choose to pass the turn, get target from next player's actions
-				print("Agent chooses pass action, creating target fetch copy and passing turn")
-				target_game_state = np.copy(game_state)  # Create a copy for simulated portion
-				looking_ahead = True
-				enemy_starts = True
-				whose_turn = 1
-			elif complete_pass_action == True:  # execute the pass_turn action
-				print("Agent has completed target fetch, updating game state and passing turn")
-				target_game_state = np.copy(game_state)  # Create a reference for actual game
-				complete_pass_action = False
-				looking_ahead = False
-				enemy_starts = True
-				whose_turn = 1
-			else:
-				print("Game has missed condition, exiting")
-				exit()
-
-		if winner == 0:
-			if verbose:
-				print("Agent wins")
-			break
+	print("Training complete")
+	print("Win count: Agent/Enemy: {}/{}".format(agent_wins, enemy_wins))
 
 	return
 
