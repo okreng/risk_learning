@@ -55,7 +55,10 @@ def main(args):
 
 	# Initially set as a reference
 	enemy_game_state = game_state 
+
+	# Set to prevent reference before assignment
 	looking_ahead = False
+	complete_pass_action = False
 
 	while(winner == -1):
 
@@ -79,7 +82,7 @@ def main(args):
 		# Player strategy
 		while whose_turn == 0:
 			if looking_ahead:
-				if next_game_state[0, enemy_territory] = 0:  # This shouldn't be possible
+				if enemy_game_state[0, enemy_territory] == 0:  # This shouldn't be possible
 					print("WARNING: Enemy lost on own turn during copy game")
 					exit()
 				else:
@@ -87,10 +90,12 @@ def main(args):
 					target_q_func = agent.call_Q(enemy_game_state) # Run without update
 					
 					# TODO: Update indexing for improved state space
-					loss_weights = np.zeros(5)
-					loss_weights[4] = 1
-					target = reward + gamma * max(target_q_func[1], target_q_func[-1])  # max value
-					updated_q_func = agent.call_Q(state_vector=game_state, isTraining=True, action_taken=4, target=target, loss_weights=loss_weights)
+					loss_weights = np.zeros([1, 5])
+					loss_weights[0][4] = 1
+					target = np.zeros(5)
+					target[-1] = reward + gamma * max(target_q_func[0][0][1], target_q_func[0][0][-1])  # max value
+					target = np.reshape(target, (1, -1))
+					updated_q_func = agent.call_Q(state_vector=game_state, update=True, action_taken=4, target=target, loss_weights=loss_weights)
 					
 					# Go back to real game once next state has been updated
 					looking_ahead = 0
@@ -98,16 +103,25 @@ def main(args):
 
 			action = agent.call_Q(game_state)
 
+			######### Remember - return is 3 dimensional list
+			# print(action[0])
+			# print(action[0][0][1])
+
 			# TODO: Fix indexing for reasonable action space
-			if action[1] > action[-1] and complete_pass_action == False:  # choose to attack
+			if action[0][0][1] > action[0][0][-1] and complete_pass_action == False:  # choose to attack
+
+				# Execute attack
 				next_game_state = attack(game_state, agent_territory, enemy_territory)
-				if next_game_state[0, enemy_territory] = 0:  # Win condition for simple env
+
+				if next_game_state[0, enemy_territory] == 0:  # Win condition for simple env
 					# terminal Q update
 					reward = 1
-					loss_weights = np.zeros(5)
-					loss_weights[1] = 1
-					target = reward
-					updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, isTraining=True, action_taken=1, target=target, loss_weights=loss_weights)
+					loss_weights = np.zeros([1, 5])
+					loss_weights[0][1] = 1
+					target = np.zeros(5)
+					target[1] = reward
+					target = np.reshape(targe, (1, -1))
+					updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=True, action_taken=1, target=target, loss_weights=loss_weights)
 
 					# Set winner and break out of turn loop
 					winner == 0
@@ -116,22 +130,24 @@ def main(args):
 				else:  # non-terminal q update
 					reward = 0
 					target_q_func = agent.call_Q(next_game_state)
+					# print(target_q_func)
 
 					# TODO: Update indexing
-					loss_weights = np.zeros(5)
-					loss_weights[4] = 1
-					target = reward + gamma * max(target_q_func[1], target_q_func[-1])
-					updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, isTraining=True, action_taken=1, target=target, loss_weights=loss_weights)
+					loss_weights = np.zeros([1, 5])
+					loss_weights[0][4] = 1
+					target = np.zeros(5)
+					target[1] = reward + gamma * max(target_q_func[0][0][1], target_q_func[0][0][-1])
+					target = np.reshape(target, (1, -1))
+					updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=True, action_taken=1, target=target, loss_weights=loss_weights)
 
 				# Update the state of the game once complete, return to player turn while loop
 				game_state = np.copy(next_game_state)
 
-			elif complete_pass_action = False:  # choose to pass the turn, get target from next player's actions
-				enemy_game_state = np.copy(next_game_state)  # Create a copy for simulated portion
+			elif complete_pass_action == False:  # choose to pass the turn, get target from next player's actions
+				enemy_game_state = np.copy(game_state)  # Create a copy for simulated portion
 				looking_ahead = True
-			elif complete_pass_action = True:  # execute the pass_turn action
-				game_state = np.copy(next_game_state)
-				enemy_game_state = game_state  # Create a reference for actual game
+			elif complete_pass_action == True:  # execute the pass_turn action
+				enemy_game_state = np.copy(game_state)  # Create a reference for actual game
 			else:
 				print("Game has missed condition, exiting")
 				exit()
