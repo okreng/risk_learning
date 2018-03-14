@@ -29,7 +29,7 @@ class LinearAttackNet():
 	Class to hold a linear neural network
 	Will be used to learn Attacks in RISK
 	"""
-	def __init__(self, nS, model_instance='0', checkpoint_index=-1, learning_rate = 0.001, verbose=True):
+	def __init__(self, nS, act_list, model_instance='0', checkpoint_index=-1, learning_rate = 0.001, verbose=True):
 		"""
 		Creates a session of the tensorflow graph defined in this module
 		:param nS: int required, will throw error if does not agree, the number of territories on the graph
@@ -55,7 +55,7 @@ class LinearAttackNet():
 		self.action_type_string = 'attack'
 		self.num_updates = 0
 		self.next_save = 1
-		self.max_saves = 1000
+		self.max_saves = 10
 		self.exact_load = True
 
 		self.save_folder, self.restore_folder = model_tree(model_instance, self.module_string, self.action_type_string, verbose)
@@ -70,7 +70,8 @@ class LinearAttackNet():
 		############ End DO NOT DELETE #######################
 
 		self.nS = nS
-		self.nA = nS**2 + 1  # Specific to this state-action representation
+		# self.nA = nS**2 + 1  # Specific to this state-action representation
+		self.nA = len(act_list)  # Length of 2D list corresponds to the edges of the graph
 
 		# Define the graph
 

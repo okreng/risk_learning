@@ -35,10 +35,11 @@ def main(args):
 	state_vector = np.reshape(state_vector, (1, -1))
 
 	######### Hyperparameters  ########
-	model_instance = '0-1'
+	model_instance = '0-2'
 	checkpoint_number = -1
-	LEARNING_RATE = 0.01
+	LEARNING_RATE = 0.0001
 	GAMMA = 0.9
+	# 0.2 for training, 0.1 for testing
 	EPSILON = 0.2
 	perform_update = True
 
@@ -46,6 +47,9 @@ def main(args):
 
 	agent = linear_attack_net.LinearAttackNet(T, model_instance, checkpoint_number, LEARNING_RATE)
 	opponent = max_success.MaxSuccess(T)
+
+	print("model_instance: {}\nLEARNING_RATE: {}\nGAMMA: {}\nEPSILON: {}\nT: {}"
+			   .format(model_instance, LEARNING_RATE, GAMMA, EPSILON, T))
 
 	game_state = np.random.random_integers(1,MAX_ARMIES,size=(2))
 	enemy_territory = np.random.random_integers(0,1)

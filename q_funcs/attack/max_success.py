@@ -41,12 +41,15 @@ class MaxSuccess():
 	"""
 	Class to hold the maximum success q function
 	"""
-	def __init__(self, T):
+	def __init__(self, T, act_list):
 		"""
-		Empty constructor so MaxSuccess can be held as an object
-		:params: none
+		Constructor so MaxSuccess can be held as an object
+		:param T: int, length of state, ignored
+		:param act_list: 2D list mapping edges to territories
 		:return : none
 		"""
+		self.T = T
+		self.act_list = act_list
 		return
 
 	def call_Q(self, state_vector):
@@ -67,7 +70,7 @@ class MaxSuccess():
 		pass_value = army_offset - 1
 
 
-		T = len(state_vector[0])
+		# T = len(state_vector[0])
 		# Leaving edge_matrix in as a visualization
 		# edge_matrix[row, col] = action_vector[row*T + col]
 		# edge_matrix = np.zeros((T,T), dtype=int)
@@ -75,8 +78,8 @@ class MaxSuccess():
 
 
 		# Can assume state_vector will be a (None, nS) length vector
-		for terr_row in range(T):
-			for terr_col in range(T):
+		for terr_row in range(self.T):
+			for terr_col in range(self.T):
 				terr_row_armies = state_vector[0, terr_row]
 				terr_col_armies = state_vector[0, terr_col]
 				if np.sign(terr_row_armies) == np.sign(terr_col_armies): # Can't attack yourself!
