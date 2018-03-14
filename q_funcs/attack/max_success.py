@@ -60,7 +60,7 @@ class MaxSuccess():
 		"""
 
 		# TODO: Remove this code once global armies number is defined
-		MAX_ARMIES = 100 # For testing
+		MAX_ARMIES = 12 # For testing
 
 		# For prioritizing bad actions between player and opponent over player-player actions
 		# Will be the threshold value at which the player will pass the turn
@@ -70,32 +70,61 @@ class MaxSuccess():
 		pass_value = army_offset - 1
 
 
-		# T = len(state_vector[0])
-		# Leaving edge_matrix in as a visualization
-		# edge_matrix[row, col] = action_vector[row*T + col]
-		# edge_matrix = np.zeros((T,T), dtype=int)
-		action_vector = np.zeros((T**2 + 1), dtype=int)
+		# # T = len(state_vector[0])
+		# # Leaving edge_matrix in as a visualization
+		# # edge_matrix[row, col] = action_vector[row*T + col]
+		# # edge_matrix = np.zeros((T,T), dtype=int)
+		# action_vector = np.zeros((T**2 + 1), dtype=int)
 
 
-		# Can assume state_vector will be a (None, nS) length vector
-		for terr_row in range(self.T):
-			for terr_col in range(self.T):
-				terr_row_armies = state_vector[0, terr_row]
-				terr_col_armies = state_vector[0, terr_col]
-				if np.sign(terr_row_armies) == np.sign(terr_col_armies): # Can't attack yourself!
-					# edge_matrix[terr_row, terr_col] = 0
-					action_vector[terr_row*T + terr_col] = 0
-				elif terr_row_armies < 0: # Opponent territories
-					# edge_matrix[terr_row, terr_col] = 0
-					action_vector[terr_row*T + terr_col] = 0
-				else:
-					army_difference = abs(terr_row_armies) - abs(terr_col_armies)
-					if army_difference < 0: # If worse than passing, decrement so less than pass_value
-						# edge_matrix[terr_row, terr_col] = 0
-						action_vector[terr_row*T + terr_col] = army_difference + army_offset -1
+		# # Can assume state_vector will be a (None, nS) length vector
+		# for terr_row in range(self.T):
+		# 	for terr_col in range(self.T):
+		# 		terr_row_armies = state_vector[0, terr_row]
+		# 		terr_col_armies = state_vector[0, terr_col]
+		# 		if np.sign(terr_row_armies) == np.sign(terr_col_armies): # Can't attack yourself!
+		# 			# edge_matrix[terr_row, terr_col] = 0
+		# 			action_vector[terr_row*T + terr_col] = 0
+		# 		elif terr_row_armies < 0: # Opponent territories
+		# 			# edge_matrix[terr_row, terr_col] = 0
+		# 			action_vector[terr_row*T + terr_col] = 0
+		# 		else:
+		# 			army_difference = abs(terr_row_armies) - abs(terr_col_armies)
+		# 			if army_difference < 0: # If worse than passing, decrement so less than pass_value
+		# 				# edge_matrix[terr_row, terr_col] = 0
+		# 				action_vector[terr_row*T + terr_col] = army_difference + army_offset -1
+		# 			else:
+		# 				# edge_matrix[terr_row, terr_col] = army_difference + army_offset
+		# 				action_vector[terr_row*T + terr_col] = army_difference + army_offset
+
+
+		################ Updated code for new action space ################
+		action_vector = np.zeros(len(self.act_list))
+		for act_index in range(len(self.act_list)):
+			if self.act_list[act_index][0] == -1:  # Only element with single value
+				action_vector[-1] = pass_value
+			else:
+				terr_0_armies = state_vector[0,self.act_list[act_index][0]]
+				terr_1_armies = state_vector[0,self.act_list[act_index][1]]
+				if not (np.sign(terr_0_armies) == np.sign(terr_1_armies)):
+					if terr_0_armies > 0:
+						player_armies = terr_0_armies
+						enemy_armies = terr_1_armies
 					else:
-						# edge_matrix[terr_row, terr_col] = army_difference + army_offset
-						action_vector[terr_row*T + terr_col] = army_difference + army_offset
+						player_armies = terr_1_armies
+						enemy_armies = terr_0_armies
+					army_difference = abs(player_armies) - abs(enemy_armies)
+					if army_difference == 0:
+						action_vector[act_index] = army_offset
+					elif army_difference > 0:
+						action_vector[act_index] = army_offset + army_difference
+					elif army_difference < 0:
+						action_vector[act_index] = army_offset - army_difference - 1
+					else:
+						print("Neither army is player, exiting")
+						exit()
+
+
 
 		action_vector[-1] = pass_value
 
