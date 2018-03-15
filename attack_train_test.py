@@ -494,6 +494,7 @@ def epsilon_greedy(q_func, epsilon):
 	choice = np.random.uniform()
 	max_action = np.argmax(q_func)
 
+	# print(choice)
 	# print("Max action is {}".format(max_action))
 
 	if choice > epsilon:
@@ -501,10 +502,11 @@ def epsilon_greedy(q_func, epsilon):
 	else:
 		eps_slice = epsilon/eps_choices
 		for act_slice in range(eps_choices):
-			if choice < (eps_slice*act_slice):
+			# print(eps_slice*(1+act_slice))
+			if choice < (eps_slice*(1+act_slice)):
 				action = act_slice
+				break
 
-		action = np.argmin(q_func)
 
 	if action >= max_action:  # Increment if past max_action
 		action += 1
@@ -514,7 +516,7 @@ def epsilon_greedy(q_func, epsilon):
 
 def epsilon_greedy_valid(q_func, valid_mask, epsilon):
 	"""
-	Defines a policy which acts greedily
+	Returns an epsilon greedy action from a subset of function defined by mask
 	Only chooses valid actions as specified by the mask
 	:param q_func: float vector to return argmax in greedy case
 	:param valid_mask: int vector of valid actions

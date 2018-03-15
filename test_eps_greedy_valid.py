@@ -50,14 +50,29 @@ def main(args):
 	valid_list = []
 
 	######### 2 element set ##############
-	q_list.append([1, 2])
-	valid_list.append([0, 0])
-	valid_list.append([1, 0])
-	valid_list.append([0, 1])
-	valid_list.append([1, 1])
+	# q_list.append([1, 2])
+	# valid_list.append([0, 0])
+	# valid_list.append([1, 0])
+	# valid_list.append([0, 1])
+	# valid_list.append([1, 1])
+
+	########## 3 element set #############
+	# q_list.append([-1, 0, 1])
+	# valid_list.append([0, 0, 0])
+	# valid_list.append([0, 0, 1])
+	# valid_list.append([0, 1, 0])
+	# valid_list.append([1, 0, 0])
+	# valid_list.append([1, 1, 0])
+	# valid_list.append([1, 0, 1])
+	# valid_list.append([0, 1, 1])
+	# valid_list.append([1, 1, 1])
+
+	######### 4 element set - slicing only #####
+	q_list.append([0, 4, 2, -3])
+	valid_list.append([1, 1, 1, 1])
 
 
-	EPSILON = 0.5  # Value that should give informative results
+	EPSILON = 0.1  # Value that should give informative results
 
 	# Begin test
 	print("Testing Epsilon Greedy Valid Policy")
