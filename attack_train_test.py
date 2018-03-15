@@ -280,9 +280,9 @@ def main(args):
 						agent_valid_mask = [0, 1]
 					else:
 						agent_valid_mask = [1, 1]
-					# print(np.multiply(agent_valid_mask, agent_q))
+					print(np.multiply(agent_valid_mask, agent_q))
 					agent_action = epsilon_greedy(np.multiply(agent_valid_mask, agent_q), EPSILON)
-					# print(agent_action)
+					print(agent_action)
 				######### Remember - return is 3 dimensional list
 				# print(action[0])
 				# print(action[0][0][1])
@@ -325,15 +325,15 @@ def main(args):
 
 			################## TODO: Determine standard shape for call_Q ########
 
-					agent_big_q = agent.call_Q(game_state)
-					agent_q = agent_big_q[0][0]
-					if game_state[0, agent_territory] == 1:
-						agent_valid_mask = [0, 1]
-					else:
-						agent_valid_mask = [1, 1]
-					# print(np.multiply(agent_valid_mask, agent_q))
-					agent_action = epsilon_greedy(np.multiply(agent_valid_mask, agent_q), EPSILON)
-					# print(agent_action)
+					# agent_big_q = agent.call_Q(game_state)
+					# agent_q = agent_big_q[0][0]
+					# if game_state[0, agent_territory] == 1:
+					# 	agent_valid_mask = [0, 1]
+					# else:
+					# 	agent_valid_mask = [1, 1]
+					# # print(np.multiply(agent_valid_mask, agent_q))
+					# agent_action = epsilon_greedy(np.multiply(agent_valid_mask, agent_q), EPSILON)
+					# # print(agent_action)
 					if verbose:
 						print("After agent attack, game is at: {}".format(game_state))
 
@@ -479,7 +479,6 @@ def attack(game_state, from_territory, to_territory):
 	return new_game_state
 
 
-# TODO: Update so state space is reasonable
 def epsilon_greedy(q_func, epsilon):
 	"""
 	Defines a policy which acts greedily except for epsilon exceptions
@@ -487,19 +486,60 @@ def epsilon_greedy(q_func, epsilon):
 	:param epsilon: the threshold value
 	:return index: int the index of the corresponding action
 	"""
-	choice = np.random.uniform()
-	print("q_func is: {}, choice is {}".format(q_func, choice))
+	eps_choices = len(q_func) - 1
+	if eps_choices == 0:
+		return q_func[0]
 
+	choice = np.random.uniform()
+
+	max_action = np.argmax(q_func)
 	if choice > epsilon:
-		action = np.argmax(q_func)
+		return max_action
 	else:
+		eps_slice = epsilon/eps_choices
+		for act_slice in eps_choices:
+			if choice < (eps_slice*act_slice):
+				action = act_slice
+
 		action = np.argmin(q_func)
 
-	print("Choice is {}".format(action))
+	if action >= max_action:  # Increment if past max_action
+		action += 1
+
 	return action
 
 
-# TODO: Update so state space is correct
+def epsilon_greedy_valid(q_func, valid_mask, epsilon):
+	"""
+	Defines a policy which acts greedily
+	Only chooses valid actions as specified by the mask
+	:param q_func: float vector to return argmax in greedy case
+	:param valid_mask: int vector of valid actions
+	:param epsilon: probability under which to choose non-greedily
+	:return arg: int choice
+	"""
+	if (len(q_func) == len(valid_mask)):
+		print("Q function and mask different sizes")
+		return -1
+	eps_choices = np.sum(valid_mask) - 1
+
+	valid_q_func = []
+	valid_q_to_orig_q_map = []
+	for ii in len(valid_mask):
+		if valid_mask[ii] == 1:
+			valid_q_func.append(q_func[ii])
+			valid_q_to_orig_q_map.append(ii)
+
+	if len(valid_q_func) == 0:
+		print("No valid actions")
+		return -1
+
+	valid_action = epsilon_greedy(q_func_valid, epsilon)
+	action = valid_q_to_orig_q_map[valid_action]
+
+	return action
+
+
 def enemy_view(game_state):
 	"""
 	Function to translate he game state as seen by the enemy
