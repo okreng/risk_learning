@@ -111,7 +111,7 @@ class LinearAttackNet():
 		self.saver = tf.train.Saver(max_to_keep=self.max_saves, keep_checkpoint_every_n_hours=1)
 
 		# Load model
-		if (self.save_folder is self.restore_folder):  # Building off existing branch
+		if (self.save_folder is self.restore_folder) or (not checkpoint_index == -1):  # Building off existing branch
 			ckpt = tf.train.get_checkpoint_state(self.restore_folder)
 			if ckpt and ckpt.model_checkpoint_path:
 				if checkpoint_index == -1:
@@ -120,7 +120,7 @@ class LinearAttackNet():
 					self.saver.restore(self.sess, ckpt.model_checkpoint_path)
 					self.num_updates = tf.train.get_global_step()
 				else:
-					if (checkpoint_index < len(all_model_checkpoint_paths)):
+					if (checkpoint_index < len(ckpt.all_model_checkpoint_paths)):
 						if verbose:
 							print("Loading model: ", ckpt.all_model_checkpoint_paths[checkpoint_index])
 						self.saver.restore(self.sess, ckpt.all_model_checkpoint_paths[checkpoint_index])
