@@ -486,18 +486,21 @@ def epsilon_greedy(q_func, epsilon):
 	:param epsilon: the threshold value
 	:return index: int the index of the corresponding action
 	"""
+
 	eps_choices = len(q_func) - 1
 	if eps_choices == 0:
-		return q_func[0]
+		return -1
 
 	choice = np.random.uniform()
-
 	max_action = np.argmax(q_func)
+
+	# print("Max action is {}".format(max_action))
+
 	if choice > epsilon:
 		return max_action
 	else:
 		eps_slice = epsilon/eps_choices
-		for act_slice in eps_choices:
+		for act_slice in range(eps_choices):
 			if choice < (eps_slice*act_slice):
 				action = act_slice
 
@@ -518,14 +521,15 @@ def epsilon_greedy_valid(q_func, valid_mask, epsilon):
 	:param epsilon: probability under which to choose non-greedily
 	:return arg: int choice
 	"""
-	if (len(q_func) == len(valid_mask)):
+	nA = len(valid_mask)
+	if not (len(q_func) == nA):
 		print("Q function and mask different sizes")
 		return -1
 	eps_choices = np.sum(valid_mask) - 1
 
 	valid_q_func = []
 	valid_q_to_orig_q_map = []
-	for ii in len(valid_mask):
+	for ii in range(nA):
 		if valid_mask[ii] == 1:
 			valid_q_func.append(q_func[ii])
 			valid_q_to_orig_q_map.append(ii)
@@ -534,7 +538,10 @@ def epsilon_greedy_valid(q_func, valid_mask, epsilon):
 		print("No valid actions")
 		return -1
 
-	valid_action = epsilon_greedy(q_func_valid, epsilon)
+	# print(valid_q_func)
+	# print(valid_q_to_orig_q_map)
+	valid_action = epsilon_greedy(valid_q_func, epsilon)
+	# print(valid_action)
 	action = valid_q_to_orig_q_map[valid_action]
 
 	return action

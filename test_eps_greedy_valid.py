@@ -2,20 +2,26 @@
 File that tests the epsilon greedy valid policy
 """
 
-
 import numpy as np
 import sys
 import argparse
 import importlib
 
+import attack_train_test as att
 
+
+
+############ UNUSED BUT LEAVE IN BECAUSE WE MAY MOVE THE FUNCTION PATH ############
 def parse_arguments():
 	# This function helps main read command line arguments
 	parser = argparse.ArgumentParser(description=
 		'Risk Environment Argument Parser')
-	parser.add_argument('--module',dest='module',type=str)
-	parser.add_argument('--function',dest='pol_func',type=str)
+	# parser.add_argument('--module',dest='module',type=str)
+	# parser.add_argument('--function',dest='pol_func',type=str)
 	return parser.parse_args()
+
+	############ UNUSED BUT LEAVE IN BECAUSE WE MAY MOVE THE FUNCTION PATH ############
+
 
 def main(args):
 	"""
@@ -26,13 +32,18 @@ def main(args):
 	:return : none
 	"""
 
-	#import attack.max_success as pol0
-	args = parse_arguments()
-	module = args.module
-	pol_func_str = args.pol_func
 
-	pol_module = importlib.import_module(module, package=None)
-	eps_greedy_valid = getattr(pol_module, pol_func_str)
+
+############ UNUSED BUT LEAVE IN BECAUSE WE MAY MOVE THE FUNCTION PATH ############
+	# args = parse_arguments()
+	# module = args.module
+	# pol_func_str = args.pol_func
+
+	# pol_module = importlib.import_module(module, package=None)
+	# eps_greedy_valid = getattr(pol_module, pol_func_str)
+
+############ UNUSED BUT LEAVE IN BECAUSE WE MAY MOVE THE FUNCTION PATH ############
+
 
 	# Define a list of Q functions and valid masks
 	q_list = []
@@ -55,6 +66,9 @@ def main(args):
 		for mask in valid_list:
 			print("Mask: {}".format(mask))
 			for ii in range(10):
-				print("\tEGV Choice: {}".format(eps_greedy_valid(q, mask, EPSILON)))
+				print("\tEGV Choice: {}".format(att.epsilon_greedy_valid(q, mask, EPSILON)))
+			print("\n")
 
 
+if __name__ == '__main__':
+	main(sys.argv)
