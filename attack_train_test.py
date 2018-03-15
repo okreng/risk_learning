@@ -17,7 +17,7 @@ from q_funcs.attack import random_attack
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Agent Argument Parser')
 	parser.add_argument('--train',dest='train',type=int)
-	parser.add_argument('--verbose',dest='verbose',type=bool, default=True)
+	parser.add_argument('--verbose',dest='verbose_int',type=int, default=1)
 	return parser.parse_args()
 
 def main(args):
@@ -31,7 +31,12 @@ def main(args):
 
 	args = parse_arguments()
 	train = args.train
-	verbose = args.verbose
+	verbose_int = args.verbose_int
+
+	if verbose_int == 1:
+		verbose = True
+	else:
+		verbose = False
 
 	# Simplest graph possible
 	T = 2
@@ -49,9 +54,9 @@ def main(args):
 		LEARNING_RATE = 0.001
 		GAMMA = 0.9
 		# 0.2 for training, 0.1 for testing
-		EPSILON = 0.1
+		EPSILON = 0.01
 		perform_update = True
-		NUM_GAMES = 100000
+		NUM_GAMES = 1000
 	elif train == 0:
 		if verbose:
 			print("Beginning to test")
@@ -59,7 +64,7 @@ def main(args):
 		checkpoint_number = -1
 		LEARNING_RATE = 0  # never used
 		GAMMA = 0.9  # never used
-		EPSILON = 0.1  # Lower for testing
+		EPSILON = 0.005  # Lower for testing
 		perform_update = False
 		NUM_GAMES = 100
 	else:
@@ -217,9 +222,9 @@ def main(args):
 						agent_valid_mask = [0, 1]
 					else:
 						agent_valid_mask = [1, 1]
-					print(np.multiply(agent_valid_mask, agent_q))
+					# print(np.multiply(agent_valid_mask, agent_q))
 					agent_action = epsilon_greedy(np.multiply(agent_valid_mask, agent_q), EPSILON)
-					print(agent_action)
+					# print(agent_action)
 					agent_starts = False
 
 				# if looking_ahead:
@@ -275,9 +280,9 @@ def main(args):
 						agent_valid_mask = [0, 1]
 					else:
 						agent_valid_mask = [1, 1]
-					print(np.multiply(agent_valid_mask, agent_q))
+					# print(np.multiply(agent_valid_mask, agent_q))
 					agent_action = epsilon_greedy(np.multiply(agent_valid_mask, agent_q), EPSILON)
-					print(agent_action)
+					# print(agent_action)
 				######### Remember - return is 3 dimensional list
 				# print(action[0])
 				# print(action[0][0][1])
@@ -326,9 +331,9 @@ def main(args):
 						agent_valid_mask = [0, 1]
 					else:
 						agent_valid_mask = [1, 1]
-					print(np.multiply(agent_valid_mask, agent_q))
+					# print(np.multiply(agent_valid_mask, agent_q))
 					agent_action = epsilon_greedy(np.multiply(agent_valid_mask, agent_q), EPSILON)
-					print(agent_action)
+					# print(agent_action)
 					if verbose:
 						print("After agent attack, game is at: {}".format(game_state))
 
@@ -483,14 +488,14 @@ def epsilon_greedy(q_func, epsilon):
 	:return index: int the index of the corresponding action
 	"""
 	choice = np.random.uniform()
-	print("q_func is: {}, choice is {}".format(q_func, choice))
+	# print("q_func is: {}, choice is {}".format(q_func, choice))
 
 	if choice > epsilon:
 		action = np.argmax(q_func)
 	else:
 		action = np.argmin(q_func)
 
-	print("Choice is {}".format(action))
+	# print("Choice is {}".format(action))
 	return action
 
 
