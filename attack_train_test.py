@@ -67,7 +67,7 @@ def main(args):
 		GAMMA = 0.9  # never used
 		EPSILON = 0.005  # Lower for testing
 		perform_update = False
-		NUM_GAMES = 100
+		NUM_GAMES = 1000
 	else:
 		print("Specify --train as 1 for training, 0 for testing")
 		exit()
@@ -75,15 +75,18 @@ def main(args):
 
 	MAX_ARMIES = 4
 
-	agent = army_difference.ArmyDifference(T, act_list)
+	agent = max_success.MaxSuccess(T, act_list)
+	# agent = army_difference.ArmyDifference(T, act_list)
 	# agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
 	# opponent = max_success.MaxSuccess(T, act_list)
-	opponent = random_attack.RandomAttack(T, act_list)
+	# opponent = random_attack.RandomAttack(T, act_list)
+	opponent = army_difference.ArmyDifference(T, act_list)
 
 	print("model_instance: {}\nLEARNING_RATE: {}\nGAMMA: {}\nEPSILON: {}\nT: {}"
 			   .format(model_instance, LEARNING_RATE, GAMMA, EPSILON, T))
 
-	starting_armies = np.random.random_integers(1,MAX_ARMIES)
+	# starting_armies = np.random.random_integers(1,MAX_ARMIES)
+	starting_armies = MAX_ARMIES
 	# game_state = np.random.random_integers(1,MAX_ARMIES,size=(2))
 	game_state = np.array([starting_armies, starting_armies])
 	# enemy_territory = np.random.random_integers(0,1)
