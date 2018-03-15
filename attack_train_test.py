@@ -57,7 +57,7 @@ def main(args):
 		# 0.2 for training, 0.1 for testing
 		EPSILON = 0.01
 		perform_update = True
-		NUM_GAMES = 1000
+		NUM_GAMES = 100
 	elif train == 0:
 		if verbose:
 			print("Beginning to test")
@@ -75,9 +75,9 @@ def main(args):
 
 	MAX_ARMIES = 4
 
-	agent = max_success.MaxSuccess(T, act_list)
+	# agent = max_success.MaxSuccess(T, act_list)
 	# agent = army_difference.ArmyDifference(T, act_list)
-	# agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
 	# opponent = max_success.MaxSuccess(T, act_list)
 	# opponent = random_attack.RandomAttack(T, act_list)
 	opponent = army_difference.ArmyDifference(T, act_list)
@@ -387,6 +387,7 @@ def main(args):
 	if train:
 		print("Training complete")
 		print("Win count: Agent/Enemy: {}/{}".format(agent_wins, enemy_wins))
+		agent.close()
 	else:
 		print("Testing complete")
 		print("Win count: Agent/Enemy: {}/{}".format(agent_wins, enemy_wins))

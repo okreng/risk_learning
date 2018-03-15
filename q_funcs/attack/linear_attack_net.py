@@ -158,6 +158,17 @@ class LinearAttackNet():
 # 	self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 # 	return
 
+	def close(self):
+		"""
+		Function provided for saving final update, closing, and printing filepath
+		:params none:
+		:return none:
+		"""
+		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+		self.sess.close()
+		print("{} closed and saved to {}, checkpoint {}".format(self.module_string, self.save_folder, self.num_updates))
+		return
+
 
 	def call_Q(self, state_vector, update=False, action_taken=0, target=0, loss_weights=None):
 		"""
