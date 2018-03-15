@@ -12,6 +12,7 @@ import numpy as np
 from q_funcs.attack import linear_attack_net
 from q_funcs.attack import max_success
 from q_funcs.attack import random_attack
+from q_funcs.attack import army_difference
 
 
 def parse_arguments():
@@ -72,9 +73,10 @@ def main(args):
 		exit()
 
 
-	MAX_ARMIES = 12
+	MAX_ARMIES = 4
 
-	agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	agent = army_difference.ArmyDifference(T, act_list)
+	# agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
 	# opponent = max_success.MaxSuccess(T, act_list)
 	opponent = random_attack.RandomAttack(T, act_list)
 
@@ -84,7 +86,8 @@ def main(args):
 	starting_armies = np.random.random_integers(1,MAX_ARMIES)
 	# game_state = np.random.random_integers(1,MAX_ARMIES,size=(2))
 	game_state = np.array([starting_armies, starting_armies])
-	enemy_territory = np.random.random_integers(0,1)
+	# enemy_territory = np.random.random_integers(0,1)
+	enemy_territory = 1
 	agent_territory = abs(1-enemy_territory)
 	game_state[enemy_territory] = -game_state[enemy_territory]
 	game_state = np.reshape(game_state,(1,-1))
@@ -151,7 +154,7 @@ def main(args):
 					else:
 						opponent_valid_mask = [1, 1]
 					# print(np.multiply(opponent_valid_mask, opponent_q))
-					opponent_action = np.argmax(np.multiply(opponent_valid_mask, opponent_q))
+					opponent_action = epsilon_greedy_valid(opponent_q, opponent_valid_mask, EPSILON)
 					# print(opponent_action)
 					# print("Opponent chooses action: {}".format( opponent_action))
 
@@ -177,7 +180,7 @@ def main(args):
 					else:
 						opponent_valid_mask = [1, 1]
 					# print(np.multiply(opponent_valid_mask, opponent_q))
-					opponent_action = np.argmax(np.multiply(opponent_valid_mask, opponent_q))
+					opponent_action = epsilon_greedy_valid(opponent_q, opponent_valid_mask, EPSILON)
 					# print(opponent_action)
 					# print("Opponent chooses action: {}".format( opponent_action))
 
@@ -223,7 +226,7 @@ def main(args):
 					else:
 						agent_valid_mask = [1, 1]
 					# print(np.multiply(agent_valid_mask, agent_q))
-					agent_action = epsilon_greedy(np.multiply(agent_valid_mask, agent_q), EPSILON)
+					agent_action = epsilon_greedy_valid(agent_q, agent_valid_mask, EPSILON)
 					# print(agent_action)
 					agent_starts = False
 
@@ -281,7 +284,7 @@ def main(args):
 					else:
 						agent_valid_mask = [1, 1]
 					print(np.multiply(agent_valid_mask, agent_q))
-					agent_action = epsilon_greedy(np.multiply(agent_valid_mask, agent_q), EPSILON)
+					agent_action = epsilon_greedy_valid(agent_q, agent_valid_mask, EPSILON)
 					print(agent_action)
 				######### Remember - return is 3 dimensional list
 				# print(action[0])

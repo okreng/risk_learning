@@ -5,10 +5,8 @@ Equal armies is a >50%  success chance for all matchups with armies >3
 (-) armies is a -50% success chance for all matchups
 So the pass-turn point comes when all borders are negative army difference
 
-
-
-Important: Different from army_difference action
-Army_difference will act differently than this strategy for self army numbers < 4
+Important: Different from max_success action
+Max_success will act differently than this policy for self army numbers < 4
 
 Note: 
 "Battle" refers to a sequence of attacks between two territories
@@ -37,9 +35,9 @@ import numpy as np
 
 global MAX_ARMIES #max armies per player
 
-class MaxSuccess():
+class ArmyDifference():
 	"""
-	Class to hold the maximum success q function
+	Class to hold the army difference q function
 	"""
 	def __init__(self, T, act_list):
 		"""
