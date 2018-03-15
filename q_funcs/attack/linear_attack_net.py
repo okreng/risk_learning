@@ -143,9 +143,32 @@ class LinearAttackNet():
 		else:
 			print("---------------WARNING--------------\nModel did not load or save correctly")
 
+		return
 
 
-		return # False indicates the model was randomly initialized
+############### TODO: Figure out how to safely save at the end of sessions #############
+
+# def __del__(self):
+# 	"""
+# 	Destructor for attack networks - useful for printing and saving
+# 	:param : none
+# 	: return : none
+# 	"""
+# 	print("Saving module {} to {}, checkpoint: {}".format(self.module_string, self.save_folder, self.num_updates))
+# 	self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+# 	return
+
+	def close(self):
+		"""
+		Function provided for saving final update, closing, and printing filepath
+		:params none:
+		:return none:
+		"""
+		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+		self.sess.close()
+		print("{} closed and saved to {}, checkpoint {}".format(self.module_string, self.save_folder, self.num_updates))
+		return
+
 
 	def call_Q(self, state_vector, update=False, action_taken=0, target=0, loss_weights=None):
 		"""
@@ -158,11 +181,20 @@ class LinearAttackNet():
 		# print(is_training)
 
 		if not update:
-			return self.sess.run([self.output], feed_dict={self.features:state_vector})
+			q_function = self.sess.run([self.output], feed_dict={self.features:state_vector})
+			
+			###### Leave in here in case of troubleshooting #######
+			# print(q_function)
+			# print(q_function[0])
+			# print(q_function[0][0])
+			# print(np.reshape(q_function, -1))
+			return q_function[0][0]
 		else:
 			self.num_updates += 1
 			_, q_function, loss = self.sess.run([self.train_op, self.output, self.loss], feed_dict={self.features:state_vector, self.act: action_taken, self.labels:target, self.loss_weights:loss_weights})
 			if self.num_updates == self.next_save:
 				self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 				self.next_save += np.ceil(np.sqrt(self.num_updates))
-			return q_function, loss
+			
+################### Determine how best to return q function ##########
+			return q_function[0][0], loss

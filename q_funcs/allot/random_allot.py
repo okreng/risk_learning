@@ -24,7 +24,7 @@ class RandomAllot():
 		self.act_list = act_list
 		return
 
-	def call_Q(self, state_vector):
+	def call_Q(self, state_vector, update=None, action_taken=None, target=None, loss_weights=None):
 		"""
 		Function for executing maximum battle success
 		:param state_vector: np-array 1D vector of armies on territory
@@ -51,7 +51,7 @@ class RandomAllot():
 		# action_vector[allot_choice] = 1
 
 		############ Code for new action space ##############3
-		action_vector = np.random.rand(len(self.act_list))
+		action_vector = np.random.rand(self.T)
 		return action_vector
 
 		

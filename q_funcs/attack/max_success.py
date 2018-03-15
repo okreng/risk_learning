@@ -1,9 +1,14 @@
 """
-This file contains the function for attacks prioritized by highest chance of battle success
+This file contains the function for attacks solely based on army difference
 Based on the table on page 11 of http://c4i.gr/xgeorgio/docs/RISK-board-game%20_rev-3.pdf
-Equal armies is a >50%  success chance for all matchups
+Equal armies is a >50%  success chance for all matchups with armies >3
 (-) armies is a -50% success chance for all matchups
 So the pass-turn point comes when all borders are negative army difference
+
+
+
+Important: Different from army_difference action
+Army_difference will act differently than this strategy for self army numbers < 4
 
 Note: 
 "Battle" refers to a sequence of attacks between two territories
@@ -19,15 +24,10 @@ Negative numbers represent opponent armies (all opponents represented the same w
 
 
 Action representation:
-Vector of edges for each connection
-Size ((T^2) + 1)x1
-Final element represents choice to end attack phase
-Policy is naive to which edges are valid attacks
-
-Effectively a flattened matrix of size TxT
-Row corresponds to attacking territory
-Column corresponds to defending territory
-Element is difference of player and opponent armies
+act_list is a 2D list with each element corresponding to an edge in the graph, 
+holding the territories it connects
+Final element in the list is -1, indicating pass turn action
+size = # edges + 1
 
 Environment will translate maxmimum valid element into attack in the game
 
@@ -43,7 +43,7 @@ class MaxSuccess():
 	"""
 	def __init__(self, T, act_list):
 		"""
-		Constructor so MaxSuccess can be held as an object
+		Constructor so ArmyDifference can be held as an object
 		:param T: int, length of state, ignored
 		:param act_list: 2D list mapping edges to territories
 		:return : none
@@ -52,7 +52,7 @@ class MaxSuccess():
 		self.act_list = act_list
 		return
 
-	def call_Q(self, state_vector):
+	def call_Q(self, state_vector, update=None, action_taken=None, target=None, loss_weights=None):
 		"""
 		Function for executing maximum battle success
 		:param state_vector: np-array 1D vector of armies on territory
@@ -68,34 +68,6 @@ class MaxSuccess():
 
 		# Pass value is prioritized below 0 difference matchups
 		pass_value = army_offset - 1
-
-
-		# # T = len(state_vector[0])
-		# # Leaving edge_matrix in as a visualization
-		# # edge_matrix[row, col] = action_vector[row*T + col]
-		# # edge_matrix = np.zeros((T,T), dtype=int)
-		# action_vector = np.zeros((T**2 + 1), dtype=int)
-
-
-		# # Can assume state_vector will be a (None, nS) length vector
-		# for terr_row in range(self.T):
-		# 	for terr_col in range(self.T):
-		# 		terr_row_armies = state_vector[0, terr_row]
-		# 		terr_col_armies = state_vector[0, terr_col]
-		# 		if np.sign(terr_row_armies) == np.sign(terr_col_armies): # Can't attack yourself!
-		# 			# edge_matrix[terr_row, terr_col] = 0
-		# 			action_vector[terr_row*T + terr_col] = 0
-		# 		elif terr_row_armies < 0: # Opponent territories
-		# 			# edge_matrix[terr_row, terr_col] = 0
-		# 			action_vector[terr_row*T + terr_col] = 0
-		# 		else:
-		# 			army_difference = abs(terr_row_armies) - abs(terr_col_armies)
-		# 			if army_difference < 0: # If worse than passing, decrement so less than pass_value
-		# 				# edge_matrix[terr_row, terr_col] = 0
-		# 				action_vector[terr_row*T + terr_col] = army_difference + army_offset -1
-		# 			else:
-		# 				# edge_matrix[terr_row, terr_col] = army_difference + army_offset
-		# 				action_vector[terr_row*T + terr_col] = army_difference + army_offset
 
 
 		################ Updated code for new action space ################
@@ -114,16 +86,36 @@ class MaxSuccess():
 						player_armies = terr_1_armies
 						enemy_armies = terr_0_armies
 					army_difference = abs(player_armies) - abs(enemy_armies)
-					if army_difference == 0:
-						action_vector[act_index] = army_offset
-					elif army_difference > 0:
-						action_vector[act_index] = army_offset + army_difference
-					elif army_difference < 0:
-						action_vector[act_index] = army_offset - army_difference - 1
-					else:
-						print("Neither army is player, exiting")
-						exit()
-
+					if player_armies > 3:  # Attacking with 3 armies
+						if army_difference == 0:
+							action_vector[act_index] = army_offset
+						elif army_difference > 0:
+							action_vector[act_index] = army_offset + army_difference
+						elif army_difference < 0:
+							action_vector[act_index] = army_offset + army_difference - 1
+						else:
+							print("Neither army is player, exiting")
+							exit()
+					elif player_armies == 3:  # Don't attack 2 against 2
+						if (army_difference == 0) or (army_difference == 1):
+							action_vector[act_index] = pass_value + army_difference - 2
+						elif army_difference == 2:  # Attack 2 against 1
+							action_vector[act_index] = army_offset + army_difference
+						elif army_difference < 0:
+							action_vector[act_index] = army_offset + army_difference - 1
+						else:
+							print("Army difference miscalculated, exiting")
+							exit()
+					elif player_armies == 2:  # Do not attack with only 2 armies
+						if army_difference == 0:
+							action_vector[act_index] = pass_value - 2
+						elif army_difference > 0:
+							action_vector[act_index] = pass_value - 1
+						elif army_difference < 0:
+							action_vector[act_index] = army_offset + army_difference - 1
+						else:
+							print("You broke math, exiting")
+				####### No 1 - army case needed because attacks will not be valid ###
 
 
 		action_vector[-1] = pass_value
