@@ -49,7 +49,7 @@ def main(args):
 	if train == 1:
 		if verbose:
 			print("Beginning to train")
-		model_instance = '0-73'
+		model_instance = '0-81'
 		checkpoint_number = -1
 		LEARNING_RATE = 0.001
 		GAMMA = 0.9
@@ -488,14 +488,14 @@ def epsilon_greedy(q_func, epsilon):
 	:return index: int the index of the corresponding action
 	"""
 	choice = np.random.uniform()
-	# print("q_func is: {}, choice is {}".format(q_func, choice))
+	print("q_func is: {}, choice is {}".format(q_func, choice))
 
 	if choice > epsilon:
 		action = np.argmax(q_func)
 	else:
 		action = np.argmin(q_func)
 
-	# print("Choice is {}".format(action))
+	print("Choice is {}".format(action))
 	return action
 
 
