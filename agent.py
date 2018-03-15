@@ -37,7 +37,7 @@ class Agent():
 			self.attack_q_func = max_success.MaxSuccess(self.territories, self.act_list)
 		elif attack_q_func is "linear_attack_net":
 			# TODO pass in arguments to this function
-			self.attack_q_func = linear_attack_net.LinearAttackNet(self.territories, self.act_list, '0-56', 5)
+			self.attack_q_func = linear_attack_net.LinearAttackNet(self.territories, self.act_list, '0-56', 15)
 		else:
 			print("No valid attack Q function specified")
 			exit()
@@ -73,7 +73,7 @@ def main(args):
 
 	act_list = [[0,1],[-1]]
 
-	agent = Agent(territories, player_id, act_list, "random_allot", "linear_attack_net", "random_fortify")
+	agent = Agent(player_id, territories, act_list, "random_allot", "linear_attack_net", "random_fortify")
 
 
 if __name__ == '__main__':

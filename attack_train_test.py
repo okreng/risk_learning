@@ -41,7 +41,7 @@ def main(args):
 
 	######### Hyperparameters  ########
 	if train:
-		model_instance = '0'
+		model_instance = '0-56'
 		checkpoint_number = -1
 		LEARNING_RATE = 0.0001
 		GAMMA = 0.95
