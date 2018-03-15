@@ -86,16 +86,36 @@ class MaxSuccess():
 						player_armies = terr_1_armies
 						enemy_armies = terr_0_armies
 					army_difference = abs(player_armies) - abs(enemy_armies)
-					if army_difference == 0:
-						action_vector[act_index] = army_offset
-					elif army_difference > 0:
-						action_vector[act_index] = army_offset + army_difference
-					elif army_difference < 0:
-						action_vector[act_index] = army_offset - army_difference - 1
-					else:
-						print("Neither army is player, exiting")
-						exit()
-
+					if player_armies > 3:  # Attacking with 3 armies
+						if army_difference == 0:
+							action_vector[act_index] = army_offset
+						elif army_difference > 0:
+							action_vector[act_index] = army_offset + army_difference
+						elif army_difference < 0:
+							action_vector[act_index] = army_offset + army_difference - 1
+						else:
+							print("Neither army is player, exiting")
+							exit()
+					elif player_armies == 3:  # Don't attack 2 against 2
+						if (army_difference == 0) or (army_difference == 1):
+							action_vector[act_index] = pass_value + army_difference - 2
+						elif army_difference == 2:  # Attack 2 against 1
+							action_vector[act_index] = army_offset + army_difference
+						elif army_difference < 0:
+							action_vector[act_index] = army_offset + army_difference - 1
+						else:
+							print("Army difference miscalculated, exiting")
+							exit()
+					elif player_armies == 2:  # Do not attack with only 2 armies
+						if army_difference == 0:
+							action_vector[act_index] = pass_value - 2
+						elif army_difference > 0:
+							action_vector[act_index] = pass_value - 1
+						elif army_difference < 0:
+							action_vector[act_index] = army_offset + army_difference - 1
+						else:
+							print("You broke math, exiting")
+				####### No 1 - army case needed because attacks will not be valid ###
 
 
 		action_vector[-1] = pass_value

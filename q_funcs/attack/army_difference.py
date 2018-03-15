@@ -89,7 +89,7 @@ class ArmyDifference():
 					elif army_difference > 0:
 						action_vector[act_index] = army_offset + army_difference
 					elif army_difference < 0:
-						action_vector[act_index] = army_offset - army_difference - 1
+						action_vector[act_index] = army_offset + army_difference - 1
 					else:
 						print("Neither army is player, exiting")
 						exit()

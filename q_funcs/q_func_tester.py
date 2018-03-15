@@ -42,6 +42,9 @@ def main(args):
 	s_v_list.append(np.array([1, 2, -1]))
 	s_v_list.append(np.array([2, -2, -1]))
 	s_v_list.append(np.array([1, -2, -1]))
+	s_v_list.append(np.array([3, -2, -1]))
+	s_v_list.append(np.array([4, -2, -1]))
+
 
 	# Add act_lists to the list
 	act_lists_list = []
@@ -50,6 +53,9 @@ def main(args):
 	act_lists_list.append([[0,1],[0, 2],[1, 2],[-1]])
 	act_lists_list.append([[0,1],[0, 2],[1, 2],[-1]])
 	act_lists_list.append([[0,1],[0, 2],[1, 2],[-1]])
+	act_lists_list.append([[0,1],[0, 2],[1, 2],[-1]])
+	act_lists_list.append([[0,1],[0, 2],[1, 2],[-1]])
+
 
 
 
