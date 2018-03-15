@@ -22,9 +22,10 @@ def parse_arguments():
 
 def main(args):
 	"""
-	Reads a policy filepath and runs state vectors on the given policy
+	Reads an action filepath and runs state vectors on the given action
 	Prints results to console
-	:param policy_filepath: string that contains directory and policy function dir.policy
+	:param module: string that contains the module of the function
+	:param function: string name of the function
 	:return : none
 	"""
 
@@ -70,7 +71,7 @@ def main(args):
 
 
 	# Begin test
-	print("Testing Q-function: {}".format(module))
+	print("Testing action module: {}".format(module))
 	for s_v in s_v_list:
 		s_v = np.reshape(s_v, (1, -1))
 
