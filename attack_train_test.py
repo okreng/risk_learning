@@ -219,8 +219,8 @@ def main(args):
 					
 			################# TODO: Determine standard shape for call_Q return #####
 
-					agent_big_q = agent.call_Q(game_state)
-					agent_q = agent_big_q[0][0]
+					agent_q = agent.call_Q(game_state)
+					# agent_q = agent_big_q[0][0]
 					if game_state[0, agent_territory] == 1:
 						agent_valid_mask = [0, 1]
 					else:
@@ -251,7 +251,7 @@ def main(args):
 							loss_weights = np.zeros([1, len(act_list)])
 							loss_weights[0][-1] = 1
 							target = np.zeros(len(act_list))
-							target[-1] = reward + GAMMA * max(target_q_func[0][0])  # max value
+							target[-1] = reward + GAMMA * max(target_q_func)  # max value
 							target = np.reshape(target, (1, -1))
 							updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=agent_action, target=target, loss_weights=loss_weights)
 						
@@ -277,8 +277,8 @@ def main(args):
 
 				############## TODO: Determine standard return shape for call_Q ###3
 
-					agent_big_q = agent.call_Q(game_state)
-					agent_q = agent_big_q[0][0]
+					agent_q = agent.call_Q(game_state)
+					# agent_q = agent_big_q[0][0]
 					if game_state[0, agent_territory] == 1:
 						agent_valid_mask = [0, 1]
 					else:
@@ -319,7 +319,7 @@ def main(args):
 						loss_weights = np.zeros([1, len(act_list)])
 						loss_weights[0][-1] = 1
 						target = np.zeros(len(act_list))
-						target[-1] = reward + GAMMA * max(target_q_func[0][0])
+						target[-1] = reward + GAMMA * max(target_q_func)
 						target = np.reshape(target, (1, -1))
 						updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=agent_action, target=target, loss_weights=loss_weights)
 

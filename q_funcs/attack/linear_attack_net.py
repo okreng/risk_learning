@@ -170,11 +170,20 @@ class LinearAttackNet():
 		# print(is_training)
 
 		if not update:
-			return self.sess.run([self.output], feed_dict={self.features:state_vector})
+			q_function = self.sess.run([self.output], feed_dict={self.features:state_vector})
+			
+			###### Leave in here in case of troubleshooting #######
+			# print(q_function)
+			# print(q_function[0])
+			# print(q_function[0][0])
+			# print(np.reshape(q_function, -1))
+			return q_function[0][0]
 		else:
 			self.num_updates += 1
 			_, q_function, loss = self.sess.run([self.train_op, self.output, self.loss], feed_dict={self.features:state_vector, self.act: action_taken, self.labels:target, self.loss_weights:loss_weights})
 			if self.num_updates == self.next_save:
 				self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 				self.next_save += np.ceil(np.sqrt(self.num_updates))
-			return q_function, loss
+			
+################### Determine how best to return q function ##########
+			return q_function[0][0], loss
