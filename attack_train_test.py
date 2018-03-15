@@ -57,11 +57,11 @@ def main(args):
 		# 0.2 for training, 0.1 for testing
 		EPSILON = 0.01
 		perform_update = True
-		NUM_GAMES = 100
+		NUM_GAMES = 5000
 	elif train == 0:
 		if verbose:
 			print("Beginning to test")
-		model_instance = '0'
+		model_instance = '0-81'
 		checkpoint_number = -1
 		LEARNING_RATE = 0  # never used
 		GAMMA = 0.9  # never used
