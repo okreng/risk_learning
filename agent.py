@@ -14,7 +14,7 @@ class Agent():
 	This class holds three q_func objects
 	One for each action type
 	"""
-	def __init__(self, territories, player_id, allot_q_func, attack_q_func, fortify_q_func, verbose=True):
+	def __init__(self, player_id, territories, act_list, allot_q_func, attack_q_func, fortify_q_func, verbose=True):
 		"""
 		Constructor for agent
 		:param territories: int number of territories on the board
@@ -24,24 +24,26 @@ class Agent():
 		:return none:
 		"""
 		self.player_id = player_id
+		self.territories = territories
+		self.act_list = act_list
 
 		if allot_q_func is "random_allot":
-			self.allot_q_func = random_allot.RandomAllot(territories)
+			self.allot_q_func = random_allot.RandomAllot(self.territories, self.act_list)
 		else:
 			print("No valid allot Q function specified")
 			exit()
 			
 		if attack_q_func is "max_success":
-			self.attack_q_func = max_success.MaxSuccess(territories)
+			self.attack_q_func = max_success.MaxSuccess(self.territories, self.act_list)
 		elif attack_q_func is "linear_attack_net":
 			# TODO pass in arguments to this function
-			self.attack_q_func = linear_attack_net.LinearAttackNet(territories)
+			self.attack_q_func = linear_attack_net.LinearAttackNet(self.territories, self.act_list, '0-56', 15)
 		else:
 			print("No valid attack Q function specified")
 			exit()
 
 		if fortify_q_func is "random_fortify":
-			self.fortify_q_func = random_fortify.RandomFortify(territories)
+			self.fortify_q_func = random_fortify.RandomFortify(self.territories, self.act_list)
 		else:
 			print("No valid attack Q function specified")
 			exit()
@@ -58,7 +60,7 @@ class Agent():
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Agent Argument Parser')
 	parser.add_argument('--train',dest='train',type=bool,default=False)
-	parser.add_argument('--territories',dest='territories',type=int, default=1)
+	parser.add_argument('--territories',dest='territories',type=int, default=2)
 	parser.add_argument('--player',dest='player_id',type=int,default=0)
 	return parser.parse_args()
 
@@ -69,7 +71,9 @@ def main(args):
 	territories = args.territories
 	player_id = args.player_id
 
-	agent = Agent(territories, player_id, "random_allot", "linear_attack_net", "random_fortify")
+	act_list = [[0,1],[-1]]
+
+	agent = Agent(player_id, territories, act_list, "random_allot", "linear_attack_net", "random_fortify")
 
 
 if __name__ == '__main__':

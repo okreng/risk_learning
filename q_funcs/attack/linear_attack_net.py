@@ -29,7 +29,7 @@ class LinearAttackNet():
 	Class to hold a linear neural network
 	Will be used to learn Attacks in RISK
 	"""
-	def __init__(self, nS, model_instance='0', checkpoint_index=-1, learning_rate = 0.001, verbose=True):
+	def __init__(self, nS, act_list, model_instance='0', checkpoint_index=-1, learning_rate = 0.001, verbose=True):
 		"""
 		Creates a session of the tensorflow graph defined in this module
 		:param nS: int required, will throw error if does not agree, the number of territories on the graph
@@ -53,24 +53,29 @@ class LinearAttackNet():
 
 		self.module_string = 'linear_attack_net'
 		self.action_type_string = 'attack'
-		self.num_updates = 0
 		self.next_save = 1
-		self.max_saves = 1000
+		self.max_saves = 10
 		self.exact_load = True
 
-		self.save_folder, self.restore_folder = model_tree(model_instance, self.module_string, self.action_type_string, verbose)
+		if checkpoint_index == -1:
+			continue_on = True
+		else:
+			continue_on = False
+
+		self.save_folder, self.restore_folder = model_tree(model_instance, continue_on, self.module_string, self.action_type_string, verbose)
 
 		num_chars = len(model_instance)
-		if not (self.restore_folder[-num_chars:] is model_instance):
+		if (not self.restore_folder[-num_chars:] is model_instance) or (model_instance is '0'):
 			self.exact_load = False
 
 		############ DO NOT DELETE - Valuable in the event of overwrite ###########
-		# print ('save_folder is {}'.format(save_folder))
-		# print ('restore_folder is {}'.format(restore_folder))
+		print ('save_folder is {}'.format(self.save_folder))
+		print ('restore_folder is {}'.format(self.restore_folder))
 		############ End DO NOT DELETE #######################
 
 		self.nS = nS
-		self.nA = nS**2 + 1  # Specific to this state-action representation
+		# self.nA = nS**2 + 1  # Specific to this state-action representation
+		self.nA = len(act_list)  # Length of 2D list corresponds to the edges of the graph
 
 		# Define the graph
 
@@ -106,30 +111,38 @@ class LinearAttackNet():
 		self.saver = tf.train.Saver(max_to_keep=self.max_saves, keep_checkpoint_every_n_hours=1)
 
 		# Load model
-		if not (model_instance is '0'):  # Not random initialization
+		if (self.save_folder is self.restore_folder) or (not checkpoint_index == -1):  # Building off existing branch
 			ckpt = tf.train.get_checkpoint_state(self.restore_folder)
 			if ckpt and ckpt.model_checkpoint_path:
 				if checkpoint_index == -1:
 					if verbose:
 						print("Loading model: ", ckpt.model_checkpoint_path)
 					self.saver.restore(self.sess, ckpt.model_checkpoint_path)
+					self.num_updates = tf.train.get_global_step()
 				else:
-					if (checkpoint_index < len(all_model_checkpoint_paths)):
+					if (checkpoint_index < len(ckpt.all_model_checkpoint_paths)):
 						if verbose:
 							print("Loading model: ", ckpt.all_model_checkpoint_paths[checkpoint_index])
 						self.saver.restore(self.sess, ckpt.all_model_checkpoint_paths[checkpoint_index])
+						self.num_updates = tf.train.get_global_step()
 					else:
 						print("Checkpoint index did not exist, random initialization")
 						self.exact_load = False
 			else:
-				print("Failed to load model from {}: random initialization".format(self.restore_folder))
+				print("Failed to load model from {}: random initialization within folder".format(self.restore_folder))
 				self.exact_load = False  
 
-		# Save first copy of model 
-		self.checkpoint_path = self.save_folder + '/model.ckpt'
-		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
-		if verbose:
-			print("Saved first copy in: {}".format(self.checkpoint_path))
+		# Save first copy of model if new instance
+		if not (self.exact_load):
+			self.num_updates = 0
+			self.checkpoint_path = self.save_folder + '/model.ckpt'
+			self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+			if verbose:
+				print("Saved first copy in: {}".format(self.checkpoint_path))
+
+		else:
+			print("---------------WARNING--------------\nModel did not load or save correctly")
+
 
 
 		return # False indicates the model was randomly initialized

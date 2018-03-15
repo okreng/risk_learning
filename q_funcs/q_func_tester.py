@@ -43,13 +43,23 @@ def main(args):
 	s_v_list.append(np.array([2, -2, -1]))
 	s_v_list.append(np.array([1, -2, -1]))
 
+	# Add act_lists to the list
+	act_lists_list = []
+	act_lists_list.append([[0, 1],[-1]])
+	act_lists_list.append([[0,1],[0, 2],[1, 2],[-1]])
+	act_lists_list.append([[0,1],[0, 2],[1, 2],[-1]])
+	act_lists_list.append([[0,1],[0, 2],[1, 2],[-1]])
+	act_lists_list.append([[0,1],[0, 2],[1, 2],[-1]])
+
+
 
 	# Begin test
 	print("Testing Q-function: {}".format(module))
-	for s_v in s_v_list:
-		q_func_obj = q_func_class(len(s_v))
-		s_v = np.reshape(s_v, (1, -1))
+	for test_num in range(len(s_v_list)):
+		q_func_obj = q_func_class(len(s_v_list[test_num]), act_lists_list[test_num])
+		s_v = np.reshape(s_v_list[test_num], (1, -1))
 		print("State : {}".format(s_v))
+		print("Action list : {}".format(act_lists_list[test_num]))
 		print("Action:")
 		print(q_func_obj.call_Q(s_v))
 		print("\n")

@@ -15,37 +15,58 @@ from q_funcs.attack import max_success
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Agent Argument Parser')
+	parser.add_argument('--train',dest='train',type=bool)
 	parser.add_argument('--verbose',dest='verbose',type=bool, default=True)
 	return parser.parse_args()
 
 def main(args):
 	"""
 	Function to train the simplest type of attack network
-	:param args: string command line arguments (none currently)
+	:param args: string command line arguments
+	:param train: string 'train' or 'test'
+	:param verbose: boolean default True
 	:return : none
 	"""
 
 	args = parse_arguments()
+	train = args.train
 	verbose = args.verbose
 
 	# Simplest graph possible
-	state_vector = np.zeros(2)
+	T = 2
+	state_vector = np.zeros(T)
+	act_list = [[0,1],[-1]]
 
-	T = len(state_vector)
 	state_vector = np.reshape(state_vector, (1, -1))
 
 	######### Hyperparameters  ########
-	model_instance = '0-1'
-	checkpoint_number = -1
-	LEARNING_RATE = 0.01
-	GAMMA = 0.9
-	EPSILON = 0.2
-	perform_update = True
+	if train:
+		model_instance = '0-56'
+		checkpoint_number = -1
+		LEARNING_RATE = 0.0001
+		GAMMA = 0.95
+		# 0.2 for training, 0.1 for testing
+		EPSILON = 0.2
+		perform_update = True
+	elif not train:
+		model_instance = '0'
+		checkpoint_number = -1
+		LEARNING_RATE = 0  # never used
+		GAMMA = 0.9  # never used
+		EPSILON = 0.1  # Lower for testing
+		perform_update = False
+	else:
+		print("Specify --train as True for training, False for testing")
+		exit()
+
 
 	MAX_ARMIES = 12
 
-	agent = linear_attack_net.LinearAttackNet(T, model_instance, checkpoint_number, LEARNING_RATE)
-	opponent = max_success.MaxSuccess(T)
+	agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	opponent = max_success.MaxSuccess(T, act_list)
+
+	print("model_instance: {}\nLEARNING_RATE: {}\nGAMMA: {}\nEPSILON: {}\nT: {}"
+			   .format(model_instance, LEARNING_RATE, GAMMA, EPSILON, T))
 
 	game_state = np.random.random_integers(1,MAX_ARMIES,size=(2))
 	enemy_territory = np.random.random_integers(0,1)
@@ -77,14 +98,14 @@ def main(args):
 	# Set to prevent reference before assignment
 	looking_ahead = False
 	complete_pass_action = False
-	enemy_starts = True
-	agent_starts = True
+	enemy_starts = False
+	agent_starts = False
 
 	agent_wins = 0
 	enemy_wins = 0
 
 
-	for game in range(1000):
+	for game in range(100):
 		while(winner == -1):
 
 			# Opponent strategy
@@ -108,11 +129,16 @@ def main(args):
 							print("Game state is: {}".format(game_state))
 					enemy_starts = False
 		
-
-				opponent_q = opponent.call_Q(enemy_view(target_game_state))
-				opponent_action = np.argmax(opponent_q)
-				# Attack action, valid only if enemy has more than 1 army
 				if looking_ahead:
+					opponent_q = opponent.call_Q(enemy_view(target_game_state))
+					if target_game_state[0, enemy_territory] == -1:
+						opponent_valid_mask = [0, 1]
+					else:
+						opponent_valid_mask = [1, 1]
+					opponent_action = np.argmax(np.dot(opponent_valid_mask, opponent_q))
+					# print("Opponent chooses action: {}".format( opponent_action))
+
+					# Attack action, valid only if enemy has more than 1 army
 					if verbose:
 						print("Target fetch, enemy action is: ")
 					if (not opponent_action == 4) and target_game_state[0, enemy_territory] < -1 and (not target_game_state[0, agent_territory] == 0):  # attack action
@@ -129,19 +155,24 @@ def main(args):
 						agent_starts = True
 				else:
 					opponent_q = opponent.call_Q(enemy_view(game_state))
-					opponent_action = np.argmax(opponent_q)
+					if game_state[0, enemy_territory] == -1:
+						opponent_valid_mask = [0, 1]
+					else:
+						opponent_valid_mask = [1, 1]
+					opponent_action = np.argmax(np.dot(opponent_valid_mask, opponent_q))
+					# print("Opponent chooses action: {}".format( opponent_action))
 
 					if verbose:
 						print("Real game: enemy action is: ")
-					if (not opponent_action == 4) and game_state[0, enemy_territory] < -1 and (not game_state[0, agent_territory] == 0):
+					if (not opponent_action == 1) and game_state[0, enemy_territory] < -1 and (not game_state[0, agent_territory] == 0):
 						if verbose:
 							print("\tEnemy attacks")
 						game_state = attack(game_state, enemy_territory, agent_territory)
 						if verbose:
 							print("\tNew state is {}".format(game_state))
-					if game_state[0, agent_territory] == 0:  # Only true for game state, not target_game_state
-						winner = 1
-						break
+						if game_state[0, agent_territory] == 0:  # Only true for game state, not target_game_state
+							winner = 1
+							break
 					else:
 						if verbose:
 							print("\tEnemy ends real turn")
@@ -163,7 +194,16 @@ def main(args):
 						print("Agent starting turn")
 					if game_state[0, agent_territory] < MAX_ARMIES:
 						game_state[0, agent_territory] += 1
-					agent_action = epsilon_greedy(agent.call_Q(game_state), EPSILON)
+					
+			################# TODO: Determine standard shape for call_Q return #####
+
+					agent_big_q = agent.call_Q(game_state)
+					agent_q = agent_big_q[0][0]
+					if game_state[0, agent_territory] == 1:
+						agent_valid_mask = [0, 1]
+					else:
+						agent_valid_mask = [1, 1]
+					agent_action = epsilon_greedy(np.multiply(agent_valid_mask, agent_q), EPSILON)
 					agent_starts = False
 
 				# if looking_ahead:
@@ -184,24 +224,21 @@ def main(args):
 							reward = 0  # We know that the current action is pass (i.e. -1)
 							target_q_func = agent.call_Q(target_game_state) # Run without update
 							
-							# TODO: Update indexing for improved state space
-							loss_weights = np.zeros([1, 5])
-							loss_weights[0][4] = 1
-							target = np.zeros(5)
-							target[-1] = reward + GAMMA * max(target_q_func[0][0][1], target_q_func[0][0][-1])  # max value
+							loss_weights = np.zeros([1, len(act_list)])
+							loss_weights[0][-1] = 1
+							target = np.zeros(len(act_list))
+							target[-1] = reward + GAMMA * max(target_q_func[0][0])  # max value
 							target = np.reshape(target, (1, -1))
-							updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=4, target=target, loss_weights=loss_weights)
+							updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=agent_action, target=target, loss_weights=loss_weights)
 						
 						else:  # If agent lost in the enemy's game
 							reward = -1
-
-							# TODO: Update indexing for improved state space
-							loss_weights = np.zeros([1, 5])
-							loss_weights[0][4] = 1
-							target = np.zeros(5)
+							loss_weights = np.zeros([1, len(act_list)])
+							loss_weights[0][-1] = 1
+							target = np.zeros(len(act_list))
 							target[-1] = reward
 							target = np.reshape(target, (1, -1))
-							updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=4, target=target, loss_weights=loss_weights)
+							updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=agent_action, target=target, loss_weights=loss_weights)
 
 
 						# Go back to real game once next state has been updated
@@ -213,15 +250,24 @@ def main(args):
 				else:
 					if verbose:
 						print("Agent choosing next action, game state:{}".format(game_state))
-					agent_action = epsilon_greedy(agent.call_Q(game_state), EPSILON)
 
+				############## TODO: Determine standard return shape for call_Q ###3
+
+					agent_big_q = agent.call_Q(game_state)
+					agent_q = agent_big_q[0][0]
+					if game_state[0, agent_territory] == 1:
+						agent_valid_mask = [0, 1]
+					else:
+						agent_valid_mask = [1, 1]
+					print(agent_valid_mask)
+					agent_action = epsilon_greedy(np.multiply(agent_valid_mask, agent_q), EPSILON)
+					print(agent_action)
 
 				######### Remember - return is 3 dimensional list
 				# print(action[0])
 				# print(action[0][0][1])
 
-				# TODO: Fix indexing for reasonable action space
-				if agent_action == 1 and complete_pass_action == False:  # choose to attack
+				if (not agent_action == 1) and complete_pass_action == False:  # choose to attack
 
 					if verbose:
 						print("Agent chooses attack action")
@@ -233,12 +279,12 @@ def main(args):
 					if next_game_state[0, enemy_territory] == 0:  # Win condition for simple env
 						# terminal Q update
 						reward = 1
-						loss_weights = np.zeros([1, 5])
-						loss_weights[0][1] = 1
-						target = np.zeros(5)
-						target[1] = reward
+						loss_weights = np.zeros([1, len(act_list)])
+						loss_weights[0][agent_action] = 1
+						target = np.zeros(len(act_list))
+						target[agent_action] = reward
 						target = np.reshape(target, (1, -1))
-						updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=1, target=target, loss_weights=loss_weights)
+						updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=agent_action, target=target, loss_weights=loss_weights)
 
 						# Set winner and break out of turn loop
 						winner = 0
@@ -247,20 +293,25 @@ def main(args):
 					else:  # non-terminal q update
 						reward = 0
 						target_q_func = agent.call_Q(next_game_state)
-						# print(target_q_func)
-
-						# TODO: Update indexing
-						loss_weights = np.zeros([1, 5])
-						loss_weights[0][4] = 1
-						target = np.zeros(5)
-						target[1] = reward + GAMMA * max(target_q_func[0][0][1], target_q_func[0][0][-1])
+						loss_weights = np.zeros([1, len(act_list)])
+						loss_weights[0][-1] = 1
+						target = np.zeros(len(act_list))
+						target[-1] = reward + GAMMA * max(target_q_func[0][0])
 						target = np.reshape(target, (1, -1))
-						updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=1, target=target, loss_weights=loss_weights)
+						updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=agent_action, target=target, loss_weights=loss_weights)
 
 					# Update the state of the game once complete, return to player turn while loop
 					game_state = np.copy(next_game_state)
-					agent_action = epsilon_greedy(agent.call_Q(game_state), EPSILON)
 
+			################## TODO: Determine standard shape for call_Q ########
+
+					agent_big_q = agent.call_Q(game_state)
+					agent_q = agent_big_q[0][0]
+					if game_state[0, agent_territory] == 1:
+						agent_valid_mask = [0, 1]
+					else:
+						agent_valid_mask = [1, 1]
+					agent_action = epsilon_greedy(np.multiply(agent_valid_mask, agent_q), EPSILON)
 					if verbose:
 						print("After agent attack, game is at: {}".format(game_state))
 
@@ -305,8 +356,12 @@ def main(args):
 		target_game_state = game_state
 
 
-	print("Training complete")
-	print("Win count: Agent/Enemy: {}/{}".format(agent_wins, enemy_wins))
+	if train:
+		print("Training complete")
+		print("Win count: Agent/Enemy: {}/{}".format(agent_wins, enemy_wins))
+	else:
+		print("Testing complete")
+		print("Win count: Agent/Enemy: {}/{}".format(agent_wins, enemy_wins))
 
 	return
 
@@ -412,16 +467,10 @@ def epsilon_greedy(q_func, epsilon):
 	"""
 	choice = np.random.uniform()
 
-	short_q_func = np.array([q_func[0][0][4], q_func[0][0][1]])
-
 	if choice < epsilon:
-		action = np.argmax(short_q_func)
-		if action == 0:
-			action = 4
+		action = np.argmax(q_func)
 	else:
-		action = np.argmin(short_q_func)
-		if action == 0:
-			action = 4
+		action = np.argmin(q_func)
 	return action
 
 

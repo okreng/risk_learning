@@ -7,6 +7,8 @@ Spring 2018
 This project attempts to learn "Risk" (board game) strategy through reinforcement learning methods.  
 
 ## TODO: create territory:border dict in game and update policies to use as action space
+## TODO: adjust model_tree to build (no breanch!) off most recent checkpoint if checkpoint_number = -1
+## TODO: 
 
 --------------------- Coding and Data Management Standards ----------------------------
 
@@ -171,3 +173,4 @@ Each file contains a single number that will be the unique ID of the next model 
 Newly constructed models built off existing models will have the structure:
 c1-c2-c3 where c1 is the number from the tree base
 These save a single number that indicates the number of models built off the tree head
+

@@ -19,12 +19,15 @@ class RandomFortify():
 	"""
 	Class to hold the maximum success policy
 	"""
-	def __init__(self, T):
+	def __init__(self, T, act_list):
 		"""
-		Empty constructor so MaxSuccess can be held as an object
-		:params: none
+		Constructor so RandomFortify can be held as an object
+		:param T: int the length of the state vector
+		:param act_list: 2D list mapping edges to territories
 		:return : none
 		"""
+		self.T = T
+		self.act_list = act_list
 		return
 
 	def call_Q(self, state_vector):
@@ -35,12 +38,12 @@ class RandomFortify():
 		"""
 
 
-		T = len(state_vector[0])
+		# T = len(state_vector[0])
 		# Leaving edge_matrix in as a visualization
 		# edge_matrix[row, col] = action_vector[row*T + col]
 		# edge_matrix = np.zeros((T,T), dtype=int)
 		
-		action_vector = np.random.rand(T**2)	
+		# action_vector = np.random.rand(T**2)	
 
 		# Code below will work but is unnecessary
 		# Since action_vector can be naive to game validity, a random vector will suffice
@@ -52,6 +55,10 @@ class RandomFortify():
 
 		# allot_choice = random.choice(valid_terrs)
 		# action_vector[allot_choice] = 1
+
+
+		######### Code for updated action space using 2D List ################
+		action_vector = np.random.rand(len(self.act_list))
 
 		return action_vector
 
