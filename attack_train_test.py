@@ -15,7 +15,7 @@ from q_funcs.attack import max_success
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Agent Argument Parser')
-	parser.add_argument('--train',dest='train',type=bool)
+	parser.add_argument('--train',dest='train',type=int)
 	parser.add_argument('--verbose',dest='verbose',type=bool, default=True)
 	return parser.parse_args()
 
@@ -40,7 +40,9 @@ def main(args):
 	state_vector = np.reshape(state_vector, (1, -1))
 
 	######### Hyperparameters  ########
-	if train:
+	if train == 1:
+		if verbose:
+			print("Beginning to train")
 		model_instance = '0-56'
 		checkpoint_number = -1
 		LEARNING_RATE = 0.0001
@@ -48,15 +50,19 @@ def main(args):
 		# 0.2 for training, 0.1 for testing
 		EPSILON = 0.2
 		perform_update = True
-	elif not train:
+		NUM_GAMES = 1000
+	elif train == 0:
+		if verbose:
+			print("Beginning to test")
 		model_instance = '0'
 		checkpoint_number = -1
 		LEARNING_RATE = 0  # never used
 		GAMMA = 0.9  # never used
 		EPSILON = 0.1  # Lower for testing
 		perform_update = False
+		NUM_GAMES = 100
 	else:
-		print("Specify --train as True for training, False for testing")
+		print("Specify --train as 1 for training, 0 for testing")
 		exit()
 
 
@@ -68,7 +74,9 @@ def main(args):
 	print("model_instance: {}\nLEARNING_RATE: {}\nGAMMA: {}\nEPSILON: {}\nT: {}"
 			   .format(model_instance, LEARNING_RATE, GAMMA, EPSILON, T))
 
-	game_state = np.random.random_integers(1,MAX_ARMIES,size=(2))
+	starting_armies = np.random.random_integers(1,MAX_ARMIES)
+	# game_state = np.random.random_integers(1,MAX_ARMIES,size=(2))
+	game_state = np.array([starting_armies, starting_armies])
 	enemy_territory = np.random.random_integers(0,1)
 	agent_territory = abs(1-enemy_territory)
 	game_state[enemy_territory] = -game_state[enemy_territory]
@@ -105,7 +113,7 @@ def main(args):
 	enemy_wins = 0
 
 
-	for game in range(100):
+	for game in range(NUM_GAMES):
 		while(winner == -1):
 
 			# Opponent strategy

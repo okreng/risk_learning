@@ -143,9 +143,21 @@ class LinearAttackNet():
 		else:
 			print("---------------WARNING--------------\nModel did not load or save correctly")
 
+		return
 
 
-		return # False indicates the model was randomly initialized
+############### TODO: Figure out how to safely save at the end of sessions #############
+
+# def __del__(self):
+# 	"""
+# 	Destructor for attack networks - useful for printing and saving
+# 	:param : none
+# 	: return : none
+# 	"""
+# 	print("Saving module {} to {}, checkpoint: {}".format(self.module_string, self.save_folder, self.num_updates))
+# 	self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+# 	return
+
 
 	def call_Q(self, state_vector, update=False, action_taken=0, target=0, loss_weights=None):
 		"""
