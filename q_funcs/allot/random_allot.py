@@ -51,7 +51,7 @@ class RandomAllot():
 		# action_vector[allot_choice] = 1
 
 		############ Code for new action space ##############3
-		action_vector = np.random.rand(len(self.act_list))
+		action_vector = np.random.rand(self.T)
 		return action_vector
 
 		
