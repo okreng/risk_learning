@@ -99,13 +99,10 @@ class MaxSuccess():
 					elif player_armies == 3:  # Don't attack 2 against 2
 						if (army_difference == 0) or (army_difference == 1):
 							action_vector[act_index] = pass_value + army_difference - 2
-						elif army_difference == 2:  # Attack 2 against 1
+						elif army_difference > 2:  # Attack 2 against 1
 							action_vector[act_index] = army_offset + army_difference
 						elif army_difference < 0:
 							action_vector[act_index] = army_offset + army_difference - 1
-						else:
-							print("Army difference miscalculated, exiting")
-							exit()
 					elif player_armies == 2:  # Do not attack with only 2 armies
 						if army_difference == 0:
 							action_vector[act_index] = pass_value - 2
