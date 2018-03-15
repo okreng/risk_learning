@@ -15,17 +15,21 @@ from q_funcs.attack import max_success
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Agent Argument Parser')
+	parser.add_argument('--train',dest='train',type=bool)
 	parser.add_argument('--verbose',dest='verbose',type=bool, default=True)
 	return parser.parse_args()
 
 def main(args):
 	"""
 	Function to train the simplest type of attack network
-	:param args: string command line arguments (none currently)
+	:param args: string command line arguments
+	:param train: string 'train' or 'test'
+	:param verbose: boolean default True
 	:return : none
 	"""
 
 	args = parse_arguments()
+	train = args.train
 	verbose = args.verbose
 
 	# Simplest graph possible
@@ -36,13 +40,25 @@ def main(args):
 	state_vector = np.reshape(state_vector, (1, -1))
 
 	######### Hyperparameters  ########
-	model_instance = '0'
-	checkpoint_number = -1
-	LEARNING_RATE = 0.0001
-	GAMMA = 0.9
-	# 0.2 for training, 0.1 for testing
-	EPSILON = 0.2
-	perform_update = True
+	if train:
+		model_instance = '0'
+		checkpoint_number = -1
+		LEARNING_RATE = 0.0001
+		GAMMA = 0.95
+		# 0.2 for training, 0.1 for testing
+		EPSILON = 0.2
+		perform_update = True
+	elif not train:
+		model_instance = '0'
+		checkpoint_number = -1
+		LEARNING_RATE = 0  # never used
+		GAMMA = 0.9  # never used
+		EPSILON = 0.1  # Lower for testing
+		perform_update = False
+	else:
+		print("Specify --train as True for training, False for testing")
+		exit()
+
 
 	MAX_ARMIES = 12
 
@@ -340,8 +356,12 @@ def main(args):
 		target_game_state = game_state
 
 
-	print("Training complete")
-	print("Win count: Agent/Enemy: {}/{}".format(agent_wins, enemy_wins))
+	if train:
+		print("Training complete")
+		print("Win count: Agent/Enemy: {}/{}".format(agent_wins, enemy_wins))
+	else:
+		print("Testing complete")
+		print("Win count: Agent/Enemy: {}/{}".format(agent_wins, enemy_wins))
 
 	return
 

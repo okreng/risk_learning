@@ -10,7 +10,7 @@ import os
 # repackage.up(1)
 # from risk_definitions import ROOT_DIR
 
-def model_tree(model_instance, module_name, action_type_name, verbose):
+def model_tree(model_instance, continue_on, module_name, action_type_name, verbose):
 	"""
 	Returns a model string of the model name to be loaded
 	Updates .instance files so subsequent models will have unique ID's
@@ -27,29 +27,33 @@ def model_tree(model_instance, module_name, action_type_name, verbose):
 	if not is_Instance:
 		print("Path: {}.instance is not a valid instance".format(instance_path))
 		instance_path = './q_funcs/' + action_type_name + '/' + module_name + '.logs/0'
-	if verbose:
-		print("Branching off of {}".format(instance_path))
-	with open(instance_path + '.instance', 'r') as instance:
-		instance_num = int(instance.read())
-		instance.close()
-	with open(instance_path + '.instance', 'w') as instance:
-		instance.write(str(instance_num+1))
-		new_instance_path = instance_path + "-" + str(instance_num)
-		# print(instance_num)
-		# print(new_instance_path)
-		instance.close()
-	if verbose:
-		print("Creating new instance {}.instance".format(new_instance_path))
-	with open(new_instance_path + '.instance', 'w+') as new_instance:
-		new_instance.write(str(0))
-		new_instance.close()
-	if not os.path.exists(new_instance_path):
-		os.makedirs(new_instance_path)
+		continue_on = False
+	if (not continue_on) or (instance_path[-1:] is '0'):
 		if verbose:
-			print("Creating new folder {}".format(new_instance_path))
-	else:
-		print("Folder already exists, aborting attempt to overwrite data, check network")
-		exit()
+			print("Branching off of {}".format(instance_path))
+		with open(instance_path + '.instance', 'r') as instance:
+			instance_num = int(instance.read())
+			instance.close()
+		with open(instance_path + '.instance', 'w') as instance:
+			instance.write(str(instance_num+1))
+			new_instance_path = instance_path + "-" + str(instance_num)
+			# print(instance_num)
+			# print(new_instance_path)
+			instance.close()
+		if verbose:
+			print("Creating new instance {}.instance".format(new_instance_path))
+		with open(new_instance_path + '.instance', 'w+') as new_instance:
+			new_instance.write(str(0))
+			new_instance.close()
+		if not os.path.exists(new_instance_path):
+			os.makedirs(new_instance_path)
+			if verbose:
+				print("Creating new folder {}".format(new_instance_path))
+		else:
+			print("Folder already exists, aborting attempt to overwrite data, check network")
+			exit()
 
-	return new_instance_path, instance_path
-	
+		return new_instance_path, instance_path
+	else:  # No new instances for continuing on training the same model
+		print("Continuing on branch {}".format(instance_path))
+		return instance_path, instance_path
