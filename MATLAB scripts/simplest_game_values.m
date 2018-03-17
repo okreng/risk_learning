@@ -1,4 +1,4 @@
-MAX_STATE = [6,6];
+MAX_STATE = [4,4];
 TRIALS = 100000;
 
 % attack = [1, 0];
@@ -14,8 +14,8 @@ TRIALS = 100000;
 % state = attack_func_raw(MAX_STATE);
 raw_state_values = zeros(MAX_STATE);
 state_values = zeros(MAX_STATE);
-raw = 1;
-for kk = 1:2
+raw = 0;
+% for kk = 1:2
     for ii = 2:MAX_STATE(1)
         for jj = 1:MAX_STATE(2)
             wins = 0;
@@ -45,15 +45,39 @@ for kk = 1:2
                 state_values(ii,jj) = state_value;
             end
         end
+     end
+%     if raw
+%         disp("Raw state values are");
+%         disp(raw_state_values);
+%     else
+%         disp("Condensed state values are");
+%         disp(state_values);
+%     end
+%     raw = 0;
+% end
+
+% disp(state_values-raw_state_values);
+% 
+ state_values_w_pass = state_values;
+
+for kk = 1:(MAX_STATE(1)*MAX_STATE(2))*3
+    for ii = MAX_STATE(1):-1:2
+        for jj = MAX_STATE(2):-1:1
+            state = [ii,jj];
+            if jj < MAX_STATE(2)
+                opponent_arms = jj + 1;
+            else
+                opponent_arms = jj;
+            end
+            opponent_value = state_values(opponent_arms,ii);
+            player_value = state_values(ii,jj);
+            state_values_w_pass(ii,jj) = max(1-opponent_value, player_value);
+        end
     end
-    if raw
-        disp("Raw state values are");
-        disp(raw_state_values);
-    else
-        disp("Condensed state values are");
-        disp(state_values);
-    end
-    raw = 0;
 end
 
-disp(state_values-raw_state_values)
+disp("Attack state values are:");
+disp(state_values);
+disp("state values are:");
+disp(state_values_w_pass);
+% disp(state_values_w_pass-state_values);
