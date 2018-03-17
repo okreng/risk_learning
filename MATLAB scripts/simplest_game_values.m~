@@ -1,5 +1,5 @@
 MAX_STATE = [4,4];
-TRIALS = 1000000;
+TRIALS = 1000;
 
 % attack = [1, 0];
 % pass = [0, 1];
