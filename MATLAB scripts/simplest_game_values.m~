@@ -1,5 +1,5 @@
-MAX_STATE = [4,4];
-TRIALS = 1000;
+MAX_STATE = [8,8];
+TRIALS = 10000;
 
 % attack = [1, 0];
 % pass = [0, 1];
@@ -11,28 +11,42 @@ TRIALS = 1000;
 %     disp(next_state)
 % end
 
+% state = attack_func_raw(MAX_STATE);
 
-state_values = zeros(4,4);
+state_values = zeros(MAX_STATE);
+raw = 1;
+for kk = 1:2
+    for ii = 2:MAX_STATE(1)
+        for jj = 1:MAX_STATE(2)
+            wins = 0;
+            start_state = [ii, jj];
+            for trial = 1:TRIALS
+                state = start_state;
+                while 1
+                    if raw
+                        state = attack_func_raw(state);
+                    else
+                        state = attack_func(state);
+                    end
+                    if state(2) < 1
+                        wins = wins + 1;
+                        break
+                    elseif state(1) < 2
+                        break
+                    end
 
-for ii = 2:4
-    for jj = 1:4
-        wins = 0;
-        start_state = [ii, jj]
-        for trial = 1:TRIALS
-            state = start_state;
-            while 1
-                state = attack_func(state);
-                if state(2) < 1
-                    wins = wins + 1;
-                    break
-                elseif state(1) < 2
-                    break
                 end
-                
+
             end
-            
+            state_value = wins/TRIALS;
+            state_values(ii,jj) = state_value;
         end
-        state_value = wins/TRIALS
-        state_values(ii,jj) = state_value
     end
+    if raw
+        disp("Raw state values are")
+    else
+        disp("Condensed state values 
+    raw = 0;
 end
+
+disp(state_values)

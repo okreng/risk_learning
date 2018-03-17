@@ -9,7 +9,7 @@ next_state = state;
 
 choice = rand();
 
-if (state(1) == 4)
+if (state(1) >= 4)
     if (state(2) == 1)
         arms = 1;
         if choice < (855/1296)
