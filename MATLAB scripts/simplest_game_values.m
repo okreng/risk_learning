@@ -1,5 +1,5 @@
 MAX_STATE = [4,4];
-TRIALS = 100000;
+TRIALS = 1000;
 
 % attack = [1, 0];
 % pass = [0, 1];
@@ -59,9 +59,10 @@ raw = 0;
 % disp(state_values-raw_state_values);
 % 
  state_values_w_pass = state_values;
+ optimal_action = zeros(size(state_values));
 
-for kk = 1:(MAX_STATE(1)*MAX_STATE(2))*3
-    for ii = MAX_STATE(1):-1:2
+for kk = 1:(MAX_STATE(1)*MAX_STATE(2))
+    for ii = MAX_STATE(1):-1:1
         for jj = MAX_STATE(2):-1:1
             state = [ii,jj];
             if jj < MAX_STATE(2)
@@ -72,6 +73,11 @@ for kk = 1:(MAX_STATE(1)*MAX_STATE(2))*3
             opponent_value = state_values(opponent_arms,ii);
             player_value = state_values(ii,jj);
             state_values_w_pass(ii,jj) = max(1-opponent_value, player_value);
+            if (player_value >= (1-opponent_value))
+                optimal_action(ii,jj) = 0;
+            else
+                optimal_action(ii,jj) = 1;
+            end
         end
     end
 end
@@ -81,3 +87,5 @@ disp(state_values);
 disp("state values are:");
 disp(state_values_w_pass);
 % disp(state_values_w_pass-state_values);
+disp("Optimal actions are:");
+disp(optimal_action);
