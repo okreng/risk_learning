@@ -1,7 +1,13 @@
 from abc import ABC, abstractmethod
 from board import Territory
 
+
 class Player(ABC):
+    def __init__(self):
+        """
+        Initializes variables all subclasses of player should have
+        """
+        self.unallocated_armies = 0
 
     @abstractmethod
     def get_attacks(self, valid):
@@ -12,7 +18,9 @@ class Player(ABC):
 
     @abstractmethod
     def get_fortifications(self, valid):
-        """ Decide where to fortify"""
+        """ Decide where to fortify
+            :return (Territory, Territory, int): (territory_from, territory_to, num to add)
+        """
         return
 
     @abstractmethod
