@@ -14,7 +14,7 @@ class Game:
         self.agent_to_territories = {}  # type: dict(Player, [Territory])
 
         # gameplay flags
-        self. distributed = False
+        self.distributed = False
 
     def __allot(self):
         for player in self.player:
