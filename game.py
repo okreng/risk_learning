@@ -8,7 +8,7 @@ class Game:
     def __init__(self, board="boards/Mini.yaml", agents=None, num_armies=100):
         self.board = Board(board)
         # change this to instantiate real agents
-        self.player = [Player(), Player()]  # type: [Player]
+        self.players = [Player(), Player()]  # type: [Player]
         self.num_armies = int(math.floor(num_armies/len(agents)))
 
         self.agent_to_territories = {}  # type: dict(Player, [Territory])
@@ -17,8 +17,8 @@ class Game:
         self.distributed = False
 
     def __allot(self):
-        for player in self.player:
-            valid_allotments = [(territory, self.player.unallocated_armies)
+        for player in self.players:
+            valid_allotments = [(territory, player.unallocated_armies)
                                 for territory in self.agent_to_territories[player]]
             allotments = player.get_allotments(valid_allotments)
             for territory, num_armies in allotments:
@@ -32,8 +32,8 @@ class Game:
         if not self.distributed:
             territories_list = self.board.territories.keys()
             shuffle(territories_list)
-            territories_per_player = int(math.floor(len(territories_list) / len(self.player)))
-            for player in self.player:
+            territories_per_player = int(math.floor(len(territories_list) / len(self.players)))
+            for player in self.players:
                 for _ in range(territories_per_player):
                     territory = self.board.territories[territories_list.pop()]
                     territory.owner = player
@@ -44,7 +44,7 @@ class Game:
         Executes attack round
         :return:
         """
-        for player in self.player:
+        for player in self.players:
             # Player must have at least 2 armies in territory to attack
             #TODO: generate valid attacks
             valid_attacks = []
@@ -72,7 +72,7 @@ class Game:
         Executes fortification round
         :return:
         """
-        for player in self.player:
+        for player in self.players:
             #TODO generate valid fortifications
             valid_fortifications = []
             fortifications = player.get_fortifications(valid_fortifications)
