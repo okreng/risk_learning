@@ -53,9 +53,10 @@ class LinearAttackNet():
 
 		self.module_string = 'linear_attack_net'
 		self.action_type_string = 'attack'
-		self.next_save = 1
 		self.max_saves = 10
 		self.exact_load = True
+
+		self.verbose = verbose
 
 		if checkpoint_index == -1:
 			continue_on = True
@@ -149,8 +150,19 @@ class LinearAttackNet():
 			else:
 				print("Failed to load model from {}: random initialization within folder".format(self.restore_folder))
 				self.exact_load = False  
+			
+			# Print if loading trained weights
+			if verbose:
+				print("Loaded weights are:")
+				for v in tf.trainable_variables():
+					print(v)
+					print(self.sess.run([v]))			
+
 		else:
 			self.num_updates = 0
+
+		self.next_save = self.num_updates + 1
+
 
 ############# I believe this is causing checkpoint to be overwritten #########
 		# # Save first copy of model if new instance
@@ -187,6 +199,13 @@ class LinearAttackNet():
 		:return none:
 		"""
 		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+		if self.verbose:
+			print("Weights are:")
+			for v in tf.trainable_variables():
+				print(v)
+				print(self.sess.run([v]))
+		self.sess.close()
+
 		self.sess.close()
 		print("{} closed and saved to {}, checkpoint {}".format(self.module_string, self.save_folder, self.num_updates))
 		return
