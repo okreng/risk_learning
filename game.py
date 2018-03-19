@@ -16,18 +16,21 @@ class Game:
         # gameplay flags
         self.distributed = False
 
-    def __allot(self):
-        for player in self.players:
-            valid_allotments = [(territory, player.unallocated_armies)
-                                for territory in self.agent_to_territories[player]]
-            allotments = player.get_allotments(valid_allotments)
-            for territory, num_armies in allotments:
-                territory.add_armies(num_armies)
+    def __allot(self, player):
+        """
+        Gets allotment from player and allots as requested
+        :param Player player:
+        :return:
+        """
+        valid_allotments = [(territory, player.unallocated_armies)
+                            for territory in self.agent_to_territories[player]]
+        allotments = player.get_allotments(valid_allotments)
+        for territory, num_armies in allotments:
+            territory.add_armies(num_armies)
 
     def __distribute(self):
         """
         Distributes territories evenly and randomly amongst players
-        Asks players to allot armies for initial allotment and allots
         """
         if not self.distributed:
             territories_list = self.board.territories.keys()
@@ -37,11 +40,11 @@ class Game:
                 for _ in range(territories_per_player):
                     territory = self.board.territories[territories_list.pop()]
                     territory.owner = player
-            self.__allot()
 
-    def __attack(self):
+    def __attack(self, player):
         """
-        Executes attack round
+        Gets attacks from player and modifies board based on attacks
+        :param Player player:
         :return:
         """
         for player in self.players:
@@ -67,9 +70,10 @@ class Game:
                     else:
                         territory_from.num_armies -= 1
 
-    def __fortify(self):
+    def __fortify(self, player):
         """
-        Executes fortification round
+        Gets fortifications from player and modifies board based on fortification
+        :param Player player:
         :return:
         """
         for player in self.players:
