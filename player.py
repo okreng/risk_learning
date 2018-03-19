@@ -8,6 +8,7 @@ class Player(ABC):
         Initializes variables all subclasses of player should have
         """
         self.unallocated_armies = 0
+        self.alive = True
 
     @abstractmethod
     def get_attacks(self, valid):

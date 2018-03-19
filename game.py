@@ -2,13 +2,23 @@ from board import Board, Territory
 from player import Player
 import math
 from random import shuffle, randint
+from enum import Enum, auto
+
+
+class GameStates(Enum):
+    ALLOT = auto()
+    ATTACK = auto()
+    FORTIFY = auto()
 
 
 class Game:
-    def __init__(self, board="boards/Mini.yaml", agents=None, num_armies=100):
+    def __init__(self, board="boards/Mini.yaml", agents=None, num_armies=100, players=None):
         self.board = Board(board)
         # change this to instantiate real agents
-        self.players = [Player(), Player()]  # type: [Player]
+        if players is None:
+            self.players = [Player(), Player()]  # type: [Player]
+        else:
+            self.players = players
         self.num_armies = int(math.floor(num_armies/len(agents)))
 
         self.agent_to_territories = {}  # type: dict(Player, [Territory])
@@ -81,6 +91,25 @@ class Game:
         for territory_from, territory_to, num in fortifications:  # type: Territory, Territory, int
             territory_from -= num
             territory_to += num
+
+    def __check_end(self):
+        """
+        Checks if game has ended
+        :return:  if there is more than one player who is alive
+        """
+        return len([player for player in self.players if player.alive]) > 1
+
+    def play_game(self):
+        """
+        Plays through game without pause or ability to manually step
+        :return:
+        """
+        while not self.__check_end():
+            self.__distribute()
+            for player in self.players:
+                self.__allot(player)
+                self.__attack(player)
+                self.__fortify(player)
 
 
 
