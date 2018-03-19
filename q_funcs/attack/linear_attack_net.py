@@ -109,6 +109,8 @@ class LinearAttackNet():
 		
 		# Create saver
 		self.saver = tf.train.Saver(max_to_keep=self.max_saves, keep_checkpoint_every_n_hours=1)
+		self.checkpoint_path = self.save_folder + '/model.ckpt'
+
 
 		# Load model
 		if (self.save_folder is self.restore_folder) or (not checkpoint_index == -1):  # Building off existing branch
@@ -135,7 +137,7 @@ class LinearAttackNet():
 		# Save first copy of model if new instance
 		if not (self.exact_load):
 			self.num_updates = 0
-			self.checkpoint_path = self.save_folder + '/model.ckpt'
+			# self.checkpoint_path = self.save_folder + '/model.ckpt'
 			self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 			if verbose:
 				print("Saved first copy in: {}".format(self.checkpoint_path))

@@ -50,18 +50,18 @@ def main(args):
 	if train == 1:
 		if verbose:
 			print("Beginning to train")
-		model_instance = '0-157'
+		model_instance = '0-160-1'
 		checkpoint_number = -1
-		LEARNING_RATE = 0.0001
-		GAMMA = 0.9
+		LEARNING_RATE = 0.0005
+		GAMMA = 0.95
 		# 0.2 for training, 0.1 for testing
-		EPSILON = 0.01
+		EPSILON = 0.1
 		perform_update = True
-		NUM_GAMES = 20000
+		NUM_GAMES = 100
 	elif train == 0:
 		if verbose:
 			print("Beginning to test")
-		model_instance = '0-157'
+		model_instance = '0-160-1'
 		checkpoint_number = -1
 		LEARNING_RATE = 0  # never used
 		GAMMA = 0.9  # never used
@@ -78,8 +78,8 @@ def main(args):
 	# agent = max_success.MaxSuccess(T, act_list)
 	# agent = army_difference.ArmyDifference(T, act_list)
 	agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
-	opponent = max_success.MaxSuccess(T, act_list)
-	# opponent = random_attack.RandomAttack(T, act_list)
+	# opponent = max_success.MaxSuccess(T, act_list)
+	opponent = random_attack.RandomAttack(T, act_list)
 	# opponent = army_difference.ArmyDifference(T, act_list)
 
 	print("model_instance: {}\nLEARNING_RATE: {}\nGAMMA: {}\nEPSILON: {}\nT: {}"
