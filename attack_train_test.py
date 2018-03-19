@@ -13,6 +13,7 @@ from q_funcs.attack import linear_attack_net
 from q_funcs.attack import max_success
 from q_funcs.attack import random_attack
 from q_funcs.attack import army_difference
+from q_funcs.attack import three_layer_attack_net
 
 
 def parse_arguments():
@@ -50,22 +51,21 @@ def main(args):
 	if train == 1:
 		if verbose:
 			print("Beginning to train")
-		model_instance = '0-160-1'
+		model_instance = '0'
 		checkpoint_number = -1
 		LEARNING_RATE = 0.0005
 		GAMMA = 0.95
-		# 0.2 for training, 0.1 for testing
-		EPSILON = 0.1
+		epsilon = 0.6
 		perform_update = True
-		NUM_GAMES = 100
+		NUM_GAMES = 10000
 	elif train == 0:
 		if verbose:
 			print("Beginning to test")
-		model_instance = '0-160-1'
+		model_instance = '0-15'
 		checkpoint_number = -1
 		LEARNING_RATE = 0  # never used
 		GAMMA = 0.9  # never used
-		EPSILON = 0.005  # Lower for testing
+		epsilon = 0.6 # Lower for testing
 		perform_update = False
 		NUM_GAMES = 1000
 	else:
@@ -77,20 +77,21 @@ def main(args):
 
 	# agent = max_success.MaxSuccess(T, act_list)
 	# agent = army_difference.ArmyDifference(T, act_list)
-	agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
-	# opponent = max_success.MaxSuccess(T, act_list)
-	opponent = random_attack.RandomAttack(T, act_list)
+	# agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	agent = three_layer_attack_net.ThreeLayerAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	opponent = max_success.MaxSuccess(T, act_list)
+	# opponent = random_attack.RandomAttack(T, act_list)
 	# opponent = army_difference.ArmyDifference(T, act_list)
 
-	print("model_instance: {}\nLEARNING_RATE: {}\nGAMMA: {}\nEPSILON: {}\nT: {}"
-			   .format(model_instance, LEARNING_RATE, GAMMA, EPSILON, T))
+	print("model_instance: {}\nLEARNING_RATE: {}\nGAMMA: {}\nepsilon: {}\nT: {}"
+			   .format(model_instance, LEARNING_RATE, GAMMA, epsilon, T))
 
 	# starting_armies = np.random.random_integers(1,MAX_ARMIES)
 	starting_armies = MAX_ARMIES
 	# game_state = np.random.random_integers(1,MAX_ARMIES,size=(2))
 	game_state = np.array([starting_armies, starting_armies])
-	# enemy_territory = np.random.random_integers(0,1)
-	enemy_territory = 1
+	enemy_territory = np.random.random_integers(0,1)
+	# enemy_territory = 1
 	agent_territory = abs(1-enemy_territory)
 	game_state[enemy_territory] = -game_state[enemy_territory]
 	game_state = np.reshape(game_state,(1,-1))
@@ -157,7 +158,7 @@ def main(args):
 					else:
 						opponent_valid_mask = [1, 1]
 					# print(np.multiply(opponent_valid_mask, opponent_q))
-					opponent_action = epsilon_greedy_valid(opponent_q, opponent_valid_mask, EPSILON)
+					opponent_action = epsilon_greedy_valid(opponent_q, opponent_valid_mask, epsilon)
 					# print(opponent_action)
 					# print("Opponent chooses action: {}".format( opponent_action))
 
@@ -183,7 +184,7 @@ def main(args):
 					else:
 						opponent_valid_mask = [1, 1]
 					# print(np.multiply(opponent_valid_mask, opponent_q))
-					opponent_action = epsilon_greedy_valid(opponent_q, opponent_valid_mask, EPSILON)
+					opponent_action = epsilon_greedy_valid(opponent_q, opponent_valid_mask, epsilon)
 					# print(opponent_action)
 					# print("Opponent chooses action: {}".format( opponent_action))
 
@@ -229,7 +230,7 @@ def main(args):
 					else:
 						agent_valid_mask = [1, 1]
 					# print(np.multiply(agent_valid_mask, agent_q))
-					agent_action = epsilon_greedy_valid(agent_q, agent_valid_mask, EPSILON)
+					agent_action = epsilon_greedy_valid(agent_q, agent_valid_mask, epsilon)
 					# print(agent_action)
 					agent_starts = False
 
@@ -286,9 +287,9 @@ def main(args):
 						agent_valid_mask = [0, 1]
 					else:
 						agent_valid_mask = [1, 1]
-					print(np.multiply(agent_valid_mask, agent_q))
-					agent_action = epsilon_greedy_valid(agent_q, agent_valid_mask, EPSILON)
-					print(agent_action)
+					# print(np.multiply(agent_valid_mask, agent_q))
+					agent_action = epsilon_greedy_valid(agent_q, agent_valid_mask, epsilon)
+					# print(agent_action)
 				######### Remember - return is 3 dimensional list
 				# print(action[0])
 				# print(action[0][0][1])
@@ -344,13 +345,15 @@ def main(args):
 						print("After agent attack, game is at: {}".format(game_state))
 
 				elif complete_pass_action == False:  # choose to pass the turn, get target from next player's actions
-					print("Agent chooses pass action, creating target fetch copy and passing turn")
+					if verbose:
+						print("Agent chooses pass action, creating target fetch copy and passing turn")
 					target_game_state = np.copy(game_state)  # Create a copy for simulated portion
 					looking_ahead = True
 					enemy_starts = True
 					whose_turn = 1
 				elif complete_pass_action == True:  # execute the pass_turn action
-					print("Agent has completed target fetch, updating game state and passing turn")
+					if verbose:
+						print("Agent has completed target fetch, updating game state and passing turn")
 					target_game_state = np.copy(game_state)  # Create a reference for actual game
 					complete_pass_action = False
 					looking_ahead = False
@@ -372,9 +375,13 @@ def main(args):
 		enemy_starts = True
 		agent_starts = True
 
+		# Update epsilon
+		# if game == (NUM_GAMES % 1000) and epsilon >= 0.1 and train:
+		# 	epsilon -= 0.08
+
 		game_state = np.random.random_integers(1,MAX_ARMIES,size=(2))
-		# enemy_territory = np.random.random_integers(0,1)
-		enemy_territory = 1
+		enemy_territory = np.random.random_integers(0,1)
+		# enemy_territory = 1
 		agent_territory = abs(1-enemy_territory)
 		game_state[enemy_territory] = -game_state[enemy_territory]
 		game_state = np.reshape(game_state,(1,-1))
