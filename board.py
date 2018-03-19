@@ -29,6 +29,15 @@ class Board:
                 for neighbor in territory.neighbors:
                     self.graph.add_edge(territory, self.territories[neighbor])
 
+    def get_player_territories(self, player):
+        """
+        Finds list of territories belonging to player
+        :param Player player:
+        :return [Player]: territories owned by player
+        """
+        return [t for t in self.territories.values() if t.owner is player]
+
+
     def draw(self):
         """
         Draws current graph
