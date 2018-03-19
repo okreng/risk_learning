@@ -24,7 +24,7 @@ repackage.up(1)
 from model_tree import model_tree
 ##### End Working from root directory #####
 
-class LinearAttackNet():
+class ThreeLayerAttackNet():
 	"""
 	Class to hold a linear neural network
 	Will be used to learn Attacks in RISK
@@ -51,7 +51,8 @@ class LinearAttackNet():
 		tf.reset_default_graph()
 
 
-		self.module_string = 'linear_attack_net'
+################### WARNING!! CHANGE THIS WHEN MAKING NEW NETWORK!!!#################
+		self.module_string = 'three_layer_attack_net'
 		self.action_type_string = 'attack'
 		self.next_save = 1
 		self.max_saves = 10
@@ -91,11 +92,15 @@ class LinearAttackNet():
 		# mask of action performed to backpropagate
 		self.loss_weights = tf.placeholder(dtype = tf.float32, shape = [None, self.nA], name='loss_weights')
 
-		# Single hidden Layer
-		self.dense = tf.layers.dense(inputs = self.features, units = self.nS, activation = None, use_bias = True, name = 'dense')
-	
+		# First hidden Layer
+		self.dense1 = tf.layers.dense(inputs = self.features, units = 32, activation = tf.nn.relu, use_bias = True, name = 'dense1')
+		self.dense2 = tf.layers.dense(inputs = self.dense1, units = 16, activation = tf.nn.relu, use_bias = True, name = 'dense2')
+		self.dense3 = tf.layers.dense(inputs = self.dense2, units = 8,  activation = tf.nn.relu, use_bias = True, name = 'dense3')
+
+		
+
 		# Output Layer
-		self.output = tf.layers.dense(inputs = self.dense, units = self.nA, use_bias = True, name = 'output')
+		self.output = tf.layers.dense(inputs = self.dense3, units = self.nA, use_bias = True, name = 'output')
 		
 		#####################
 		self.loss = tf.losses.mean_squared_error(labels=self.labels, predictions=self.output, weights=self.loss_weights)
@@ -163,7 +168,6 @@ class LinearAttackNet():
 
 		# else:
 		# 	print("---------------WARNING--------------\nModel did not load or save correctly")
-
 
 		return
 
