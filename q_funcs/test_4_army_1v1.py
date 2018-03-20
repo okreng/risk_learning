@@ -9,14 +9,22 @@ import sys
 import argparse
 import importlib
 
+from attack import linear_attack_net
+from attack import max_success
+from attack import random_attack
+from attack import army_difference
+from attack import optimal_4_army_1v1
+from attack import three_layer_attack_net
+from attack import leaky_relu_3_layer
+from attack import optimal_4_army_1v1
 
-def parse_arguments():
-	# This function helps main read command line arguments
-	parser = argparse.ArgumentParser(description=
-		'Risk Environment Argument Parser')
-	parser.add_argument('--module',dest='module',type=str)
-	parser.add_argument('--class',dest='q_func',type=str)
-	return parser.parse_args()
+# def parse_arguments():
+# 	# This function helps main read command line arguments
+# 	parser = argparse.ArgumentParser(description=
+# 		'Risk Environment Argument Parser')
+# 	parser.add_argument('--module',dest='module',type=str)
+# 	parser.add_argument('--class',dest='q_func',type=str)
+# 	return parser.parse_args()
 
 def main(args):
 	"""
@@ -27,12 +35,12 @@ def main(args):
 	"""
 
 	#import attack.max_success as pol0
-	args = parse_arguments()
-	module = args.module
-	q_func_str = args.q_func
+	# args = parse_arguments()
+	# module = args.module
+	# q_func_str = args.q_func
 
-	q_func_module = importlib.import_module(module, package=None)
-	q_func_class = getattr(q_func_module, q_func_str)
+	# q_func_module = importlib.import_module(module, package=None)
+	# q_func_class = getattr(q_func_module, q_func_str)
 
 	# Define a list of state vectors
 	s_v_list = []
@@ -56,17 +64,32 @@ def main(args):
 	s_v_list.append(np.array([4, -4]))
 
 
-	act_lists_list = []
-	act_lists_list.append([[0, 1], [-1]])
-	print(act_lists_list[0])
-	q_func_obj = q_func_class(len(s_v_list[0]), act_lists_list[0])
+	act_list = [[0,1],[-1]]
+
+
+	model_instance = '0-27'
+	checkpoint_number = -1
+	LEARNING_RATE = 0.0001
+	perform_update = False
+
+	T = 2
+
+	# agent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
+	# agent = max_success.MaxSuccess(T, act_list)
+	# agent = army_difference.ArmyDifference(T, act_list)
+	agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	# agent = three_layer_attack_net.ThreeLayerAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	# agent = leaky_relu_3_layer.LeakyRelu3Layer(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+
+
+
+	# q_func_obj = q_func_class(len(s_v_list[0]), act_lists_list[0])
 	# Begin test
-	print("Testing Q-function: {}".format(module))
 	for test_num in range(len(s_v_list)):
 		s_v = np.reshape(s_v_list[test_num], (1, -1))
 		print("State : {}".format(s_v))
 		print("Action:")
-		print(q_func_obj.call_Q(s_v))
+		print(agent.call_Q(s_v))
 		print("\n")
 	return
 
