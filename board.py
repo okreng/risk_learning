@@ -2,6 +2,7 @@ import networkx as nx
 import yaml
 from player import Player
 import matplotlib.pyplot as plt
+import matplotlib.colors
 
 
 class Board:
@@ -14,6 +15,9 @@ class Board:
 
         if board is not None:
             self.parse_boardfile(board)
+
+        self.continents = list(set([territory.continent for territory in self.territories.values()]))
+        print(self.continents)
 
     def parse_boardfile(self, boardfile):
         """
@@ -40,18 +44,31 @@ class Board:
         """
         return [t for t in self.territories.values() if t.owner is player]
 
-    def draw(self):
+    def draw(self, color="country"):
         """
         Draws current graph
         """
 
+        colors = ['r', 'g', 'c', 'm', 'y', 'b', 'w']
         label_dict = {v: k + ':\n' + str(v.num_armies) for k, v in self.territories.items()}
-        layout = nx.kamada_kawai_layout(self.graph)
-        nx.draw_networkx(self.graph, pos=layout, labels=label_dict, with_labels=True,
-                         node_color=[node.owner.color if node.owner is not None else 'r'
-                                     for node in self.territories.values()],
-                         alpha=0.7
-                         )
+        layout = nx.kamada_kawai_layout(self.graph, scale=50)
+        node_color = []
+        if color is "players":
+            node_color = [node.owner.color if node.owner is not None else 'r'
+                          for node in self.graph.nodes()]
+        elif color is "country":
+            continent_color_dict = {continent: colors[i] for i, continent in enumerate(self.continents)}
+            node_color = [continent_color_dict[territory.continent] for territory in self.graph.nodes()]
+        # Lower alpha channels for colors
+        node_color = [matplotlib.colors.to_hex(matplotlib.colors.to_rgba(c, alpha=0.1), keep_alpha=True) for c in
+                      node_color]
+        print(node_color)
+
+        nx.draw_networkx_nodes(self.graph, pos=layout, node_color=node_color, alpha=0.5)
+        nx.draw_networkx_edges(self.graph, pos=layout)
+        nx.draw_networkx_labels(self.graph, pos=layout, labels=label_dict)
+
+        # plt.ion()
         plt.show()
 
 
