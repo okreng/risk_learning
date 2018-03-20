@@ -51,21 +51,21 @@ def main(args):
 	if train == 1:
 		if verbose:
 			print("Beginning to train")
-		model_instance = '0'
+		model_instance = '0-25-1'
 		checkpoint_number = -1
-		LEARNING_RATE = 0.0005
+		LEARNING_RATE = 0.0001
 		GAMMA = 0.95
-		epsilon = 0.6
+		epsilon = 0.3
 		perform_update = True
-		NUM_GAMES = 10000
+		NUM_GAMES = 5000
 	elif train == 0:
 		if verbose:
 			print("Beginning to test")
-		model_instance = '0-15'
+		model_instance = '0-25'
 		checkpoint_number = -1
 		LEARNING_RATE = 0  # never used
 		GAMMA = 0.9  # never used
-		epsilon = 0.6 # Lower for testing
+		epsilon = 0.0 # Lower for testing
 		perform_update = False
 		NUM_GAMES = 1000
 	else:
@@ -74,13 +74,16 @@ def main(args):
 
 
 	MAX_ARMIES = 4
+	ENEMY_EPSILON = 0.25  # Does not change for train/test
 
 	# agent = max_success.MaxSuccess(T, act_list)
 	# agent = army_difference.ArmyDifference(T, act_list)
 	# agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
 	agent = three_layer_attack_net.ThreeLayerAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
-	opponent = max_success.MaxSuccess(T, act_list)
-	# opponent = random_attack.RandomAttack(T, act_list)
+	
+	############ Opponent defined again at bottom randomly ################3
+	# opponent = max_success.MaxSuccess(T, act_list)
+	opponent = random_attack.RandomAttack(T, act_list)
 	# opponent = army_difference.ArmyDifference(T, act_list)
 
 	print("model_instance: {}\nLEARNING_RATE: {}\nGAMMA: {}\nepsilon: {}\nT: {}"
@@ -158,7 +161,7 @@ def main(args):
 					else:
 						opponent_valid_mask = [1, 1]
 					# print(np.multiply(opponent_valid_mask, opponent_q))
-					opponent_action = epsilon_greedy_valid(opponent_q, opponent_valid_mask, epsilon)
+					opponent_action = epsilon_greedy_valid(opponent_q, opponent_valid_mask, ENEMY_EPSILON)
 					# print(opponent_action)
 					# print("Opponent chooses action: {}".format( opponent_action))
 
@@ -184,7 +187,7 @@ def main(args):
 					else:
 						opponent_valid_mask = [1, 1]
 					# print(np.multiply(opponent_valid_mask, opponent_q))
-					opponent_action = epsilon_greedy_valid(opponent_q, opponent_valid_mask, epsilon)
+					opponent_action = epsilon_greedy_valid(opponent_q, opponent_valid_mask, ENEMY_EPSILON)
 					# print(opponent_action)
 					# print("Opponent chooses action: {}".format( opponent_action))
 
@@ -376,8 +379,17 @@ def main(args):
 		agent_starts = True
 
 		# Update epsilon
-		# if game == (NUM_GAMES % 1000) and epsilon >= 0.1 and train:
-		# 	epsilon -= 0.08
+		if game == (NUM_GAMES % 1000) and epsilon >= 0.1 and train:
+			epsilon -= 0.05
+
+		# Choose next opponent randomly
+		next_opponent = np.random.random_integers(0,3)
+		if next_opponent == 0:
+			opponent = max_success.MaxSuccess(T, act_list)
+		elif next_opponent == 1:
+			opponent = random_attack.RandomAttack(T, act_list)
+		elif next_opponent == 2:
+			opponent = army_difference.ArmyDifference(T, act_list)
 
 		game_state = np.random.random_integers(1,MAX_ARMIES,size=(2))
 		enemy_territory = np.random.random_integers(0,1)
