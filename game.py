@@ -20,7 +20,7 @@ class Game:
         else:
             self.players = players
         # Set colors for graph drawing
-        player_colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+        player_colors = ['r', 'g', 'c', 'm', 'y', 'b', 'w']
         for i, player in enumerate(self.players):
             player.color = player_colors[i]
 
