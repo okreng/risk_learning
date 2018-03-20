@@ -55,10 +55,11 @@ def main(args):
 	s_v_list.append(np.array([4, -3]))
 	s_v_list.append(np.array([4, -4]))
 
-	# Add act_lists to the list
-	act_list = [[0, 1],[-1]]
 
-	q_func_obj = q_func_class(len(s_v), act_list)
+	act_lists_list = []
+	act_lists_list.append([[0, 1], [-1]])
+	print(act_lists_list[0])
+	q_func_obj = q_func_class(len(s_v_list[0]), act_lists_list[0])
 	# Begin test
 	print("Testing Q-function: {}".format(module))
 	for test_num in range(len(s_v_list)):
