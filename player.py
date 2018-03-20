@@ -8,6 +8,7 @@ class Player(ABC):
         """
         self.unallocated_armies = 0
         self.alive = True
+        self.color = 'r'
 
     @abstractmethod
     def get_attacks(self, valid):

@@ -19,6 +19,11 @@ class Game:
             self.players = [Player(), Player()]  # type: [Player]
         else:
             self.players = players
+        # Set colors for graph drawing
+        player_colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+        for i, player in enumerate(self.players):
+            player.color = player_colors[i]
+
         self.num_armies = int(math.floor(num_armies/len(agents)))
 
         self.agent_to_territories = {}  # type: dict(Player, [Territory])

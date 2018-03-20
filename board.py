@@ -1,6 +1,7 @@
 import networkx as nx
 import yaml
 from player import Player
+import matplotlib as plt
 
 
 class Board:
@@ -43,9 +44,15 @@ class Board:
         """
         Draws current graph
         """
-        inv_dict = {v: k for k, v in self.territories.items()}
+
+        label_dict = {v: k for k, v in self.territories.items()}
         layout = nx.kamada_kawai_layout(self.graph)
-        nx.draw(self.graph, pos=layout, labels=inv_dict, with_labels=True)
+        nx.draw_networkx(self.graph, pos=layout, labels=label_dict, with_labels=True,
+                         node_color=[node.owner.color if node.owner is not None else 'b'
+                                     for node in self.territories.values()],
+                         alpha=0.8
+                         )
+
 
 
 class Territory:
