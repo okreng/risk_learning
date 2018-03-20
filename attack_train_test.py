@@ -13,8 +13,10 @@ from q_funcs.attack import linear_attack_net
 from q_funcs.attack import max_success
 from q_funcs.attack import random_attack
 from q_funcs.attack import army_difference
+from q_funcs.attack import optimal_4_army_1v1
 from q_funcs.attack import three_layer_attack_net
 from q_funcs.attack import leaky_relu_3_layer
+
 
 
 def parse_arguments():
@@ -52,17 +54,17 @@ def main(args):
 	if train == 1:
 		if verbose:
 			print("Beginning to train")
-		model_instance = '0-2'
+		model_instance = '0-3'
 		checkpoint_number = -1
-		LEARNING_RATE = 0.00001
+		LEARNING_RATE = 0.0001
 		GAMMA = 0.95
 		epsilon = 0.85
 		perform_update = True
-		NUM_GAMES = 200000
+		NUM_GAMES = 50000
 	elif train == 0:
 		if verbose:
 			print("Beginning to test")
-		model_instance = '0-2'
+		model_instance = '0-3'
 		checkpoint_number = -1
 		LEARNING_RATE = 0  # never used
 		GAMMA = 0.9  # never used
@@ -75,8 +77,9 @@ def main(args):
 
 
 	MAX_ARMIES = 4
-	ENEMY_EPSILON = 0.1  # Does not change for train/test
+	ENEMY_EPSILON = 0.1
 
+	# agent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
 	# agent = max_success.MaxSuccess(T, act_list)
 	# agent = army_difference.ArmyDifference(T, act_list)
 	# agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
@@ -382,7 +385,7 @@ def main(args):
 
 		# Update epsilon
 		if game == (NUM_GAMES % 1000) and epsilon >= ENEMY_EPSILON and train:
-			epsilon -= 0.005
+			epsilon -= 0.01
 
 		# Choose next opponent randomly
 		next_opponent = np.random.random_integers(0,3)

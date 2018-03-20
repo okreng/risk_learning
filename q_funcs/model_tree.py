@@ -28,7 +28,6 @@ def model_tree(model_instance, continue_on, module_name, action_type_name, verbo
 		print("Path: {}.instance is not a valid instance".format(instance_path))
 		instance_path = './q_funcs/' + action_type_name + '/' + module_name + '.logs/0'
 		continue_on = False
-	print(instance_path[-2:])
 	if (not continue_on) or (instance_path[-2:] == '/0'):
 		if verbose:
 			print("Branching off of {}".format(instance_path))
