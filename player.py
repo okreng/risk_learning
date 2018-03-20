@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from board import Territory
 
 
 class Player(ABC):

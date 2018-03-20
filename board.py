@@ -7,7 +7,7 @@ class Board:
     """
     Class that represents a board. Contains all available territories.
     """
-    def __init__(self, board=None):
+    def __init__(self, board="boards/Mini.yaml"):
         self.graph = nx.Graph()  # Graph that holds territories and edges between them
         self.territories = {}  # Maps territory name to Territory
 
@@ -17,8 +17,10 @@ class Board:
     def parse_boardfile(self, boardfile):
         """
         Loads in a territory YAML and saves it to local vars.
-        :param boardfile: path to YAML file
+        :param str boardfile: path to YAML file
         """
+        self.graph = nx.Graph()
+        self.territories = {}
         with open(boardfile) as f:
             board = yaml.load(f)
             for continent_name, continent_dict in board['continents'].items():
@@ -36,7 +38,6 @@ class Board:
         :return [Player]: territories owned by player
         """
         return [t for t in self.territories.values() if t.owner is player]
-
 
     def draw(self):
         """

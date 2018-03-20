@@ -46,7 +46,7 @@ class Game:
         :return:
         """
         valid_allotments = [(territory, player.unallocated_armies)
-                            for territory in self.agent_to_territories[player]]
+                            for territory in self.board.get_player_territories(player)]
         allotments = player.get_allotments(valid_allotments)
         for territory, num_armies in allotments:
             territory.add_armies(num_armies)
@@ -58,8 +58,11 @@ class Game:
         :return:
         """
         # Player must have at least 2 armies in territory to attack
-        valid_attacks = [(territory, neighbor) for territory in self.board.territories.values() for neighbor in
-                         territory.neighbors if territory.num_armies >= 2]
+        owned_territories = self.board.get_player_territories(player)
+        valid_attacks = [(territory, neighbor)
+                         for territory in owned_territories
+                         for neighbor in territory.neighbors
+                         if territory.num_armies >= 2]
         attacks = player.get_attacks(valid_attacks)
         for territory_from, territory_to in attacks:  # type: Territory, Territory
             num_attacking = min(territory_from.num_armies - 1, 3)  # Leave one army behind in home
