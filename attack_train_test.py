@@ -55,17 +55,17 @@ def main(args):
 	if train == 1:
 		if verbose:
 			print("Beginning to train")
-		model_instance = '0-27'
+		model_instance = '0-5'
 		checkpoint_number = -1
-		LEARNING_RATE = 0.0001
+		LEARNING_RATE = 0.001
 		GAMMA = 0.95
-		epsilon = 0.85
+		epsilon = 0.8
 		perform_update = True
-		NUM_GAMES = 10000
+		NUM_GAMES = 1000
 	elif train == 0:
 		if verbose:
 			print("Beginning to test")
-		model_instance = '0-27'
+		model_instance = '0-5'
 		checkpoint_number = -1
 		LEARNING_RATE = 0  # never used
 		GAMMA = 0.9  # never used
@@ -80,17 +80,17 @@ def main(args):
 	MAX_ARMIES = 4
 	ENEMY_EPSILON = 0.1
 
-	agent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
+	# agent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
 	# agent = max_success.MaxSuccess(T, act_list)
 	# agent = army_difference.ArmyDifference(T, act_list)
-	# agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
 	# agent = three_layer_attack_net.ThreeLayerAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
 	# agent = leaky_relu_3_layer.LeakyRelu3Layer(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
 
 	############ Opponent defined againrandomly ################3
 	# opponent = max_success.MaxSuccess(T, act_list)
 	# opponent = random_attack.RandomAttack(T, act_list)
-	# opponent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
+	opponent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
 	# opponent = army_difference.ArmyDifference(T, act_list)
 
 	print("model_instance: {}\nLEARNING_RATE: {}\nGAMMA: {}\nepsilon: {}\nT: {}"
@@ -135,24 +135,24 @@ def main(args):
 		agent_starts = False
 
 		# Update epsilon
-		if game == (NUM_GAMES % 1000) and epsilon >= ENEMY_EPSILON and train:
+		if game == (NUM_GAMES % 100) and epsilon >= ENEMY_EPSILON and train:
 			epsilon -= 0.1
 
 		# Choose next opponent randomly
-		next_opponent = np.random.random_integers(0,4)
-		if next_opponent == 0:
-			opponent = max_success.MaxSuccess(T, act_list)
-		elif next_opponent == 1:
-			opponent = random_attack.RandomAttack(T, act_list)
-		elif next_opponent == 2:
-			opponent = army_difference.ArmyDifference(T, act_list)
-		elif next_opponent == 3:
-			opponent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
+		# next_opponent = np.random.random_integers(0,4)
+		# if next_opponent == 0:
+		# 	opponent = max_success.MaxSuccess(T, act_list)
+		# elif next_opponent == 1:
+		# 	opponent = random_attack.RandomAttack(T, act_list)
+		# elif next_opponent == 2:
+		# 	opponent = army_difference.ArmyDifference(T, act_list)
+		# elif next_opponent == 3:
+		# 	opponent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
 
 		# game_state = np.random.random_integers(1,MAX_ARMIES,size=(2))
 		game_state = np.array([starting_armies, starting_armies])
-		enemy_territory = np.random.random_integers(0,1)
-		# enemy_territory = 1
+		# enemy_territory = np.random.random_integers(0,1)
+		enemy_territory = 1
 		agent_territory = abs(1-enemy_territory)
 		game_state[enemy_territory] = -game_state[enemy_territory]
 		game_state = np.reshape(game_state,(1,-1))

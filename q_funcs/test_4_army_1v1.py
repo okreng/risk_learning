@@ -67,7 +67,7 @@ def main(args):
 	act_list = [[0,1],[-1]]
 
 
-	model_instance = '0-27'
+	model_instance = '0-5'
 	checkpoint_number = -1
 	LEARNING_RATE = 0.0001
 	perform_update = False
@@ -89,7 +89,12 @@ def main(args):
 		s_v = np.reshape(s_v_list[test_num], (1, -1))
 		print("State : {}".format(s_v))
 		print("Action:")
-		print(agent.call_Q(s_v))
+		q = agent.call_Q(s_v)
+		print(q)
+		if q[0] > q[1] and (not s_v[0][0] == 1):
+			print("Action: attack")
+		else:
+			print("Action: pass")
 		print("\n")
 	return
 
