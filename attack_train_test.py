@@ -14,6 +14,7 @@ from q_funcs.attack import max_success
 from q_funcs.attack import random_attack
 from q_funcs.attack import army_difference
 from q_funcs.attack import three_layer_attack_net
+from q_funcs.attack import leaky_relu_3_layer
 
 
 def parse_arguments():
@@ -51,21 +52,21 @@ def main(args):
 	if train == 1:
 		if verbose:
 			print("Beginning to train")
-		model_instance = '0-25-1'
-		checkpoint_number = -1
+		model_instance = '0-0'
+		checkpoint_number = 0
 		LEARNING_RATE = 0.0001
 		GAMMA = 0.95
-		epsilon = 0.3
+		epsilon = 0.8
 		perform_update = True
-		NUM_GAMES = 5000
+		NUM_GAMES = 1
 	elif train == 0:
 		if verbose:
 			print("Beginning to test")
-		model_instance = '0-25'
+		model_instance = '0'
 		checkpoint_number = -1
 		LEARNING_RATE = 0  # never used
 		GAMMA = 0.9  # never used
-		epsilon = 0.0 # Lower for testing
+		epsilon = 0.1 # Lower for testing, does not go lower than ENEMY_EPSILON
 		perform_update = False
 		NUM_GAMES = 1000
 	else:
@@ -74,13 +75,14 @@ def main(args):
 
 
 	MAX_ARMIES = 4
-	ENEMY_EPSILON = 0.25  # Does not change for train/test
+	ENEMY_EPSILON = 0.1  # Does not change for train/test
 
 	# agent = max_success.MaxSuccess(T, act_list)
 	# agent = army_difference.ArmyDifference(T, act_list)
 	# agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
-	agent = three_layer_attack_net.ThreeLayerAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
-	
+	# agent = three_layer_attack_net.ThreeLayerAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	agent = leaky_relu_3_layer.LeakyRelu3Layer(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+
 	############ Opponent defined again at bottom randomly ################3
 	# opponent = max_success.MaxSuccess(T, act_list)
 	opponent = random_attack.RandomAttack(T, act_list)
@@ -379,7 +381,7 @@ def main(args):
 		agent_starts = True
 
 		# Update epsilon
-		if game == (NUM_GAMES % 1000) and epsilon >= 0.1 and train:
+		if game == (NUM_GAMES % 1000) and epsilon >= ENEMY_EPSILON and train:
 			epsilon -= 0.05
 
 		# Choose next opponent randomly
