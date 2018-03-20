@@ -52,17 +52,17 @@ def main(args):
 	if train == 1:
 		if verbose:
 			print("Beginning to train")
-		model_instance = '0-0'
-		checkpoint_number = 0
-		LEARNING_RATE = 0.0001
+		model_instance = '0-2'
+		checkpoint_number = -1
+		LEARNING_RATE = 0.00001
 		GAMMA = 0.95
-		epsilon = 0.8
+		epsilon = 0.85
 		perform_update = True
-		NUM_GAMES = 1
+		NUM_GAMES = 200000
 	elif train == 0:
 		if verbose:
 			print("Beginning to test")
-		model_instance = '0'
+		model_instance = '0-2'
 		checkpoint_number = -1
 		LEARNING_RATE = 0  # never used
 		GAMMA = 0.9  # never used
@@ -382,7 +382,7 @@ def main(args):
 
 		# Update epsilon
 		if game == (NUM_GAMES % 1000) and epsilon >= ENEMY_EPSILON and train:
-			epsilon -= 0.05
+			epsilon -= 0.005
 
 		# Choose next opponent randomly
 		next_opponent = np.random.random_integers(0,3)
