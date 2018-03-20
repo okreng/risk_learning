@@ -1,5 +1,5 @@
 from board import Board, Territory
-from player import Player
+from players.manual_player import ManualPlayer
 import math
 from random import shuffle, randint
 from enum import Enum, auto
@@ -12,19 +12,20 @@ class GameStates(Enum):
 
 
 class Game:
-    def __init__(self, board="boards/Mini.yaml", agents=None, num_armies=100, players=None):
+    def __init__(self, board="boards/Mini.yaml", num_armies=100, players=None):
         self.board = Board(board)
         # change this to instantiate real agents
         if players is None:
-            self.players = [Player(), Player()]  # type: [Player]
+            self.players = [ManualPlayer(), ManualPlayer()]  # type: [Player]
         else:
             self.players = players
         # Set colors for graph drawing
         player_colors = ['r', 'g', 'c', 'm', 'y', 'b', 'w']
         for i, player in enumerate(self.players):
             player.color = player_colors[i]
+            player.player_num = i + 1
 
-        self.num_armies = int(math.floor(num_armies/len(agents)))
+        self.num_armies = int(math.floor(num_armies/len(self.players)))
 
         self.agent_to_territories = {}  # type: dict(Player, [Territory])
 
@@ -36,7 +37,7 @@ class Game:
         Distributes territories evenly and randomly amongst players
         """
         if not self.distributed:
-            territories_list = self.board.territories.keys()
+            territories_list = list(self.board.territories.keys())
             shuffle(territories_list)
             territories_per_player = int(math.floor(len(territories_list) / len(self.players)))
             for player in self.players:
@@ -68,24 +69,28 @@ class Game:
                          for territory in owned_territories
                          for neighbor in territory.neighbors
                          if territory.num_armies >= 2]
+        valid_attacks.append((None, None))
         attacks = player.get_attacks(valid_attacks)
-        for territory_from, territory_to in attacks:  # type: Territory, Territory
-            num_attacking = min(territory_from.num_armies - 1, 3)  # Leave one army behind in home
-            num_defending = min(min(territory_to.num_armies, 2), num_attacking)
-            attacking_dice = sorted([randint(1, 6) for _ in range(num_attacking)], reverse=True)
-            defending_dice = sorted([randint(1, 6) for _ in range(num_defending)], reverse=True)
 
-            for i in range(num_defending):
-                if attacking_dice[i] > defending_dice[i]:  # attacker is higher
-                    territory_to.num_armies -= 1
-                    # Check if territory is defeated
-                    # If territory is defeated, switch owner,
-                    if territory_to.num_armies <= 0:
-                        territory_to.owner = player
-                        territory_to.num_armies = num_attacking
-                        territory_from.num_armies -= num_attacking
-                else:
-                    territory_from.num_armies -= 1
+        for territory_from, territory_to in attacks:  # type: Territory, Territory
+            if territory_from is None or territory_to is None:
+                pass  # Literally pass
+            else:
+                num_attacking = min(territory_from.num_armies - 1, 3)  # Leave one army behind in home
+                num_defending = min(min(territory_to.num_armies, 2), num_attacking)
+                attacking_dice = sorted([randint(1, 6) for _ in range(num_attacking)], reverse=True)
+                defending_dice = sorted([randint(1, 6) for _ in range(num_defending)], reverse=True)
+                for i in range(num_defending):
+                    if attacking_dice[i] > defending_dice[i]:  # attacker is higher
+                        territory_to.num_armies -= 1
+                        # Check if territory is defeated
+                        # If territory is defeated, switch owner,
+                        if territory_to.num_armies <= 0:
+                            territory_to.owner = player
+                            territory_to.num_armies = num_attacking
+                            territory_from.num_armies -= num_attacking
+                    else:
+                        territory_from.num_armies -= 1
 
     def __fortify(self, player):
         """
@@ -93,19 +98,20 @@ class Game:
         :param Player player:
         :return:
         """
-        valid_fortifications = [(t_from, t_to) for t_from in self.board.territories.values()
-                                for t_to in self.board.territories.values() if t_from is not t_to]
+        owned_territories = self.board.get_player_territories(player)
+        valid_fortifications = [(t_from, t_to, t_from.num_armies) for t_from in owned_territories
+                                for t_to in owned_territories if t_from is not t_to]
         fortifications = player.get_fortifications(valid_fortifications)
         for territory_from, territory_to, num in fortifications:  # type: Territory, Territory, int
-            territory_from -= num
-            territory_to += num
+            territory_from.num_armies -= num
+            territory_to.num_armies += num
 
     def __check_end(self):
         """
         Checks if game has ended
         :return:  if there is more than one player who is alive
         """
-        return len([player for player in self.players if player.alive]) > 1
+        return len([player for player in self.players if player.alive]) < 1
 
     def play_game(self):
         """
@@ -118,6 +124,7 @@ class Game:
                 self.__allot(player)
                 self.__attack(player)
                 self.__fortify(player)
+                self.board.draw()
 
 
 

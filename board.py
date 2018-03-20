@@ -45,7 +45,7 @@ class Board:
         Draws current graph
         """
 
-        label_dict = {v: k for k, v in self.territories.items()}
+        label_dict = {v: k + ':\n' + str(v.num_armies) for k, v in self.territories.items()}
         layout = nx.kamada_kawai_layout(self.graph)
         nx.draw_networkx(self.graph, pos=layout, labels=label_dict, with_labels=True,
                          node_color=[node.owner.color if node.owner is not None else 'r'
@@ -53,8 +53,6 @@ class Board:
                          alpha=0.7
                          )
         plt.show()
-        print("drawed")
-
 
 
 class Territory:

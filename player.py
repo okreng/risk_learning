@@ -6,6 +6,7 @@ class Player(ABC):
         """
         Initializes variables all subclasses of player should have
         """
+        self.player_num = -1
         self.unallocated_armies = 0
         self.alive = True
         self.color = 'r'
