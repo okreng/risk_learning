@@ -56,12 +56,12 @@ def main(args):
 		if verbose:
 			print("Beginning to train")
 		model_instance = '0'
-		checkpoint_number = 0
-		LEARNING_RATE = 0.000001
+		checkpoint_number = -1
+		LEARNING_RATE = 0.00005
 		GAMMA = 0.95
-		epsilon = 0.9
+		epsilon = 0.8
 		perform_update = True
-		NUM_GAMES = 1000000
+		NUM_GAMES = 50000
 	elif train == 0:
 		if verbose:
 			print("Beginning to test")
@@ -139,7 +139,7 @@ def main(args):
 		agent_starts = False
 
 		# Update epsilon
-		if game == (NUM_GAMES % 10000) and epsilon >= ENEMY_EPSILON and train:
+		if game == (NUM_GAMES % 1000) and epsilon >= ENEMY_EPSILON and train:
 			epsilon -= 0.01
 
 		# Choose next opponent randomly

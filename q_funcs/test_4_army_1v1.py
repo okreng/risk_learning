@@ -84,7 +84,7 @@ def main(args):
 	act_list = [[0,1],[-1]]
 
 
-	model_instance = '0-14-4'
+	model_instance = '0-50'
 	checkpoint_number = -1
 	LEARNING_RATE = 0.0001
 	perform_update = False
@@ -94,8 +94,8 @@ def main(args):
 	# agent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
 	# agent = max_success.MaxSuccess(T, act_list)
 	# agent = army_difference.ArmyDifference(T, act_list)
-	agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
-	# agent = three_layer_attack_net.ThreeLayerAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	# agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	agent = three_layer_attack_net.ThreeLayerAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
 	# agent = leaky_relu_3_layer.LeakyRelu3Layer(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
 
 

@@ -94,8 +94,8 @@ class ThreeLayerAttackNet():
 		self.loss_weights = tf.placeholder(dtype = tf.float32, shape = [None, self.nA], name='loss_weights')
 
 		# First hidden Layer
-		self.dense1 = tf.layers.dense(inputs = self.features, units = 4, activation = tf.nn.relu, use_bias = False, name = 'dense1')
-		self.dense2 = tf.layers.dense(inputs = self.dense1, units = 4, activation = tf.nn.relu, use_bias = False, name = 'dense2')
+		self.dense1 = tf.layers.dense(inputs = self.features, units = 4, activation = tf.nn.sigmoid, use_bias = False, name = 'dense1')
+		self.dense2 = tf.layers.dense(inputs = self.dense1, units = 4, activation = tf.nn.sigmoid, use_bias = False, name = 'dense2')
 		# self.dense3 = tf.layers.dense(inputs = self.dense2, units = 4,  activation = tf.nn.relu, use_bias = False, name = 'dense3')
 
 		
