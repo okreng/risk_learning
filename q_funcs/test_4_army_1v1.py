@@ -63,11 +63,28 @@ def main(args):
 	s_v_list.append(np.array([4, -3]))
 	s_v_list.append(np.array([4, -4]))
 
+	# s_v_list.append(np.array([-1, 1]))
+	# s_v_list.append(np.array([-1, 2]))
+	# s_v_list.append(np.array([-1, 3]))
+	# s_v_list.append(np.array([-1, 4]))
+	# s_v_list.append(np.array([-2, 1]))
+	# s_v_list.append(np.array([-2, 2]))
+	# s_v_list.append(np.array([-2, 3]))
+	# s_v_list.append(np.array([-2, 4]))
+	# s_v_list.append(np.array([-3, 1]))
+	# s_v_list.append(np.array([-3, 2]))
+	# s_v_list.append(np.array([-3, 3]))
+	# s_v_list.append(np.array([-3, 4]))
+	# s_v_list.append(np.array([-4, 1]))
+	# s_v_list.append(np.array([-4, 2]))
+	# s_v_list.append(np.array([-4, 3]))
+	# s_v_list.append(np.array([-4, 4]))
+
 
 	act_list = [[0,1],[-1]]
 
 
-	model_instance = '0-14'
+	model_instance = '0-14-4'
 	checkpoint_number = -1
 	LEARNING_RATE = 0.0001
 	perform_update = False

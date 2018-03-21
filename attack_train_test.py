@@ -55,17 +55,17 @@ def main(args):
 	if train == 1:
 		if verbose:
 			print("Beginning to train")
-		model_instance = '0-14'
-		checkpoint_number = -1
-		LEARNING_RATE = 0.001
+		model_instance = '0'
+		checkpoint_number = 0
+		LEARNING_RATE = 0.000001
 		GAMMA = 0.95
-		epsilon = 0.2
+		epsilon = 0.9
 		perform_update = True
-		NUM_GAMES = 1000
+		NUM_GAMES = 1000000
 	elif train == 0:
 		if verbose:
 			print("Beginning to test")
-		model_instance = '0-14'
+		model_instance = '0'
 		checkpoint_number = -1
 		LEARNING_RATE = 0  # never used
 		GAMMA = 0.9  # never used
@@ -78,19 +78,23 @@ def main(args):
 
 
 	MAX_ARMIES = 4
-	ENEMY_EPSILON = 0.0
+	ENEMY_EPSILON = 0.1
+
+
+########## Experimenting to have pass move slower than attack due to high variance ##################
+	PASS_LOSS_WEIGHT = 0.1
 
 	# agent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
 	# agent = max_success.MaxSuccess(T, act_list)
 	# agent = army_difference.ArmyDifference(T, act_list)
-	agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
-	# agent = three_layer_attack_net.ThreeLayerAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	# agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	agent = three_layer_attack_net.ThreeLayerAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
 	# agent = leaky_relu_3_layer.LeakyRelu3Layer(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
 
 	############ Opponent defined againrandomly ################3
 	# opponent = max_success.MaxSuccess(T, act_list)
-	opponent = random_attack.RandomAttack(T, act_list)
-	# opponent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
+	# opponent = random_attack.RandomAttack(T, act_list)
+	opponent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
 	# opponent = army_difference.ArmyDifference(T, act_list)
 
 	print("model_instance: {}\nLEARNING_RATE: {}\nGAMMA: {}\nepsilon: {}\nT: {}"
@@ -135,8 +139,8 @@ def main(args):
 		agent_starts = False
 
 		# Update epsilon
-		if game == (NUM_GAMES % 100) and epsilon >= ENEMY_EPSILON and train:
-			epsilon -= 0.1
+		if game == (NUM_GAMES % 10000) and epsilon >= ENEMY_EPSILON and train:
+			epsilon -= 0.01
 
 		# Choose next opponent randomly
 		# next_opponent = np.random.random_integers(0,4)
@@ -288,7 +292,7 @@ def main(args):
 							target_q_func = agent.call_Q(target_game_state) # Run without update
 							
 							loss_weights = np.zeros([1, len(act_list)])
-							loss_weights[0][-1] = 1
+							loss_weights[0][-1] = PASS_LOSS_WEIGHT
 							target = np.zeros(len(act_list))
 
 							########## NOTE: Impossible for agent territory to have value 1 here
@@ -312,7 +316,7 @@ def main(args):
 								print("Enemy won during fetch")
 							reward = -1
 							loss_weights = np.zeros([1, len(act_list)])
-							loss_weights[0][-1] = 1
+							loss_weights[0][-1] = PASS_LOSS_WEIGHT
 							target = np.zeros(len(act_list))
 							target[-1] = reward
 							target = np.reshape(target, (1, -1))
