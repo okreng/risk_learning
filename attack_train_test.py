@@ -57,15 +57,15 @@ def main(args):
 			print("Beginning to train")
 		model_instance = '0'
 		checkpoint_number = -1
-		LEARNING_RATE = 0.00005
+		LEARNING_RATE = 0.001
 		GAMMA = 0.95
-		epsilon = 0.8
+		epsilon = 0.2
 		perform_update = True
-		NUM_GAMES = 50000
+		NUM_GAMES = 1000
 	elif train == 0:
 		if verbose:
 			print("Beginning to test")
-		model_instance = '0'
+		model_instance = '0-31'
 		checkpoint_number = -1
 		LEARNING_RATE = 0  # never used
 		GAMMA = 0.9  # never used
@@ -87,14 +87,14 @@ def main(args):
 	# agent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
 	# agent = max_success.MaxSuccess(T, act_list)
 	# agent = army_difference.ArmyDifference(T, act_list)
-	# agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
-	agent = three_layer_attack_net.ThreeLayerAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	agent = linear_attack_net.LinearAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
+	# agent = three_layer_attack_net.ThreeLayerAttackNet(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
 	# agent = leaky_relu_3_layer.LeakyRelu3Layer(T, act_list, model_instance, checkpoint_number, LEARNING_RATE)
 
 	############ Opponent defined againrandomly ################3
-	# opponent = max_success.MaxSuccess(T, act_list)
+	opponent = max_success.MaxSuccess(T, act_list)
 	# opponent = random_attack.RandomAttack(T, act_list)
-	opponent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
+	# opponent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
 	# opponent = army_difference.ArmyDifference(T, act_list)
 
 	print("model_instance: {}\nLEARNING_RATE: {}\nGAMMA: {}\nepsilon: {}\nT: {}"
@@ -139,8 +139,8 @@ def main(args):
 		agent_starts = False
 
 		# Update epsilon
-		if game == (NUM_GAMES % 1000) and epsilon >= ENEMY_EPSILON and train:
-			epsilon -= 0.01
+		if game == (NUM_GAMES % 500) and epsilon >= ENEMY_EPSILON and train:
+			epsilon -= 0.05
 
 		# Choose next opponent randomly
 		# next_opponent = np.random.random_integers(0,4)
