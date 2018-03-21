@@ -67,7 +67,7 @@ def main(args):
 	act_list = [[0,1],[-1]]
 
 
-	model_instance = '0-5'
+	model_instance = '0-14'
 	checkpoint_number = -1
 	LEARNING_RATE = 0.0001
 	perform_update = False
@@ -91,7 +91,7 @@ def main(args):
 		print("Action:")
 		q = agent.call_Q(s_v)
 		print(q)
-		if q[0] > q[1] and (not s_v[0][0] == 1):
+		if q[0] > q[1]:
 			print("Action: attack")
 		else:
 			print("Action: pass")

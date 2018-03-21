@@ -55,17 +55,17 @@ def main(args):
 	if train == 1:
 		if verbose:
 			print("Beginning to train")
-		model_instance = '0-5'
+		model_instance = '0-14'
 		checkpoint_number = -1
 		LEARNING_RATE = 0.001
 		GAMMA = 0.95
-		epsilon = 0.8
+		epsilon = 0.2
 		perform_update = True
 		NUM_GAMES = 1000
 	elif train == 0:
 		if verbose:
 			print("Beginning to test")
-		model_instance = '0-5'
+		model_instance = '0-14'
 		checkpoint_number = -1
 		LEARNING_RATE = 0  # never used
 		GAMMA = 0.9  # never used
@@ -78,7 +78,7 @@ def main(args):
 
 
 	MAX_ARMIES = 4
-	ENEMY_EPSILON = 0.1
+	ENEMY_EPSILON = 0.0
 
 	# agent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
 	# agent = max_success.MaxSuccess(T, act_list)
@@ -89,8 +89,8 @@ def main(args):
 
 	############ Opponent defined againrandomly ################3
 	# opponent = max_success.MaxSuccess(T, act_list)
-	# opponent = random_attack.RandomAttack(T, act_list)
-	opponent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
+	opponent = random_attack.RandomAttack(T, act_list)
+	# opponent = optimal_4_army_1v1.Optimal4Army1V1(T, act_list)
 	# opponent = army_difference.ArmyDifference(T, act_list)
 
 	print("model_instance: {}\nLEARNING_RATE: {}\nGAMMA: {}\nepsilon: {}\nT: {}"
@@ -200,7 +200,7 @@ def main(args):
 					# Attack action, valid only if enemy has more than 1 army
 					if verbose:
 						print("Target fetch, enemy action is: ")
-					if (not opponent_action == 4) and target_game_state[0, enemy_territory] < -1 and (not target_game_state[0, agent_territory] == 0):  # attack action
+					if (not opponent_action == 1) and target_game_state[0, enemy_territory] < -1 and (not target_game_state[0, agent_territory] == 0):  # attack action
 						if verbose:
 							print("\tEnemy attacks")
 						target_game_state = attack(target_game_state, enemy_territory, agent_territory)
@@ -290,8 +290,21 @@ def main(args):
 							loss_weights = np.zeros([1, len(act_list)])
 							loss_weights[0][-1] = 1
 							target = np.zeros(len(act_list))
+
+							########## NOTE: Impossible for agent territory to have value 1 here
+							# if target_game_state[0, agent_territory] == 1:
+							# 	valid_q_mask = [0,1]
+							# else:
+							# 	valid_q_mask = [1,1]
+
+							# target_q_valid = np.multiply(valid_q_mask, target_q_func)
+
 							target[-1] = reward + GAMMA * max(target_q_func)  # max value
 							target = np.reshape(target, (1, -1))
+
+							# print(loss_weights)
+							# input()
+
 							updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=agent_action, target=target, loss_weights=loss_weights)
 						
 						else:  # If agent lost in the enemy's game
@@ -303,6 +316,8 @@ def main(args):
 							target = np.zeros(len(act_list))
 							target[-1] = reward
 							target = np.reshape(target, (1, -1))
+							# print(loss_weights)
+							# input()
 							updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=agent_action, target=target, loss_weights=loss_weights)
 
 
@@ -348,6 +363,10 @@ def main(args):
 						target = np.zeros(len(act_list))
 						target[agent_action] = reward
 						target = np.reshape(target, (1, -1))
+
+						# print(loss_weights)
+						# input()
+
 						updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=agent_action, target=target, loss_weights=loss_weights)
 
 						# Set winner and break out of turn loop
@@ -358,9 +377,24 @@ def main(args):
 						reward = 0
 						target_q_func = agent.call_Q(next_game_state)
 						loss_weights = np.zeros([1, len(act_list)])
-						loss_weights[0][-1] = 1
+						loss_weights[0][agent_action] = 1
 						target = np.zeros(len(act_list))
-						target[-1] = reward + GAMMA * max(target_q_func)
+
+						############# Set non-valid q functions to -infinity #####
+						if next_game_state[0, agent_territory] == 1:
+							valid_q_mask = [0,1]
+						else:
+							valid_q_mask = [1,1]
+
+						target_q_valid = validate_q_func_for_argmax(target_q_func, valid_q_mask)
+
+						# print("Q: {}\nMask: {}\nQ_valid: {}".format(target_q_func, valid_q_mask, target_q_valid))
+						# print("Target before reward: {}".format(max(target_q_valid)))
+
+						# print(loss_weights)
+						# input()
+
+						target[-1] = reward + GAMMA * max(target_q_valid)
 						target = np.reshape(target, (1, -1))
 						updated_q_func = updated_q_func = agent.call_Q(state_vector=game_state, update=perform_update, action_taken=agent_action, target=target, loss_weights=loss_weights)
 
@@ -579,6 +613,35 @@ def epsilon_greedy_valid(q_func, valid_mask, epsilon):
 	action = valid_q_to_orig_q_map[valid_action]
 
 	return action
+
+def validate_q_func_for_argmax(q_func, valid_mask):
+	"""
+	Returns a q function with negative infinity in indices zero'd by valid_mask
+	:param q_func: float vector to correct for validation
+	:param valid_mask: int vector of valid actions (binary)
+	:return valid_q_func: vector of size as q_func, with -inf in places set by valid_mask
+	"""
+	nA = len(valid_mask)
+	valid_q_func = np.zeros(nA)
+
+	any_valid_action = False
+
+	if not (len(q_func) == nA):
+		print("Q function and mask different sizes")
+		return -1
+	for ii in range(nA):
+		if valid_mask[ii] == 1:
+			any_valid_action = True
+			valid_q_func[ii] = q_func[ii]
+		else:
+			valid_q_func[ii] = float("-inf")
+
+	if any_valid_action == False:
+		print("Warning: no valid actions")
+		return -1
+
+	return valid_q_func
+
 
 
 def enemy_view(game_state):
