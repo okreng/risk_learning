@@ -113,6 +113,14 @@ class Game:
         """
         return len([player for player in self.players if player.alive]) < 1
 
+    def get_state(self):
+        """
+        Gets current state of game
+        :return:
+        """
+        state = self.board.graph
+        return state
+
     def play_game(self):
         """
         Plays through game without pause or ability to manually step
