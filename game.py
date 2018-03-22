@@ -53,7 +53,7 @@ class Game:
         """
         valid_allotments = [(territory, player.unallocated_armies)
                             for territory in self.board.get_player_territories(player)]
-        allotments = player.get_allotments(valid_allotments)
+        allotments = player.get_allotments(valid_allotments, self.board.graph)
         for territory, num_armies in allotments:
             territory.add_armies(num_armies)
 
@@ -70,7 +70,7 @@ class Game:
                          for neighbor in territory.neighbors
                          if territory.num_armies >= 2]
         valid_attacks.append((None, None))
-        attacks = player.get_attacks(valid_attacks)
+        attacks = player.get_attacks(valid_attacks, self.board.graph)
 
         for territory_from, territory_to in attacks:  # type: Territory, Territory
             if territory_from is None or territory_to is None:
@@ -101,7 +101,7 @@ class Game:
         owned_territories = self.board.get_player_territories(player)
         valid_fortifications = [(t_from, t_to, t_from.num_armies) for t_from in owned_territories
                                 for t_to in owned_territories if t_from is not t_to]
-        fortifications = player.get_fortifications(valid_fortifications)
+        fortifications = player.get_fortifications(valid_fortifications, self.board.graph)
         for territory_from, territory_to, num in fortifications:  # type: Territory, Territory, int
             territory_from.num_armies -= num
             territory_to.num_armies += num
