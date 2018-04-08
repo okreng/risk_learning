@@ -1,4 +1,0 @@
-Branching off of ./q_funcs/attack/linear_attack_net.logs/0
-Creating new instance ./q_funcs/attack/linear_attack_net.logs/0-12.instance
-Creating new folder ./q_funcs/attack/linear_attack_net.logs/0-12
-Saved first copy in: ./q_funcs/attack/linear_attack_net.logs/0-12/model.ckpt

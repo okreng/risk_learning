@@ -53,9 +53,10 @@ class LinearAttackNet():
 
 		self.module_string = 'linear_attack_net'
 		self.action_type_string = 'attack'
-		self.next_save = 1
 		self.max_saves = 10
 		self.exact_load = True
+
+		self.verbose = verbose
 
 		if checkpoint_index == -1:
 			continue_on = True
@@ -76,6 +77,9 @@ class LinearAttackNet():
 		self.nS = nS
 		# self.nA = nS**2 + 1  # Specific to this state-action representation
 		self.nA = len(act_list)  # Length of 2D list corresponds to the edges of the graph
+
+		# Holds the global step (so that it can be loaded)
+		self.global_step_tensor = tf.Variable(0, trainable=False, name='global_step')
 
 		# Define the graph
 
@@ -109,6 +113,8 @@ class LinearAttackNet():
 		
 		# Create saver
 		self.saver = tf.train.Saver(max_to_keep=self.max_saves, keep_checkpoint_every_n_hours=1)
+		self.checkpoint_path = self.save_folder + '/model.ckpt'
+
 
 		# Load model
 		if (self.save_folder is self.restore_folder) or (not checkpoint_index == -1):  # Building off existing branch
@@ -118,30 +124,58 @@ class LinearAttackNet():
 					if verbose:
 						print("Loading model: ", ckpt.model_checkpoint_path)
 					self.saver.restore(self.sess, ckpt.model_checkpoint_path)
-					self.num_updates = tf.train.get_global_step()
+
+					######## Initialize num updates to save properly
+					num_updates = self.sess.run([self.global_step_tensor])
+					self.num_updates = num_updates[0]
+
+					###### Keep for debugging
+					# print("global step is: {}".format(self.num_updates))
 				else:
 					if (checkpoint_index < len(ckpt.all_model_checkpoint_paths)):
 						if verbose:
 							print("Loading model: ", ckpt.all_model_checkpoint_paths[checkpoint_index])
 						self.saver.restore(self.sess, ckpt.all_model_checkpoint_paths[checkpoint_index])
-						self.num_updates = tf.train.get_global_step()
+
+						######## Initialize num updates to save properly
+						num_updates = self.sess.run([self.global_step_tensor])
+						self.num_updates = num_updates[0]
+
+						###### Keep for debugging
+						# print("global step is: {}".format(self.num_updates))
+						
 					else:
 						print("Checkpoint index did not exist, random initialization")
 						self.exact_load = False
 			else:
 				print("Failed to load model from {}: random initialization within folder".format(self.restore_folder))
 				self.exact_load = False  
-
-		# Save first copy of model if new instance
-		if not (self.exact_load):
-			self.num_updates = 0
-			self.checkpoint_path = self.save_folder + '/model.ckpt'
-			self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+			
+			# Print if loading trained weights
 			if verbose:
-				print("Saved first copy in: {}".format(self.checkpoint_path))
+				print("Loaded weights are:")
+				for v in tf.trainable_variables():
+					print(v)
+					print(self.sess.run([v]))			
 
 		else:
-			print("---------------WARNING--------------\nModel did not load or save correctly")
+			self.num_updates = 0
+
+		self.next_save = self.num_updates + 1
+
+
+############# I believe this is causing checkpoint to be overwritten #########
+		# # Save first copy of model if new instance
+		# if not (self.exact_load):
+		# 	self.num_updates = 0
+		# 	# self.checkpoint_path = self.save_folder + '/model.ckpt'
+		# 	self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+		# 	if verbose:
+		# 		print("Saved first copy in: {}".format(self.checkpoint_path))
+
+		# else:
+		# 	print("---------------WARNING--------------\nModel did not load or save correctly")
+
 
 		return
 
@@ -165,6 +199,13 @@ class LinearAttackNet():
 		:return none:
 		"""
 		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+		if self.verbose:
+			print("Weights are:")
+			for v in tf.trainable_variables():
+				print(v)
+				print(self.sess.run([v]))
+		self.sess.close()
+
 		self.sess.close()
 		print("{} closed and saved to {}, checkpoint {}".format(self.module_string, self.save_folder, self.num_updates))
 		return
