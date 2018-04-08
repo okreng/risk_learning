@@ -26,7 +26,7 @@ class ManualPlayer(Player):
         return [valid[choice]]
 
     def get_allotments(self, valid, graph):
-        print("Player {} Allotments".format(self.player_num))
+        print("Player has {} armies to allot.\nPlayer {} Allotments".format(self.unallocated_armies, self.player_num))
         for i, allotment in enumerate(valid):  # type: int, (Territory, int)
             print("{}. {}".format(i, allotment[0].name))
             print('\n')
