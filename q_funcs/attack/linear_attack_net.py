@@ -93,10 +93,10 @@ class LinearAttackNet():
 		self.loss_weights = tf.placeholder(dtype = tf.float32, shape = [None, self.nA], name='loss_weights')
 
 		# Single hidden Layer
-		self.dense = tf.layers.dense(inputs = self.features, units = self.nS, activation = None, use_bias = True, name = 'dense')
+		self.dense = tf.layers.dense(inputs = self.features, units = self.nS, activation = None, use_bias = False, name = 'dense')
 	
 		# Output Layer
-		self.output = tf.layers.dense(inputs = self.dense, units = self.nA, use_bias = True, name = 'output')
+		self.output = tf.layers.dense(inputs = self.dense, units = self.nA, use_bias = False, name = 'output')
 		
 		#####################
 		self.loss = tf.losses.mean_squared_error(labels=self.labels, predictions=self.output, weights=self.loss_weights)

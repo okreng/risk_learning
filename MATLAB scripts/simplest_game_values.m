@@ -109,9 +109,9 @@ for kk = 1:(MAX_STATE(1)*MAX_STATE(2))
                 state_values_w_pass(ii,jj) = max(-opponent_value, player_value);
             end
             if (player_value >= (-opponent_value))
-                optimal_action(ii,jj) = 0;
-            else
                 optimal_action(ii,jj) = 1;
+            else
+                optimal_action(ii,jj) = 0;
             end
         end
     end
