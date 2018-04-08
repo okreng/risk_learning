@@ -14,7 +14,7 @@ TRIALS = 10000;
 % state = attack_func_raw(MAX_STATE);
 raw_state_values = zeros(MAX_STATE);
 state_values = zeros(MAX_STATE);
-raw = 1;
+raw = 0;
 % for kk = 1:2
     for ii = 1:MAX_STATE(1)
         for jj = 1:MAX_STATE(2)
@@ -109,9 +109,9 @@ for kk = 1:(MAX_STATE(1)*MAX_STATE(2))
                 state_values_w_pass(ii,jj) = max(-opponent_value, player_value);
             end
             if (player_value >= (-opponent_value))
-                optimal_action(ii,jj) = 0;
-            else
                 optimal_action(ii,jj) = 1;
+            else
+                optimal_action(ii,jj) = 0;
             end
         end
     end
