@@ -14,7 +14,7 @@ class ManualPlayer(Player):
             else:
                 print("{}. From {} To {}".format(i, attack[0].name, attack[1].name))
             print('\n')
-        choice = min(max(int(input("Enter desired attack number") or 0), len(valid)), 0)
+        choice = min(max(int(input("Enter desired attack number:") or 0), len(valid)), 0)
         return [valid[choice]]
 
     def get_fortifications(self, valid, graph):
@@ -22,7 +22,7 @@ class ManualPlayer(Player):
         for i, fortification in enumerate(valid):  # type: int, (Territory, Territory, int)
             print("{}. From {} to {}".format(i, fortification[0].name, fortification[1].name))
             print('\n')
-        choice = min(max(int(input("Enter desired fortification number") or 0), len(valid)), 0)
+        choice = min(max(int(input("Enter desired fortification number:") or 0), len(valid)), 0)
         return [valid[choice]]
 
     def get_allotments(self, valid, graph):
@@ -30,5 +30,5 @@ class ManualPlayer(Player):
         for i, allotment in enumerate(valid):  # type: int, (Territory, int)
             print("{}. {}".format(i, allotment[0].name))
             print('\n')
-        choice = min(max(int(input("Enter desired allotment number") or 0), len(valid)), 0)
+        choice = min(max(int(input("Enter desired allotment number:") or 0), len(valid)), 0)
         return [valid[choice]]

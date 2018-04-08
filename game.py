@@ -2,13 +2,16 @@ from board import Board, Territory
 from players.manual_player import ManualPlayer
 import math
 from random import shuffle, randint
-from enum import Enum, auto
+from enum import Enum  #, auto NOT SUPPORTED FOR PYTHON 3.5
 
 
 class GameStates(Enum):
-    ALLOT = auto()
-    ATTACK = auto()
-    FORTIFY = auto()
+    ALLOT = 0
+    ATTACK = 0
+    FORTIFY = 0
+    # ALLOT = auto()
+    # ATTACK = auto()
+    # FORTIFY = auto()
 
 
 class Game:
