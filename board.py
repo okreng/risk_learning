@@ -1,24 +1,31 @@
 import networkx as nx
 import yaml
 from player import Player
+import matplotlib.pyplot as plt
+import matplotlib.colors
 
 
 class Board:
     """
     Class that represents a board. Contains all available territories.
     """
-    def __init__(self, board=None):
+    def __init__(self, board="boards/Mini.yaml"):
         self.graph = nx.Graph()  # Graph that holds territories and edges between them
         self.territories = {}  # Maps territory name to Territory
 
         if board is not None:
             self.parse_boardfile(board)
 
+        self.continents = list(set([territory.continent for territory in self.territories.values()]))
+        print(self.continents)
+
     def parse_boardfile(self, boardfile):
         """
         Loads in a territory YAML and saves it to local vars.
-        :param boardfile: path to YAML file
+        :param str boardfile: path to YAML file
         """
+        self.graph = nx.Graph()
+        self.territories = {}
         with open(boardfile) as f:
             board = yaml.load(f)
             for continent_name, continent_dict in board['continents'].items():
@@ -29,13 +36,40 @@ class Board:
                 for neighbor in territory.neighbors:
                     self.graph.add_edge(territory, self.territories[neighbor])
 
-    def draw(self):
+    def get_player_territories(self, player):
+        """
+        Finds list of territories belonging to player
+        :param Player player:
+        :return [Player]: territories owned by player
+        """
+        return [t for t in self.territories.values() if t.owner is player]
+
+    def draw(self, color="country"):
         """
         Draws current graph
         """
-        inv_dict = {v: k for k, v in self.territories.items()}
-        layout = nx.kamada_kawai_layout(self.graph)
-        nx.draw(self.graph, pos=layout, labels=inv_dict, with_labels=True)
+
+        colors = ['r', 'g', 'c', 'm', 'y', 'b', 'w']
+        label_dict = {v: k + ':\n' + str(v.num_armies) for k, v in self.territories.items()}
+        layout = nx.kamada_kawai_layout(self.graph, scale=50)
+        node_color = []
+        if color is "players":
+            node_color = [node.owner.color if node.owner is not None else 'r'
+                          for node in self.graph.nodes()]
+        elif color is "country":
+            continent_color_dict = {continent: colors[i] for i, continent in enumerate(self.continents)}
+            node_color = [continent_color_dict[territory.continent] for territory in self.graph.nodes()]
+        # Lower alpha channels for colors
+        node_color = [matplotlib.colors.to_hex(matplotlib.colors.to_rgba(c, alpha=0.1), keep_alpha=True) for c in
+                      node_color]
+        print(node_color)
+
+        nx.draw_networkx_nodes(self.graph, pos=layout, node_color=node_color, alpha=0.5)
+        nx.draw_networkx_edges(self.graph, pos=layout)
+        nx.draw_networkx_labels(self.graph, pos=layout, labels=label_dict)
+
+        # plt.ion()
+        plt.show()
 
 
 class Territory:

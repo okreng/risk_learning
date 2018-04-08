@@ -1,0 +1,59 @@
+---
+map_name: Mini
+
+continents:
+  North America:
+    Alaska:                {neighbors: [Northwest Territory, Alberta, Kamchatka]}
+    Alberta:               {neighbors: [Northwest Territory, Alaska, Ontario, Western United States]}
+    Central America:       {neighbors: [Western United States, Eastern United States, Venezuela]}
+    Eastern United States: {neighbors: [Western United States, Eastern Canada, Ontario, Central America]}
+    Greenland:             {neighbors: [Northwest Territory, Ontario, Eastern Canada, Iceland]}
+    Northwest Territory:   {neighbors: [Greenland, Alberta, Ontario, Alaska]}
+    Ontario:               {neighbors: [Greenland, Eastern Canada, Alberta, Western United States, Eastern United States]}
+    Western United States: {neighbors: [Eastern United States, Alberta, Ontario, Central America]}
+    Eastern Canada:        {neighbors: [Greenland, Ontario, Eastern United States]}
+
+  Europe:
+    Great Britain:         {neighbors: [Iceland, Scandinavia, Northern Europe]}
+    Iceland:               {neighbors: [Greenland, Great Britain, Scandinavia]}
+    Northern Europe:       {neighbors: [Scandinavia, Southern Europe, Western Europe, Great Britain, Russia]}
+    Scandinavia:           {neighbors: [Russia, Northern Europe, Great Britain, Iceland]}
+    Southern Europe:       {neighbors: [Northern Europe, Western Europe, Russia, Middle East, Egypt]}
+    Western Europe:        {neighbors: [Northern Europe, Southern Europe, North Africa]}
+    Russia:                {neighbors: [Scandinavia, Afghanistan, Ural, Middle East, Northern Europe, Southern Europe]}
+
+  Asia:
+    Afghanistan:           {neighbors: [Russia, Ural, China, India, Middle East]}
+    China:                 {neighbors: [Mongolia, Southeast Asia, India, Afghanistan, Ural, Siberia]}
+    India:                 {neighbors: [China, Southeast Asia, Afghanistan, Middle East]}
+    Irkutsk:               {neighbors: [Mongolia, Kamchatka, Yakutsk, Siberia]}
+    Japan:                 {neighbors: [Kamchatka, Mongolia]}
+    Kamchatka:             {neighbors: [Yakutsk, Irkutsk, Japan, Alaska]}
+    Middle East:           {neighbors: [India, Afghanistan, Russia, Southern Europe, Egypt, East Africa]}
+    Siberia:               {neighbors: [Ural, China, Irkutsk, Mongolia, Yakutsk]}
+    Ural:                  {neighbors: [Russia, Afghanistan, Siberia, China]}
+    Yakutsk:               {neighbors: [Kamchatka, Siberia, Irkutsk]}
+    Southeast Asia:        {neighbors: [India, China, Indonesia, New Guinea]}
+    Mongolia:              {neighbors: [Japan, Irkutsk, Kamchatka, China, Siberia]}
+
+  South America:
+    Argentina:             {neighbors: [Peru, Brazil]}
+    Brazil:                {neighbors: [North Africa, Venezuela, Peru]}
+    Peru:                  {neighbors: [Venezuela, Brazil, Argentina]}
+    Venezuela:             {neighbors: [Central America, Peru, Brazil]}
+
+  Africa:
+    East Africa:           {neighbors: [Egypt, Middle East, Madagascar, Central Africa, South Africa, North Africa ]}
+    Egypt:                 {neighbors: [Southern Europe, Middle East, East Africa, North Africa]}
+    Madagascar:            {neighbors: [East Africa, South Africa]}
+    North Africa:          {neighbors: [Brazil, Western Europe, Egypt, East Africa, Central Africa, Southern Europe]}
+    South Africa:          {neighbors: [Central Africa, East Africa, Madagascar]}
+    Central Africa:        {neighbors: [East Africa, North Africa, South Africa]}
+
+  Oceania:
+    Eastern Australia:     {neighbors: [Western Australia, New Guinea]}
+    Indonesia:             {neighbors: [Southeast Asia, Western Australia, New Guinea]}
+    New Guinea:            {neighbors: [Indonesia, Eastern Australia, Western Australia]}
+    Western Australia:     {neighbors: [Eastern Australia, Indonesia, New Guinea]}
+
+...

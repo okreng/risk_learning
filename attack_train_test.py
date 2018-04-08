@@ -21,12 +21,13 @@ from q_funcs.attack import optimal_4_army_1v1
 
 
 def parse_arguments():
-	parser = argparse.ArgumentParser(description='Agent Argument Parser')
-	parser.add_argument('--train',dest='train',type=int)
-	parser.add_argument('--verbose',dest='verbose_int',type=int, default=1)
-	return parser.parse_args()
+    parser = argparse.ArgumentParser(description='Agent Argument Parser')
+    parser.add_argument('--train',dest='train',type=int)
+    parser.add_argument('--verbose',dest='verbose_int',type=int, default=1)
+    return parser.parse_args()
 
 def main(args):
+
 	"""
 	Function to train the simplest type of attack network
 	:param args: string command line arguments
@@ -420,178 +421,178 @@ def main(args):
 	return
 
 def attack(game_state, from_territory, to_territory):
-	"""
-	Function to determine the results of an attack
-	:param game_state: the armies in each territory
-	:param from_territory: the index of the territory attacking
-	:param to_territory: the index of the territory defending
-	"""
+    """
+    Function to determine the results of an attack
+    :param game_state: the armies in each territory
+    :param from_territory: the index of the territory attacking
+    :param to_territory: the index of the territory defending
+    """
 
-	if game_state[0, from_territory] < 0:
-		enemy_territory = from_territory
-	elif game_state[0, to_territory] < 0:
-		enemy_territory = to_territory
-	else:
-		return game_state
+    if game_state[0, from_territory] < 0:
+        enemy_territory = from_territory
+    elif game_state[0, to_territory] < 0:
+        enemy_territory = to_territory
+    else:
+        return game_state
 
 
-	from_armies = abs(game_state[0,from_territory])
-	to_armies = abs(game_state[0, to_territory])
+    from_armies = abs(game_state[0,from_territory])
+    to_armies = abs(game_state[0, to_territory])
 
-	determine_attack = np.random.uniform()
-	# new_game_state = np.zeros(len(game_state[0]))
-	new_game_state = np.copy(game_state[0])
-	if from_armies > 3: 
-		if to_armies > 1: # Three-Two
-			if determine_attack < (2890/7776):
-				new_game_state[from_territory] = from_armies
-				new_game_state[to_territory] = to_armies - 2
-			elif determine_attack < (5165/7776):
-				new_game_state[from_territory] = from_armies - 2
-				new_game_state[to_territory] = to_armies
-			else:
-				new_game_state[from_territory] = from_armies - 1
-				new_game_state[to_territory] = to_armies - 1
-		elif to_armies == 1: # Three-One
-			if determine_attack < (855/1296):
-				new_game_state[from_territory] = from_armies
-				new_game_state[to_territory] = to_armies - 1
-			else:
-				new_game_state[from_territory] = from_armies - 1
-				new_game_state[to_territory] = to_armies
-		else:
-			return game_state
+    determine_attack = np.random.uniform()
+    # new_game_state = np.zeros(len(game_state[0]))
+    new_game_state = np.copy(game_state[0])
+    if from_armies > 3:
+        if to_armies > 1: # Three-Two
+            if determine_attack < (2890/7776):
+                new_game_state[from_territory] = from_armies
+                new_game_state[to_territory] = to_armies - 2
+            elif determine_attack < (5165/7776):
+                new_game_state[from_territory] = from_armies - 2
+                new_game_state[to_territory] = to_armies
+            else:
+                new_game_state[from_territory] = from_armies - 1
+                new_game_state[to_territory] = to_armies - 1
+        elif to_armies == 1: # Three-One
+            if determine_attack < (855/1296):
+                new_game_state[from_territory] = from_armies
+                new_game_state[to_territory] = to_armies - 1
+            else:
+                new_game_state[from_territory] = from_armies - 1
+                new_game_state[to_territory] = to_armies
+        else:
+            return game_state
 
-	elif from_armies == 3:  # Two-Two
-		if to_armies > 1:
-			if determine_attack < (295/1296):
-				new_game_state[from_territory] = from_armies
-				new_game_state[to_territory] = to_armies - 2
-			elif determine_attack < (876/1296):
-				new_game_state[from_territory] = from_armies - 2
-				new_game_state[to_territory] = to_armies
-			else:
-				new_game_state[from_territory] = from_armies - 1
-				new_game_state[to_territory] = to_armies - 1
-		elif to_armies == 1: # Two-One
-			if determine_attack < (125/216):
-				new_game_state[from_territory] = from_armies
-				new_game_state[to_territory] = to_armies - 1
-			else:
-				new_game_state[from_territory] = from_armies - 1
-				new_game_state[to_territory] = to_armies
-		else:
-			return game_state
+    elif from_armies == 3:  # Two-Two
+        if to_armies > 1:
+            if determine_attack < (295/1296):
+                new_game_state[from_territory] = from_armies
+                new_game_state[to_territory] = to_armies - 2
+            elif determine_attack < (876/1296):
+                new_game_state[from_territory] = from_armies - 2
+                new_game_state[to_territory] = to_armies
+            else:
+                new_game_state[from_territory] = from_armies - 1
+                new_game_state[to_territory] = to_armies - 1
+        elif to_armies == 1: # Two-One
+            if determine_attack < (125/216):
+                new_game_state[from_territory] = from_armies
+                new_game_state[to_territory] = to_armies - 1
+            else:
+                new_game_state[from_territory] = from_armies - 1
+                new_game_state[to_territory] = to_armies
+        else:
+            return game_state
 
-	elif from_armies == 2: 
-		if to_armies > 1:  # One-Two
-			if determine_attack < (55/216):
-				new_game_state[from_territory] = from_armies
-				new_game_state[to_territory] = to_armies - 1
-			else:
-				new_game_state[from_territory] = from_armies - 1
-				new_game_state[to_territory] = to_armies
+    elif from_armies == 2:
+        if to_armies > 1:  # One-Two
+            if determine_attack < (55/216):
+                new_game_state[from_territory] = from_armies
+                new_game_state[to_territory] = to_armies - 1
+            else:
+                new_game_state[from_territory] = from_armies - 1
+                new_game_state[to_territory] = to_armies
 
-		elif to_armies == 1: # One-One
-			if determine_attack < (15/36):
-				new_game_state[from_territory] = from_armies
-				new_game_state[to_territory] = to_armies - 1
-			else:
-				new_game_state[from_territory] = from_armies - 1
-				new_game_state[to_territory] = to_armies
-		else:
-			return game_state
+        elif to_armies == 1: # One-One
+            if determine_attack < (15/36):
+                new_game_state[from_territory] = from_armies
+                new_game_state[to_territory] = to_armies - 1
+            else:
+                new_game_state[from_territory] = from_armies - 1
+                new_game_state[to_territory] = to_armies
+        else:
+            return game_state
 
-	elif from_armies == 1:  # No possible attack	
-		return game_state
+    elif from_armies == 1:  # No possible attack
+        return game_state
 
-	new_game_state[enemy_territory] = -new_game_state[enemy_territory]
-	new_game_state = np.reshape(new_game_state, (1, -1))
+    new_game_state[enemy_territory] = -new_game_state[enemy_territory]
+    new_game_state = np.reshape(new_game_state, (1, -1))
 
-	return new_game_state
+    return new_game_state
 
 
 def epsilon_greedy(q_func, epsilon):
-	"""
-	Defines a policy which acts greedily except for epsilon exceptions
-	:param q_func: q function returned by an attack network
-	:param epsilon: the threshold value
-	:return index: int the index of the corresponding action
-	"""
+    """
+    Defines a policy which acts greedily except for epsilon exceptions
+    :param q_func: q function returned by an attack network
+    :param epsilon: the threshold value
+    :return index: int the index of the corresponding action
+    """
 
-	eps_choices = len(q_func) - 1
-	if eps_choices == 0:
-		return -1
+    eps_choices = len(q_func) - 1
+    if eps_choices == 0:
+        return -1
 
-	choice = np.random.uniform()
-	max_action = np.argmax(q_func)
+    choice = np.random.uniform()
+    max_action = np.argmax(q_func)
 
-	# print(choice)
-	# print("Max action is {}".format(max_action))
+    # print(choice)
+    # print("Max action is {}".format(max_action))
 
-	if choice > epsilon:
-		return max_action
-	else:
-		eps_slice = epsilon/eps_choices
-		for act_slice in range(eps_choices):
-			# print(eps_slice*(1+act_slice))
-			if choice < (eps_slice*(1+act_slice)):
-				action = act_slice
-				break
+    if choice > epsilon:
+        return max_action
+    else:
+        eps_slice = epsilon/eps_choices
+        for act_slice in range(eps_choices):
+            # print(eps_slice*(1+act_slice))
+            if choice < (eps_slice*(1+act_slice)):
+                action = act_slice
+                break
 
 
-	if action >= max_action:  # Increment if past max_action
-		action += 1
+    if action >= max_action:  # Increment if past max_action
+        action += 1
 
-	return action
+    return action
 
 
 def epsilon_greedy_valid(q_func, valid_mask, epsilon):
-	"""
-	Returns an epsilon greedy action from a subset of function defined by mask
-	Only chooses valid actions as specified by the mask
-	:param q_func: float vector to return argmax in greedy case
-	:param valid_mask: int vector of valid actions
-	:param epsilon: probability under which to choose non-greedily
-	:return arg: int choice
-	"""
-	nA = len(valid_mask)
-	if not (len(q_func) == nA):
-		print("Q function and mask different sizes")
-		return -1
-	eps_choices = np.sum(valid_mask) - 1
+    """
+    Returns an epsilon greedy action from a subset of function defined by mask
+    Only chooses valid actions as specified by the mask
+    :param q_func: float vector to return argmax in greedy case
+    :param valid_mask: int vector of valid actions
+    :param epsilon: probability under which to choose non-greedily
+    :return arg: int choice
+    """
+    nA = len(valid_mask)
+    if not (len(q_func) == nA):
+        print("Q function and mask different sizes")
+        return -1
+    eps_choices = np.sum(valid_mask) - 1
 
-	valid_q_func = []
-	valid_q_to_orig_q_map = []
-	for ii in range(nA):
-		if valid_mask[ii] == 1:
-			valid_q_func.append(q_func[ii])
-			valid_q_to_orig_q_map.append(ii)
+    valid_q_func = []
+    valid_q_to_orig_q_map = []
+    for ii in range(nA):
+        if valid_mask[ii] == 1:
+            valid_q_func.append(q_func[ii])
+            valid_q_to_orig_q_map.append(ii)
 
-	if len(valid_q_func) == 0:
-		print("No valid actions")
-		return -1
+    if len(valid_q_func) == 0:
+        print("No valid actions")
+        return -1
 
-	# print(valid_q_func)
-	# print(valid_q_to_orig_q_map)
-	valid_action = epsilon_greedy(valid_q_func, epsilon)
-	# print(valid_action)
-	action = valid_q_to_orig_q_map[valid_action]
+    # print(valid_q_func)
+    # print(valid_q_to_orig_q_map)
+    valid_action = epsilon_greedy(valid_q_func, epsilon)
+    # print(valid_action)
+    action = valid_q_to_orig_q_map[valid_action]
 
-	return action
+    return action
 
 
 def enemy_view(game_state):
-	"""
-	Function to translate he game state as seen by the enemy
-	:param game_state: the state vector of the game
-	:return new_game_state: the reversed state vector
-	"""
-	new_game_state = np.copy(game_state)
-	for state in range(len(game_state[0])):
-		new_game_state[0, state] = -game_state[0,state]
-	return new_game_state
+    """
+    Function to translate he game state as seen by the enemy
+    :param game_state: the state vector of the game
+    :return new_game_state: the reversed state vector
+    """
+    new_game_state = np.copy(game_state)
+    for state in range(len(game_state[0])):
+        new_game_state[0, state] = -game_state[0,state]
+    return new_game_state
 
 
 if __name__ == '__main__':
-	main(sys.argv)
+    main(sys.argv)
