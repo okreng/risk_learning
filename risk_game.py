@@ -38,8 +38,8 @@ class RiskGame():
             if verbose:
                 print("Created inactive player: {}".format(player_id))
 
-        global MAX_ARMIES_PER_PLAYER
-        MAX_ARMIES_PER_PLAYER = 42
+        # global MAX_ARMIES_PER_PLAYER
+        # MAX_ARMIES_PER_PLAYER = 42
 
         return
 
@@ -421,15 +421,16 @@ class RiskGame():
             return self.game_state(), False
 
         if self.reinforce_from:
-            terr_1 = self.reinforce_from
-            if (not(terr_1 == nodes[0])) and (not(terr_1 == nodes[1])):
+            terr_1_id = self.reinforce_from
+            if (not(terr_1_id == nodes[0])) and (not(terr_1_id == nodes[1])):
                 print("FORTIFY ERROR: Edge id does not correspond to reinforce_from territory")
                 return self.game_state(), False
-            if (terr_1 == nodes[0]):
-                terr_2 = nodes[1]
+            if (terr_1_id == nodes[0]):
+                terr_1 = self.graph.get_terr_by_id(nodes[0])
+                terr_2 = self.graph.get_terr_by_id(nodes[1])
             else:
-                terr_2 = nodes[0]
-
+                terr_1 = self.graph.get_terr_by_id(nodes[1])
+                terr_2 = self.graph.get_terr_by_id(nodes[0])
         else:
             terr_1 = self.graph.get_terr_by_id(nodes[0])
             terr_2 = self.graph.get_terr_by_id(nodes[1])

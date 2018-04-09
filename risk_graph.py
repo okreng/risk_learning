@@ -12,6 +12,8 @@ import matplotlib as plot
 import sys
 import argparse
 
+MAX_ARMIES = 12
+
 class RiskGraph():
 	"""
 	This class defines a graph for a game of Risk
@@ -312,8 +314,8 @@ class Territory():
 		:return : No return value
 		"""
 		self.armies += num_armies
-		if self.armies > 12:
-			print("More than 12 armies on {}".format(self.name))
+		if self.armies > MAX_ARMIES:
+			print("More than {} armies on {}".format(MAX_ARMIES, self.name))
 		return
 
 	def set_armies(self, num_armies):

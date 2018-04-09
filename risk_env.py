@@ -147,7 +147,7 @@ class RiskEnv():
 
 		if action_type == ActionType.ALLOT:
 			q = agent.allot_q_func.call_Q(state)
-			action = np.argmax(q)
+			action = utils.choose_by_weight(q)
 		elif action_type == ActionType.ATTACK:
 			q = agent.attack_q_func.call_Q(state)
 			action = np.argmax(q)
@@ -176,6 +176,7 @@ def parse_arguments():
 	parser.add_argument('-m', dest='matchup', type=str, default="default")
 	parser.add_argument('-v', dest='verbose', action='store_true', default=False)
 	parser.add_argument('-p', dest='print_game', action='store_true', default=False)
+	parser.add_argument('--num-games', dest='num_games', default=1)
 	parser.set_defaults(verbose=False)
 	parser.set_defaults(print_game=False)
 	return parser.parse_args()
@@ -193,15 +194,15 @@ def main(args):
 	matchup = args.matchup
 	verbose = args.verbose
 	print_game = args.print_game
+	num_games = int(args.num_games)
 
 	environment = RiskEnv(board, matchup, verbose)
-	environment.play_game(0,1,print_game)
 
 
 	#################### For testing randomness ################
 	wins = 0
-	for i in range(1000):
-		wins += environment.play_game(0,1,verbose)
+	for i in range(num_games):
+		wins += environment.play_game(0,1,print_game)
 	print(wins)
 
 	# states, acts, rewards = environment.play_game(0,1,verbose)
