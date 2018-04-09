@@ -3,11 +3,11 @@ map_name: Mini
 
 continents:
   America:
-    USA: {neighbors: [Mexico, Canada]}
-    Canada: {neighbors: [USA]}
-    Mexico: {neighbors: [USA]}
+    USA-0: {neighbors: [Mexico-2, Canada-1]}
+    Canada-1: {neighbors: [USA-0]}
+    Mexico-2: {neighbors: [USA-0]}
   Asia:
-    China: {neighbors: [North Korea]}
-    North Korea: {neighbors: [China]}
+    China-3: {neighbors: [North Korea-4]}
+    North Korea-4: {neighbors: [China-3]}
 
 ...

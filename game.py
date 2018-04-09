@@ -6,6 +6,7 @@ from enum import Enum  #, auto NOT SUPPORTED FOR PYTHON 3.5
 import numpy as np
 
 ARMIES_PER_TERRITORY = 0.3333333
+MIN_ALLOT_ARMIES = 3
 
 class GameStates(Enum):
     ALLOT = 0
@@ -56,12 +57,17 @@ class Game:
         :param Player player:
         :return:
         """
-        valid_allotments = [(territory, player.unallocated_armies) 
-                            for territory in self.board.get_player_territories(player)]
-        # valid_allotments = [territory for territory in self.board.get_player_territories(player)]
-        allotments = player.get_allotments(valid_allotments, self.board.graph)
-        for territory, num_armies in allotments:
-            territory.add_armies(num_armies)
+        # valid_allotments = [(territory, player.unallocated_armies) 
+        #                     for territory in self.board.get_player_territories(player)]
+        player_terrs = [territory.u_id for territory in self.board.get_player_territories(player)]
+        # allotments = player.get_allotments(valid_allotments, self.board.graph)
+        valid_allotments = np.zeros(self.board.num_territories)
+        valid_allotments[player_terrs] = 1
+        allotment = player.get_allotment(valid_allotments, self.board)
+        territory = self.board.territories_by_id[allotment]
+        territory.add_armies(1)
+        # for territory, num_armies in allotments:
+        # territory.add_armies(num_armies)
 
     def __attack(self, player):
         """
@@ -135,7 +141,7 @@ class Game:
         # TODO: add armies based on continent
         """
         territories = self.board.get_player_territories(player)
-        return max(3, int(np.floor(len(territories)*ARMIES_PER_TERRITORY)))
+        return max(MIN_ALLOT_ARMIES, int(np.floor(len(territories)*ARMIES_PER_TERRITORY)))
 
     def play_game(self):
         """
