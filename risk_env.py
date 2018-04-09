@@ -88,21 +88,64 @@ class RiskEnv():
 		:return actions: list of lists of numpy arrays, actions taken in those states
 		:return rewards: list of lists of numpy arrays, the rewards earned by those actions
 		"""
+
+		num_turns = 0
+		g_states = {}  # maps player_id to states seen by that player
+		g_actions = {}  # maps player_id to actions taken by that player
+		g_rewards = {}  # maps player_id to rewards earned by action
+		num_recorded_players = 0
+		for player in range(max(player_id_list)+1):
+			if player in player_id_list:
+				
+				player_states = {}  # maps action_type to states seen by that player, action
+				player_actions = {}  # maps action_type to actions taken by that player_action
+				player_rewards = {}  # maps action_type to rewards earned by that player_action
+				
+				g_states[player] = player_states
+				g_actions[player] = player_actions
+				g_rewards[player] = player_rewards
+				
+				for action_type in range(max(player_action_list[num_recorded_players])+1):
+					if action_type in player_action_list[num_recorded_players]:
+						############ 
+						# print("Player: {}\n action_type: {}".format(player, action_type))
+						player_action_states = []
+						player_action_actions = []
+						player_action_rewards = []
+
+						g_states[player][action_type] = player_action_states
+						g_actions[player][action_type] = player_action_actions
+						g_rewards[player][action_type] = player_action_rewards
+				num_recorded_players += 1
+
 		game_state, valid = self.game.random_start(verbose)
 		raw_state, player_turn, action_type, u_armies, r_edge, winner = self.unpack_game_state(game_state)
+
 		while (winner == -1):
+			if valid:
+				num_turns += 1
 			state = self.translate_2_state(raw_state, player_turn)
-			# print(state)
-			# TODO: Implement actual actions based off state
-			# action = np.random.randint(0,2)
 			action = self.game_state_2_action(state, player_turn, action_type)
 
-			# print(action)
 			if verbose:
 				print("Player {} performs {} for action type {}".format(player_turn, action, action_type))
-			# raw_state, player_turn, action_type, u_armies, r_edge, winner, valid = self.game.act(action, player_turn, action_type)
 			game_state, valid = self.game.act(action, player_turn, action_type)
 			raw_state, player_turn, action_type, u_armies, r_edge, winner = self.unpack_game_state(game_state)
+
+			if valid and (player_turn in player_id_list):
+				# try:
+				if (int(action_type) in player_action_list[player_id_list.index(player_turn)]):  ## Non-valid states are exactly what was passed
+					print("Player {}, action type: {}".format(player_turn, action_type))
+					if action_type == ActionType.ALLOT:
+						action_vector = np.zeros(self.game.graph.total_territories)
+					elif action_type == ActionType.ATTACK:
+						action_vector = np.zeros(len(self.game.graph.edge_list))
+					elif action_type == ActionType.FORTIFY:
+						action_vector = np.zeros(len(self.game.graph.edge_list))
+
+				# except:
+				# 	continue
+
 
 
 			if verbose:
@@ -285,10 +328,17 @@ def main(args):
 
 
 	#################### For testing randomness ################
+	player_0_list = [0]
+
+	################ NOTE: Save to clarify form of query  ##########################
+	# player_0_action_list = [[int(ActionType.ALLOT), int(ActionType.ATTACK)]]
+
+	player_0_action_list = [[int(ActionType.ATTACK)]]
+
 	wins_0 = 0
 	wins_1 = 0
 	for i in range(num_games):
-		winner = environment.play_game(0,1,print_game)
+		winner = environment.play_game(player_0_list, player_0_action_list, print_game)
 		if winner == 0:
 			wins_0 += 1
 		else:

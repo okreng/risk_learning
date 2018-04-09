@@ -8,7 +8,18 @@ import numpy as np
 import risk_graph as rg
 from enum import Enum
 
-ActionType = Enum('ActionType','ALLOT ATTACK REINFORCE FORTIFY GAMEOVER')
+# ActionType = Enum('ActionType','ALLOT ATTACK REINFORCE FORTIFY GAMEOVER')
+class ActionType(Enum):
+    ALLOT = 0
+    ATTACK = 1
+    REINFORCE = 2
+    FORTIFY = 3
+    GAMEOVER = 4
+
+    def __int__(self):
+        return self.value
+
+
 MIN_ARMIES_PER_TURN = 3
 ARMIES_PER_TERRITORY = 0.33333
 INITIAL_PLACEMENT_ARMIES = 40
