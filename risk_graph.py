@@ -30,6 +30,7 @@ class RiskGraph():
 
 		# Member variable - territory_list - list of territory_list
 		self.territory_list = []
+		self.board = board
 
 		MAX_ARMIES = 12
 		self.MAX_ARMIES = MAX_ARMIES

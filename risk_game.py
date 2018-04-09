@@ -10,6 +10,7 @@ from enum import Enum
 
 ActionType = Enum('ActionType','ALLOT ATTACK REINFORCE FORTIFY GAMEOVER')
 MIN_ARMIES_PER_TURN = 3
+ARMIES_PER_TERRITORY = 0.33333
 INITIAL_PLACEMENT_ARMIES = 40
 
 class RiskGame():
@@ -105,8 +106,12 @@ class RiskGame():
         arguments:
         none
         returns:
-        int player id: whose turn it is
+        list of tuples: board_state with (player, armies) for each terr_id index
+        int player turn: whose turn it is
         enum ActionType: what action they must take
+        unallocated_armies: The number of allots before attacking will occur
+        reinforce_edge: the edge along which to reinforce 
+        winner: the player who has won, -1 if no winner yet
         bool active: Whether the game is still being played
         """
         return self.board_state(), self.player_turn, self.action_type, self.unallocated_armies, self.reinforce_edge, self.winner
@@ -248,7 +253,38 @@ class RiskGame():
         Calculates the number of armies the active player can place
         """
         # TODO: Add based on actual game logic
-        self.unallocated_armies = max(MIN_ARMIES_PER_TURN, np.floor(0.33333 * self.get_player_from_id(self.player_turn).total_territories))
+        armies_by_territory = np.floor(ARMIES_PER_TERRITORY * self.get_player_from_id(self.player_turn).total_territories)
+        if self.graph.board == 'Original':
+            armies_by_continent = 0
+            p = self.player_turn
+
+            player_control = []
+            for terr in self.board_state():
+                player_control.append(terr[0])
+
+            print("Player control is as follows: {}".format(player_control))
+
+            ############ ASIA  ######################
+
+
+            ############ EUROPE #####################
+
+
+            ############ NORTH AMERICA ##############
+
+
+            ############ AFRICA ####################
+
+
+            ############ SOUTH AMERICA ##############
+
+
+            ############ AUSTRALIA #################
+
+            self.unallocated_armies = max(MIN_ARMIES_PER_TURN, armies_by_territory + armies_by_continent)
+
+        else:
+            self.unallocated_armies = max(MIN_ARMIES_PER_TURN, armies_by_territory)
 
     def allot(self, terr_id):
         """

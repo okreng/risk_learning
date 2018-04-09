@@ -71,6 +71,8 @@ class RiskEnv():
 			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "random_allot", "random_attack", "skip_fortify", self.verbose)
 		elif player_name == "agent":
 			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "three_layer_attack_net", "skip_fortify", self.verbose)
+		if player_name == "aggressive":
+			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "army_difference", "skip_fortify", self.verbose)
 
 		print("Player name not recognized")
 		return None
@@ -86,7 +88,7 @@ class RiskEnv():
 		:return actions: list of lists of numpy arrays, actions taken in those states
 		:return rewards: list of lists of numpy arrays, the rewards earned by those actions
 		"""
-		game_state, valid = self.game.random_start(self.verbose)
+		game_state, valid = self.game.random_start(verbose)
 		raw_state, player_turn, action_type, u_armies, r_edge, winner = self.unpack_game_state(game_state)
 		while (winner == -1):
 			state = self.translate_2_state(raw_state, player_turn)
@@ -286,6 +288,9 @@ def main(args):
 	wins = 0
 	for i in range(num_games):
 		wins += environment.play_game(0,1,print_game)
+		if verbose:
+			if i%100 == 0:
+				print("Completed game {}".format(i))
 	print(wins)
 
 	# states, acts, rewards = environment.play_game(0,1,verbose)
