@@ -6,6 +6,7 @@ This file contains the agent object for holding multiple q functions
 from q_funcs.allot import random_allot, amass
 from q_funcs.attack import linear_attack_net, max_success, three_layer_attack_net
 from q_funcs.fortify import random_fortify
+from q_funcs.reinforce import reinforce_all
 
 import sys, argparse
 
@@ -46,6 +47,10 @@ class Agent():
             print("No valid attack Q function specified")
             exit()
 
+        ############ TODO: Change default reinforce q function ###################
+        reinforce_q_func = "reinforce_all"
+        self.reinforce_q_func = reinforce_all.ReinforceAll(self.territories, self.act_list)
+
         if fortify_q_func is "random_fortify":
             self.fortify_q_func = random_fortify.RandomFortify(self.territories, self.act_list)
         else:
@@ -56,6 +61,7 @@ class Agent():
             print("Player {} successfully instantiated with Q functions:".format(player_id))
             print("\tallot: {}".format(allot_q_func))
             print("\tattack: {}".format(attack_q_func))
+            print("\treinforce: {}".format(reinforce_q_func))
             print("\tfortify: {}".format(fortify_q_func))
 
         return

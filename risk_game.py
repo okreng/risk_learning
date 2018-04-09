@@ -90,9 +90,12 @@ class RiskGame():
         self.player_turn = self.player_placement_order[0]
 
         self.placement_phase = True
+        self.reinforce_from = None
         self.calculate_initial_allotment()
         self.action_type = ActionType.ALLOT
         self.winner = -1
+
+
 
         if verbose:
             print("Player {} starts".format(self.player_turn))
@@ -377,6 +380,7 @@ class RiskGame():
 
         if (self.remove_armies(to_id, defender, result[1])):
             self.assign_territory(to_id, attacker, defender)
+            self.reinforce_from = from_id
             if not (self.check_loss() == -1):
                 self.action_type = ActionType.GAMEOVER
                 return self.game_state(), True
@@ -416,8 +420,19 @@ class RiskGame():
             print("FORTIFY ERROR: Player does not own the territories")
             return self.game_state(), False
 
-        terr_1 = self.graph.get_terr_by_id(nodes[0])
-        terr_2 = self.graph.get_terr_by_id(nodes[1])
+        if self.reinforce_from:
+            terr_1 = self.reinforce_from
+            if (not(terr_1 == nodes[0])) and (not(terr_1 == nodes[1])):
+                print("FORTIFY ERROR: Edge id does not correspond to reinforce_from territory")
+                return self.game_state(), False
+            if (terr_1 == nodes[0]):
+                terr_2 = nodes[1]
+            else:
+                terr_2 = nodes[0]
+
+        else:
+            terr_1 = self.graph.get_terr_by_id(nodes[0])
+            terr_2 = self.graph.get_terr_by_id(nodes[1])
         total_armies = terr_1.get_armies() + terr_2.get_armies()
 
         terr_2_armies = (total_armies - terr_1_armies)
@@ -429,9 +444,10 @@ class RiskGame():
         terr_2.set_armies(terr_2_armies)
 
         if not reinforce:
-            self.advance_turn(), True
+            self.advance_turn()
         else:
             self.reinforce_edge = None
+            self.reinforce_from = None
             self.action_type = ActionType.ATTACK
         return self.game_state(), True
 

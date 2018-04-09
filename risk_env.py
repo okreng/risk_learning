@@ -7,8 +7,10 @@ import sys
 import argparse
 # from OLD import risk_game as gm
 import risk_game as gm
+from risk_game import ActionType
 import numpy as np
 import agent
+import utils
 
 
 class RiskEnv():
@@ -49,10 +51,10 @@ class RiskEnv():
 			if verbose:
 				new_player.print_player_details()
 
-		self.agent_list = {}  # Maps agent id to agent object
+		self.agent_list = []  # Maps agent id to agent object
 		ag_id = 0
-		for player_name in self.player_names:
-			self.agent_list[ag_id] = self.player_name_to_agent(player_name, ag_id)
+		for player_name in self.player_names:  # Same order as player_id in game
+			self.agent_list.append(self.player_name_to_agent(player_name, ag_id))
 			ag_id += 1
 
 	def player_name_to_agent(self, player_name, player_id):
@@ -90,13 +92,17 @@ class RiskEnv():
 			state = self.translate_2_state(raw_state, player_turn)
 			# print(state)
 			# TODO: Implement actual actions based off state
-			action = np.random.randint(0,2)
+			# action = np.random.randint(0,2)
+			action = self.game_state_2_action(state, player_turn, action_type)
+
 			# print(action)
 			if verbose:
 				print("Player {} performs {} for action type {}".format(player_turn, action, action_type))
 			# raw_state, player_turn, action_type, u_armies, r_edge, winner, valid = self.game.act(action, player_turn, action_type)
 			game_state, valid = self.game.act(action, player_turn, action_type)
 			raw_state, player_turn, action_type, u_armies, r_edge, winner = self.unpack_game_state(game_state)
+
+
 			if verbose:
 				print("{}, player:{}, {}, winner:{}".format(raw_state, player_turn, action_type, winner))
 
@@ -128,9 +134,28 @@ class RiskEnv():
 				state[territory] = -raw_state[territory][1]
 		return state
 
+	def game_state_2_action(self, state, player_id, action_type):
+		"""
+		Returns an action based on the agent corresponding to player_id and action type
+		"""
+		agent = self.agent_list[player_id]
 
+		# Wrap state to work with general q functions
+		state = np.array([state])
 
+		if action_type == ActionType.ALLOT:
+			q = agent.allot_q_func.call_Q(state)
+		elif action_type == ActionType.ATTACK:
+			q = agent.attack_q_func.call_Q(state)
+		elif action_type == ActionType.REINFORCE:
+			q = agent.reinforce_q_func.call_Q(state)
+		elif action_type == ActionType.FORTIFY:
+			q = agent.fortify_q_func.call_Q(state)
+		else:
+			print("ENVIRONMENT ERROR: Action type cannot be interpreted")
+			return None
 
+		return q
 
 def parse_arguments():
 	"""

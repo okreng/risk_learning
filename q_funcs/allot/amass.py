@@ -38,7 +38,9 @@ class Amass():
 		action_vector = np.zeros(self.T)
 		for terr in range(self.T):
 			if state_vector[0][terr] > 0:
+			# if state_vector[terr] > 0:
 				action_vector[terr] = state_vector[0][terr]
+				# action_vector[terr] = state_vector[terr]
 			# Negatives left as zero for opposing player
 
 		return action_vector
