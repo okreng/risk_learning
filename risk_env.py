@@ -57,7 +57,8 @@ class RiskEnv():
 		:return actions: list of lists of numpy arrays, actions taken in those states
 		:return rewards: list of lists of numpy arrays, the rewards earned by those actions
 		"""
-		raw_state, player_turn, action_type, u_armies, r_edge, winner = self.game.random_start(self.verbose)
+		game_state, valid = self.game.random_start(self.verbose)
+		raw_state, player_turn, action_type, u_armies, r_edge, winner = self.unpack_game_state(game_state)
 		while (winner == -1):
 			state = self.translate_2_state(raw_state, player_turn)
 			# print(state)
@@ -65,7 +66,9 @@ class RiskEnv():
 			action = np.random.randint(0,2)
 			# print(action)
 			print("Player {} trying action {} for action type {}".format(player_turn, action, action_type))
-			raw_state, player_turn, action_type, u_armies, r_edge, winner = self.game.act(action, player_turn, action_type)
+			# raw_state, player_turn, action_type, u_armies, r_edge, winner, valid = self.game.act(action, player_turn, action_type)
+			game_state, valid = self.game.act(action, player_turn, action_type)
+			raw_state, player_turn, action_type, u_armies, r_edge, winner = self.unpack_game_state(game_state)
 			print("{}, player:{}, {}, winner:{}".format(raw_state, player_turn, action_type, winner))
 
 
@@ -74,6 +77,12 @@ class RiskEnv():
 			print("Player {} wins".format(winner))
 
 		return winner
+
+	def unpack_game_state(self, game_state):
+		"""
+		Returns all the items in the game_state tuple
+		"""
+		return ((info) for info in game_state)
 
 	def translate_2_state(self, raw_state, player_id):
 		"""
@@ -123,11 +132,11 @@ def main(args):
 	environment.play_game(0,1,verbose)
 
 
-	# For testing randomness
-	# wins = 0
-	# for i in range(1000):
-		# wins += environment.play_game(0,1,verbose)
-	# print(wins)
+	#################### For testing randomness ################
+	wins = 0
+	for i in range(1000):
+		wins += environment.play_game(0,1,verbose)
+	print(wins)
 
 	# states, acts, rewards = environment.play_game(0,1,verbose)
 

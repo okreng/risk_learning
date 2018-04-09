@@ -10,6 +10,7 @@ from enum import Enum
 
 ActionType = Enum('ActionType','ALLOT ATTACK REINFORCE FORTIFY GAMEOVER')
 MIN_ARMIES_PER_TURN = 1
+INITIAL_PLACEMENT_ARMIES = 2
 
 class RiskGame():
     """
@@ -87,14 +88,16 @@ class RiskGame():
 
         # As per official rules:
         self.player_turn = self.player_placement_order[0]
+
+        self.placement_phase = True
+        self.calculate_initial_allotment()
         self.action_type = ActionType.ALLOT
-        self.calculate_allotment()
         self.winner = -1
 
         if verbose:
             print("Player {} starts".format(self.player_turn))
 
-        return self.game_state()
+        return self.game_state(), True
 
     def game_state(self):
         """
@@ -229,6 +232,16 @@ class RiskGame():
             exit()
         return self.player_list[player_id]
 
+    def calculate_initial_allotment(self):
+        """
+        Calculates the number of armies to provide at the start of the game
+        These are share among all players
+        """
+        # TODO: base this on game logic
+        self.unallocated_armies = INITIAL_PLACEMENT_ARMIES
+        return
+
+
     def calculate_allotment(self):
         """
         Calculates the number of armies the active player can place
@@ -244,18 +257,24 @@ class RiskGame():
         """
         if (self.graph.get_player_id_by_terr_id(terr_id) != self.player_turn):
             print("ALLOT ERROR: Player cannot allot to another player's territory")
+            return self.game_state(), False
         else:
             if self.unallocated_armies >= 1:
                 self.graph.get_terr_by_id(terr_id).add_armies(1)
                 self.get_player_from_id(self.player_turn).add_armies(1)
                 self.unallocated_armies -= 1
+                if (self.placement_phase):
+                    self.advance_turn()
             else:
                 print("ALLOT ERROR: Player has no armies to allot")
+                return self.game_state(), False
 
             if self.unallocated_armies == 0:
                 self.unallocated_armies = -1  # So that it cannot be misinterpreted
+                if (self.placement_phase):
+                    self.placement_phase = False
                 self.action_type = ActionType.ATTACK
-        return self.game_state()
+        return self.game_state(), True
 
 
     def attack(self, edge_id):
@@ -267,7 +286,7 @@ class RiskGame():
 
         if edge_id == len(self.graph.edge_list)-1:
             self.action_type = ActionType.FORTIFY
-            return self.game_state()
+            return self.game_state(), True
 
         attacker = self.player_turn
         nodes = self.graph.edge_list[edge_id]
@@ -276,7 +295,7 @@ class RiskGame():
 
         if (player_1 == player_2):
             print("ATTACK ERROR: Same player owns both edge territories")
-            return self.game_state()
+            return self.game_state(), False
 
         if attacker == player_1:
             defender = self.graph.get_player_id_by_terr_id(nodes[1])
@@ -288,7 +307,7 @@ class RiskGame():
             to_id = nodes[0]
         else:
             print("ATTACK ERROR: Attacking player does not own either edge territory")
-            return self.game_state()
+            return self.game_state(), False
 
 
         from_armies = self.graph.get_armies_by_terr_id(from_id)
@@ -314,7 +333,7 @@ class RiskGame():
                 else:
                     result[0] = 1
             else:
-                return self.game_state()
+                return self.game_state(), False
 
         elif from_armies == 3:  # Two-Two
             if to_armies > 1:
@@ -331,7 +350,7 @@ class RiskGame():
                 else:
                     result[0] = 1
             else:
-                return self.game_state()
+                return self.game_state(), False
 
         elif from_armies == 2:
             if to_armies > 1:  # One-Two
@@ -346,25 +365,25 @@ class RiskGame():
                 else:
                     result[0] = 1
             else:
-                return self.game_state()
+                return self.game_state(), False
 
         elif from_armies == 1:  # No possible attack
             print("ATTACK ERROR: player {} attempting to attack with 1 army".format(attacker))
-            return self.game_state()
+            return self.game_state(), False
 
         if (self.remove_armies(from_id, attacker, result[0])):
             print("ATTACK ERROR: Attacking player {} lost a territory while attacking")
-            return self.game_state()
+            return self.game_state(), False
 
         if (self.remove_armies(to_id, defender, result[1])):
             self.assign_territory(to_id, attacker, defender)
             if not (self.check_loss() == -1):
                 self.action_type = ActionType.GAMEOVER
-                return self.game_state()
+                return self.game_state(), True
             self.action_type = ActionType.REINFORCE
             self.reinforce_edge = edge_id
 
-        return self.game_state()
+        return self.game_state(), True
 
     def reinforce(self, terr_1_armies):
         """
@@ -386,16 +405,16 @@ class RiskGame():
         if edge_id == len(self.graph.edge_list)-1:
             # This is the no fortify action
             self.advance_turn()
-            return self.game_state()
+            return self.game_state(), False
 
         nodes = self.graph.edge_list[edge_id]
         if (not (self.graph.get_terr_by_id(nodes[0]).player_id == self.graph.get_terr_by_id(nodes[1]).player_id)):
             print("FORTIFY ERROR: Both territories not owned by the same player")
-            return self.game_state()
+            return self.game_state(), False
 
         if (not (self.graph.get_player_id_by_terr_id(nodes[0])  == self.player_turn)):
             print("FORTIFY ERROR: Player does not own the territories")
-            return self.game_state()
+            return self.game_state(), False
 
         terr_1 = self.graph.get_terr_by_id(nodes[0])
         terr_2 = self.graph.get_terr_by_id(nodes[1])
@@ -404,17 +423,17 @@ class RiskGame():
         terr_2_armies = (total_armies - terr_1_armies)
         if terr_2_armies < 1:
             print("FORTIFY ERROR: Total armies between territories {} is not great enough".format(nodes))
-            return self.game_state()
+            return self.game_state(), False
 
         terr_1.set_armies(terr_1_armies)
         terr_2.set_armies(terr_2_armies)
 
         if not reinforce:
-            self.advance_turn()
+            self.advance_turn(), True
         else:
             self.reinforce_edge = None
             self.action_type = ActionType.ATTACK
-        return self.game_state()
+        return self.game_state(), True
 
     def advance_turn(self):
         """
@@ -424,7 +443,8 @@ class RiskGame():
         index = self.player_turn_order[self.player_turn]
         self.player_turn = self.player_turn_order[(index+1)%self.active_players]
         self.action_type = ActionType.ALLOT
-        self.calculate_allotment()
+        if not self.placement_phase:
+            self.calculate_allotment()
         return self.game_state()
 
     def act(self, action, player_id, action_type, aux_action=1):
@@ -436,11 +456,11 @@ class RiskGame():
         """
         if player_id != self.player_turn:
             print("ACTION ERROR: Wrong player attempting to move. It is player {}'s turn".format(self.player_turn))
-            return self.game_state()
+            return self.game_state(), False
 
         if action_type != self.action_type:
             print("ACTION ERROR: Wrong action type. Player must perform {}".format(self.action_type))
-            return self.game_state()
+            return self.game_state(), False
 
         if self.action_type == ActionType.ALLOT:
             return self.allot(action)
@@ -452,7 +472,7 @@ class RiskGame():
             return self.fortify(action, aux_action)
         else:
             print("ACTION ERROR: Action type cannot be interpreted")
-            return self.game_state()
+            return self.game_state(), False
 
 class Player():
     """
