@@ -96,13 +96,13 @@ class ThreeLayerAttackNet():
 		# First hidden Layer
 		self.dense1 = tf.layers.dense(inputs = self.features, units = 4, activation = tf.nn.sigmoid, use_bias = False, name = 'dense1')
 		self.dense2 = tf.layers.dense(inputs = self.dense1, units = 4, activation = tf.nn.sigmoid, use_bias = False, name = 'dense2')
-		# self.dense3 = tf.layers.dense(inputs = self.dense2, units = 4,  activation = tf.nn.relu, use_bias = False, name = 'dense3')
+		self.dense3 = tf.layers.dense(inputs = self.dense2, units = 4,  activation = tf.nn.relu, use_bias = False, name = 'dense3')
 
 		
 
 		# Output Layer
 		# self.output = tf.layers.dense(inputs = self.dense3, units = self.nA, use_bias = True, name = 'output')
-		self.output = tf.layers.dense(inputs = self.dense2, units = self.nA, use_bias = False, name = 'output')
+		self.output = tf.layers.dense(inputs = self.dense3, units = self.nA, activation = tf.nn.softmax, use_bias = False, name = 'output')
 
 		#####################
 		self.loss = tf.losses.mean_squared_error(labels=self.labels, predictions=self.output, weights=self.loss_weights)

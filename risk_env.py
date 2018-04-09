@@ -49,12 +49,9 @@ class RiskEnv():
 			if verbose:
 				new_player.print_player_details()
 
-		print(self.player_names)
-
 		self.agent_list = {}  # Maps agent id to agent object
 		ag_id = 0
 		for player_name in self.player_names:
-			print(player_name)
 			self.agent_list[ag_id] = self.player_name_to_agent(player_name, ag_id)
 			ag_id += 1
 
@@ -64,12 +61,14 @@ class RiskEnv():
 		return:
 		Whether the agent was created successfully
 		"""
+		if self.verbose:
+			print("Creating player {}: {}".format(player_id, player_name))
 		if player_name == "expert":
-			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "max_success", "random_fortify")
+			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "max_success", "random_fortify", self.verbose)
 		elif player_name == "random":
-			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "random_allot", "random_attack", "random_fortify")
+			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "random_allot", "random_attack", "random_fortify", self.verbose)
 		elif player_name == "agent":
-			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "linear_attack_net", "random_fortify")
+			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "three_layer_attack_net", "random_fortify", self.verbose)
 
 		print("Player name not recognized")
 		return None
@@ -93,11 +92,13 @@ class RiskEnv():
 			# TODO: Implement actual actions based off state
 			action = np.random.randint(0,2)
 			# print(action)
-			# print("Player {} trying action {} for action type {}".format(player_turn, action, action_type))
+			if verbose:
+				print("Player {} performs {} for action type {}".format(player_turn, action, action_type))
 			# raw_state, player_turn, action_type, u_armies, r_edge, winner, valid = self.game.act(action, player_turn, action_type)
 			game_state, valid = self.game.act(action, player_turn, action_type)
 			raw_state, player_turn, action_type, u_armies, r_edge, winner = self.unpack_game_state(game_state)
-			# print("{}, player:{}, {}, winner:{}".format(raw_state, player_turn, action_type, winner))
+			if verbose:
+				print("{}, player:{}, {}, winner:{}".format(raw_state, player_turn, action_type, winner))
 
 
 			# raw_state, player_turn, action_type, u_armies, r_edge, winner
@@ -142,7 +143,9 @@ def parse_arguments():
 	parser.add_argument('-b', dest='board', type=str, default='Duel')
 	parser.add_argument('-m', dest='matchup', type=str, default="default")
 	parser.add_argument('-v', dest='verbose', action='store_true', default=False)
+	parser.add_argument('-p', dest='print_game', action='store_true', default=False)
 	parser.set_defaults(verbose=False)
+	parser.set_defaults(print_game=False)
 	return parser.parse_args()
 
 
@@ -157,9 +160,10 @@ def main(args):
 	board = args.board
 	matchup = args.matchup
 	verbose = args.verbose
+	print_game = args.print_game
 
 	environment = RiskEnv(board, matchup, verbose)
-	environment.play_game(0,1,verbose)
+	environment.play_game(0,1,print_game)
 
 
 	#################### For testing randomness ################
