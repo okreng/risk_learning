@@ -1,1 +1,1 @@
-expert, expert
+conservative, aggressive
