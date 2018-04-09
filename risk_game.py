@@ -9,6 +9,7 @@ import risk_graph as rg
 from enum import Enum
 
 ActionType = Enum('ActionType','ALLOT ATTACK REINFORCE FORTIFY GAMEOVER')
+MIN_ARMIES_PER_TURN = 1
 
 class RiskGame():
     """
@@ -233,7 +234,7 @@ class RiskGame():
         Calculates the number of armies the active player can place
         """
         # TODO: Add based on actual game logic
-        self.unallocated_armies = max(3, np.floor(0.33333 * self.get_player_from_id(self.player_turn).total_territories))
+        self.unallocated_armies = max(MIN_ARMIES_PER_TURN, np.floor(0.33333 * self.get_player_from_id(self.player_turn).total_territories))
 
     def allot(self, terr_id):
         """
@@ -426,6 +427,32 @@ class RiskGame():
         self.calculate_allotment()
         return self.game_state()
 
+    def act(self, action, player_id, action_type, aux_action=1):
+        """
+        Function that determines which action to call and then calls it
+        :param action: index for action vector to perform
+        :param player_id: the player making the move
+        :action_type : enum int the type of action being performed
+        """
+        if player_id != self.player_turn:
+            print("ACTION ERROR: Wrong player attempting to move. It is player {}'s turn".format(self.player_turn))
+            return self.game_state()
+
+        if action_type != self.action_type:
+            print("ACTION ERROR: Wrong action type. Player must perform {}".format(self.action_type))
+            return self.game_state()
+
+        if self.action_type == ActionType.ALLOT:
+            return self.allot(action)
+        elif self.action_type == ActionType.ATTACK:
+            return self.attack(action)
+        elif self.action_type == ActionType.REINFORCE:
+            return self.reinforce(action)
+        elif self.action_type == ActionType.FORTIFY:
+            return self.fortify(action, aux_action)
+        else:
+            print("ACTION ERROR: Action type cannot be interpreted")
+            return self.game_state()
 
 class Player():
     """

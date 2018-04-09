@@ -7,6 +7,7 @@ import sys
 import argparse
 # from OLD import risk_game as gm
 import risk_game as gm
+import numpy as np
 
 
 class RiskEnv():
@@ -22,6 +23,7 @@ class RiskEnv():
 		"""
 		
 		# parse .mu file into player types
+		self.verbose = verbose
 		if verbose:
 			print('Reading file: {}'.format('./matchups/' + matchup + '.mu'))
 		with open('./matchups/' + matchup + '.mu') as fmu:
@@ -46,11 +48,48 @@ class RiskEnv():
 			if verbose:
 				new_player.print_player_details()
 
-		self.game.random_start(verbose)
-		# self.game.random_start(verbose)
+	def play_game(self, player_id_list, player_action_list, verbose=False):
+		"""
+		Generates a state vector for each player in player_id_list for what they saw in each action type
+		:param player_id_list: the ids of the players to generate state vectors for
+		:param player_action_list: list of lists: the action types for which state vectors are desired, per player
+		:return states: list of lists of numpy arrays of states seen during gameplay
+		:return actions: list of lists of numpy arrays, actions taken in those states
+		:return rewards: list of lists of numpy arrays, the rewards earned by those actions
+		"""
+		raw_state, player_turn, action_type, u_armies, r_edge, winner = self.game.random_start(self.verbose)
+		while (winner == -1):
+			state = self.translate_2_state(raw_state, player_turn)
+			# print(state)
+			# TODO: Implement actual actions based off state
+			action = np.random.randint(0,2)
+			# print(action)
+			print("Player {} trying action {} for action type {}".format(player_turn, action, action_type))
+			raw_state, player_turn, action_type, u_armies, r_edge, winner = self.game.act(action, player_turn, action_type)
+			print("{}, player:{}, {}, winner:{}".format(raw_state, player_turn, action_type, winner))
 
 
-		return
+			# raw_state, player_turn, action_type, u_armies, r_edge, winner
+		if verbose:
+			print("Player {} wins".format(winner))
+
+		return winner
+
+	def translate_2_state(self, raw_state, player_id):
+		"""
+		Translates a state vector into positive and negative elements
+		:param: raw_state - raw_state from the game
+		:param: player_id - the player to transform the state for
+		:return state: the state to be fed into a q function
+		"""
+		state = np.zeros(len(raw_state))
+		for territory in range(len(raw_state)):
+			if raw_state[territory][0] == player_id:
+				state[territory] = raw_state[territory][1]
+			else:
+				state[territory] = -raw_state[territory][1]
+		return state
+
 
 
 def parse_arguments():
@@ -81,6 +120,16 @@ def main(args):
 	verbose = args.verbose
 
 	environment = RiskEnv(board, matchup, verbose)
+	environment.play_game(0,1,verbose)
+
+
+	# For testing randomness
+	# wins = 0
+	# for i in range(1000):
+		# wins += environment.play_game(0,1,verbose)
+	# print(wins)
+
+	# states, acts, rewards = environment.play_game(0,1,verbose)
 
 
 # This is something you have to do in Python... I don't really know why	
