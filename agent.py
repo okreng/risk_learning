@@ -4,8 +4,8 @@ This file contains the agent object for holding multiple q functions
 
 # import all existing policies
 from q_funcs.allot import random_allot, amass
-from q_funcs.attack import linear_attack_net, max_success, three_layer_attack_net
-from q_funcs.fortify import random_fortify
+from q_funcs.attack import linear_attack_net, max_success, three_layer_attack_net, random_attack
+from q_funcs.fortify import random_fortify, skip_fortify
 from q_funcs.reinforce import reinforce_all
 
 import sys, argparse
@@ -38,8 +38,10 @@ class Agent():
 
         if attack_q_func is "max_success":
             self.attack_q_func = max_success.MaxSuccess(self.territories, self.act_list)
+        elif attack_q_func is "random_attack":
+            self.attack_q_func = random_attack.RandomAttack(self.territories, self.act_list)
         elif attack_q_func is "linear_attack_net":
-            # TODO pass in arguments to this function
+            # TODO pass in arguments to this function            
             self.attack_q_func = linear_attack_net.LinearAttackNet(self.territories, self.act_list, '0', verbose=verbose)
         elif attack_q_func is "three_layer_attack_net":
             self.attack_q_func = three_layer_attack_net.ThreeLayerAttackNet(self.territories, self.act_list, '0', verbose=verbose)
@@ -53,6 +55,8 @@ class Agent():
 
         if fortify_q_func is "random_fortify":
             self.fortify_q_func = random_fortify.RandomFortify(self.territories, self.act_list)
+        if fortify_q_func is "skip_fortify":
+            self.fortify_q_func = skip_fortify.SkipFortify(self.territories, self.act_list)
         else:
             print("No valid attack Q function specified")
             exit()

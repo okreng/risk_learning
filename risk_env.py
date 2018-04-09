@@ -66,11 +66,11 @@ class RiskEnv():
 		if self.verbose:
 			print("Creating player {}: {}".format(player_id, player_name))
 		if player_name == "expert":
-			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "max_success", "random_fortify", self.verbose)
+			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "max_success", "skip_fortify", self.verbose)
 		elif player_name == "random":
-			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "random_allot", "random_attack", "random_fortify", self.verbose)
+			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "random_allot", "random_attack", "skip_fortify", self.verbose)
 		elif player_name == "agent":
-			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "three_layer_attack_net", "random_fortify", self.verbose)
+			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "three_layer_attack_net", "skip_fortify", self.verbose)
 
 		print("Player name not recognized")
 		return None
@@ -143,19 +143,26 @@ class RiskEnv():
 		# Wrap state to work with general q functions
 		state = np.array([state])
 
+		########### TODO wrap strategies around q functions  ###########
+
 		if action_type == ActionType.ALLOT:
 			q = agent.allot_q_func.call_Q(state)
+			action = np.argmax(q)
 		elif action_type == ActionType.ATTACK:
 			q = agent.attack_q_func.call_Q(state)
+			action = np.argmax(q)
 		elif action_type == ActionType.REINFORCE:
 			q = agent.reinforce_q_func.call_Q(state)
+			action = q
 		elif action_type == ActionType.FORTIFY:
 			q = agent.fortify_q_func.call_Q(state)
+			action = np.argmax(q)
+
 		else:
 			print("ENVIRONMENT ERROR: Action type cannot be interpreted")
 			return None
 
-		return q
+		return action
 
 def parse_arguments():
 	"""
@@ -192,10 +199,10 @@ def main(args):
 
 
 	#################### For testing randomness ################
-	# wins = 0
-	# for i in range(1000):
-	# 	wins += environment.play_game(0,1,verbose)
-	# print(wins)
+	wins = 0
+	for i in range(1000):
+		wins += environment.play_game(0,1,verbose)
+	print(wins)
 
 	# states, acts, rewards = environment.play_game(0,1,verbose)
 
