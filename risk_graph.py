@@ -31,6 +31,9 @@ class RiskGraph():
 		# Member variable - territory_list - list of territory_list
 		self.territory_list = []
 
+		MAX_ARMIES = 12
+		self.MAX_ARMIES = MAX_ARMIES
+
 		# Read through the .risk file and convert it to graph
 		if verbose:
 			print('Reading file: {}'.format('./boards/' + str(board) + '.risk'))
@@ -269,6 +272,9 @@ class Territory():
 		self.neighbor_ids = []
 		self.edge_num = edge_num
 		self.terr_id = terr_id
+
+		#### TODO: Figure out how to best share this information
+		self.MAX_ARMIES = MAX_ARMIES
 		
 		# Note - armies of size <= 0 and player_id of <0 will produced errors after initalization
 		self.armies = armies
@@ -314,8 +320,8 @@ class Territory():
 		:return : No return value
 		"""
 		self.armies += num_armies
-		if self.armies > MAX_ARMIES:
-			print("More than {} armies on {}".format(MAX_ARMIES, self.name))
+		if self.armies > self.MAX_ARMIES:
+			print("More than {} armies on {}".format(self.MAX_ARMIES, self.name))
 		return
 
 	def set_armies(self, num_armies):
@@ -326,8 +332,8 @@ class Territory():
 		:return : No return value
 		"""
 		self.armies = num_armies
-		if self.armies > 12:
-			print("More than 12 armies on {}".format(self.name))
+		if self.armies > self.MAX_ARMIES:
+			print("More than {} armies on {}".format(self.MAX_ARMIES, self.name))
 		return
 
 	def get_armies(self):

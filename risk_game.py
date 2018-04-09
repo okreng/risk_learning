@@ -9,8 +9,8 @@ import risk_graph as rg
 from enum import Enum
 
 ActionType = Enum('ActionType','ALLOT ATTACK REINFORCE FORTIFY GAMEOVER')
-MIN_ARMIES_PER_TURN = 1
-INITIAL_PLACEMENT_ARMIES = 2
+MIN_ARMIES_PER_TURN = 3
+INITIAL_PLACEMENT_ARMIES = 40
 
 class RiskGame():
     """

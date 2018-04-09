@@ -147,15 +147,23 @@ class RiskEnv():
 
 		if action_type == ActionType.ALLOT:
 			q = agent.allot_q_func.call_Q(state)
-			action = utils.choose_by_weight(q)
+			valid_mask = self.allot_valid(state)
+			action = utils.choose_by_weight(np.multiply(valid_mask, q))
 		elif action_type == ActionType.ATTACK:
 			q = agent.attack_q_func.call_Q(state)
-			action = np.argmax(q)
+			valid_mask = self.attack_valid(state)
+			q_valid = utils.validate_q_func_for_argmax(q, valid_mask)
+			action = np.argmax(q_valid)
 		elif action_type == ActionType.REINFORCE:
 			q = agent.reinforce_q_func.call_Q(state)
 			action = q
 		elif action_type == ActionType.FORTIFY:
 			q = agent.fortify_q_func.call_Q(state)
+			######### Activate this if anything is not using skip_fortify ######
+			# valid_mask = self.fortify_valid(state)
+			# q_valid = utils.validate_q_func_for_argmax(q, valid_mask)
+			# action = np.argmax(q_valid)
+			###############################3#############
 			action = np.argmax(q)
 
 		else:
@@ -163,6 +171,81 @@ class RiskEnv():
 			return None
 
 		return action
+
+	def allot_valid(self, state_vector):
+		"""
+		Returns a mask of valid allotments
+		Mask is applied to list of territories
+		"""
+		valid_mask = np.zeros(len(state_vector[0]))
+		good_mask = False
+		for state in range(len(state_vector[0])):
+			armies = state_vector[0][state]
+			if armies > 0 and armies < self.game.graph.MAX_ARMIES:
+				good_mask = True
+				valid_mask[state] = 1
+
+		######### TODO: allow the game to accept over-sized allotment, to no effect
+		############### except for losing the unallocated army
+		########## Remove this warning statement once complete
+		if good_mask == False:
+			print("VALIDATION WARNING: All owned territories have > {} armies".format(self.game.graph.MAX_ARMIES))
+			valid_mask = np.zeros(len(state_vector[0]))
+			for state in range(len(state_vector[0])):
+				armies = state_vector[0][state]
+				if armies > 0:
+					valid_mask[state] = 1
+
+		# print("Allot valid mask is: {}".format(valid_mask))
+		return valid_mask
+
+	def attack_valid(self, state_vector):
+		"""
+		Returns a mask of valid attacks
+		Mask is applied to list of edges
+		"""
+		total_edges = len(self.game.graph.edge_list)
+		valid_mask = np.zeros(total_edges)
+		for edge in range(total_edges-1):
+			t1 = self.game.graph.edge_list[edge][0]
+			t2 = self.game.graph.edge_list[edge][1]
+			if np.sign(state_vector[0][t1]) == np.sign(state_vector[0][t2]):
+				## Invalid edge
+				continue
+			if state_vector[0][t1] > 0:
+				p_terr = t1
+			else:
+				p_terr = t2
+			if state_vector[0][p_terr] > 1:
+				valid_mask[edge] = 1
+
+		valid_mask[-1] = 1 ## Pass action always valid
+		# print("Attack valid mask is {}".format(valid_mask))
+		return valid_mask
+
+	def fortify_valid(self, state_vector):
+		"""
+		Returns a mask of valid fortifications
+		Mask is applied to list of edges
+		"""
+		total_edges = len(self.game.graph.edge_list)
+		valid_mask = np.zeros(total_edges)
+		for edge in range(total_edges-1):
+			t1 = self.game.graph.edge_list[edge][0]
+			t2 = self.game.graph.edge_list[edge][1]
+			arms_1 = state_vector[0][t1]
+			arms_2 = state_vector[0][t2]
+			if (arms_1 < 0) or (arms_2 < 0):
+				## Invalid edge
+				continue
+			if arms_1 + arms_2 > 2:
+				valid_mask[edge] = 1
+
+		valid_mask[-1] = 1 ## Skip action always valid
+		# print("Fortify valid mask is {}".format(valid_mask))
+		return valid_mask
+
+
 
 def parse_arguments():
 	"""
