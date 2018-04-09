@@ -18,7 +18,7 @@ class RiskGraph():
 	The graph is based on the Risk board game
 	KEY ASSUMPTION: The agent will act optimally for a single battle
 	"""
-	def __init__(self, board, verbose):
+	def __init__(self, board, verbose=False):
 		"""
 		This is the constructor for the RiskGraph class
 		The function assumes this file is in the boards folder
@@ -64,10 +64,20 @@ class RiskGraph():
 					new_edge = Edge(self,terr_id, dest_terr_id)
 					if (self.edge_set.add_edge(new_edge, edge_id)):
 						edge_id += 1
+
+		self.edge_list = []
+		for edge in self.edge_set.edge_list:
+			self.edge_list.append([edge.get_node_id_1(), edge.get_node_id_2()])
+			terr1 = edge.get_node_1()
+			terr2 = edge.get_node_2()
+			terr1.add_neighbor_id(terr2.terr_id)
+			terr2.add_neighbor_id(terr1.terr_id)
+		self.edge_list.append([-1])  # Pass action
+
+
 		if verbose:
 			self.edge_set.print_edge_list()
-
-		print ("Graph Initialized")
+			print ("Graph Initialized")
 		return
 		
 
@@ -253,12 +263,26 @@ class Territory():
 		"""
 		self.name = name
 		self.neighbor_names = neighbor_names
+		self.neighbor_id_set = set()
+		self.neighbor_ids = []
 		self.edge_num = edge_num
 		self.terr_id = terr_id
 		
 		# Note - armies of size <= 0 and player_id of <0 will produced errors after initalization
 		self.armies = armies
 		self.player_id = player_id
+
+	def add_neighbor_id(self, terr_id):
+		"""
+		This function adds to the set of neighbor IDS for the territory
+		:param terr_id: Integer
+		:returns: none
+		"""
+		if (self.neighbor_id_set.isdisjoint([terr_id])):
+			self.neighbor_id_set.add(terr_id)
+			self.neighbor_ids.append(terr_id)
+		return
+
 
 	def set_player_id(self, player_id):
 		"""
@@ -288,8 +312,8 @@ class Territory():
 		:return : No return value
 		"""
 		self.armies += num_armies
-		if self.armies > 30:
-			print("More than 30 armies on {}".format(self.name))
+		if self.armies > 12:
+			print("More than 12 armies on {}".format(self.name))
 		return
 
 	def set_armies(self, num_armies):
@@ -300,8 +324,8 @@ class Territory():
 		:return : No return value
 		"""
 		self.armies = num_armies
-		if self.armies > 30:
-			print("More than 30 armies on {}".format(self.name))
+		if self.armies > 12:
+			print("More than 12 armies on {}".format(self.name))
 		return
 
 	def get_armies(self):

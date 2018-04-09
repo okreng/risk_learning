@@ -10,8 +10,8 @@ MIN_ALLOT_ARMIES = 3
 
 class GameStates(Enum):
     ALLOT = 0
-    ATTACK = 0
-    FORTIFY = 0
+    ATTACK = 1
+    FORTIFY = 2
     # ALLOT = auto()
     # ATTACK = auto()
     # FORTIFY = auto()

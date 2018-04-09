@@ -47,7 +47,7 @@ class RiskEnv():
 				new_player.print_player_details()
 
 		self.game.random_start(verbose)
-		self.game.random_start(verbose)
+		# self.game.random_start(verbose)
 
 
 		return
@@ -61,11 +61,10 @@ def parse_arguments():
 	"""
 	parser = argparse.ArgumentParser(description=
 		'Risk Environment Argument Parser')
-	parser.add_argument('-b', dest='board', type=str)
+	parser.add_argument('-b', dest='board', type=str, default='Duel')
 	parser.add_argument('-m', dest='matchup', type=str, default="default")
-	parser.add_argument('--verbose', dest='verbose', action='store_true')
+	parser.add_argument('-v', dest='verbose', action='store_true', default=False)
 	parser.set_defaults(verbose=False)
-
 	return parser.parse_args()
 
 
@@ -80,7 +79,6 @@ def main(args):
 	board = args.board
 	matchup = args.matchup
 	verbose = args.verbose
-	# print(args.verbose)
 
 	environment = RiskEnv(board, matchup, verbose)
 
