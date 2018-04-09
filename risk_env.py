@@ -65,7 +65,7 @@ class RiskEnv():
 		"""
 		if self.verbose:
 			print("Creating player {}: {}".format(player_id, player_name))
-		if player_name == "expert":
+		if player_name == "conservative":
 			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "max_success", "skip_fortify", self.verbose)
 		elif player_name == "random":
 			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "random_allot", "random_attack", "skip_fortify", self.verbose)
@@ -257,7 +257,7 @@ def parse_arguments():
 	"""
 	parser = argparse.ArgumentParser(description=
 		'Risk Environment Argument Parser')
-	parser.add_argument('-b', dest='board', type=str, default='Duel')
+	parser.add_argument('-b', dest='board', type=str, default='Original')
 	parser.add_argument('-m', dest='matchup', type=str, default="default")
 	parser.add_argument('-v', dest='verbose', action='store_true', default=False)
 	parser.add_argument('-p', dest='print_game', action='store_true', default=False)
@@ -285,13 +285,18 @@ def main(args):
 
 
 	#################### For testing randomness ################
-	wins = 0
+	wins_0 = 0
+	wins_1 = 0
 	for i in range(num_games):
-		wins += environment.play_game(0,1,print_game)
+		winner = environment.play_game(0,1,print_game)
+		if winner == 0:
+			wins_0 += 1
+		else:
+			wins_1 += 1
 		if verbose:
 			if i%100 == 0:
 				print("Completed game {}".format(i))
-	print(wins)
+	print("Player 0 won {} games\nPlayer 1 won {} games".format(wins_0, wins_1))
 
 	# states, acts, rewards = environment.play_game(0,1,verbose)
 
