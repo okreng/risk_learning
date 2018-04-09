@@ -189,7 +189,7 @@ class RiskEnv():
 		############### except for losing the unallocated army
 		########## Remove this warning statement once complete
 		if good_mask == False:
-			print("VALIDATION WARNING: All owned territories have > {} armies".format(self.game.graph.MAX_ARMIES))
+			# print("VALIDATION WARNING: All owned territories have {} armies".format(self.game.graph.MAX_ARMIES))
 			valid_mask = np.zeros(len(state_vector[0]))
 			for state in range(len(state_vector[0])):
 				armies = state_vector[0][state]

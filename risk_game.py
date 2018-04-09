@@ -95,8 +95,6 @@ class RiskGame():
         self.action_type = ActionType.ALLOT
         self.winner = -1
 
-
-
         if verbose:
             print("Player {} starts".format(self.player_turn))
 
@@ -263,8 +261,8 @@ class RiskGame():
             return self.game_state(), False
         else:
             if self.unallocated_armies >= 1:
-                self.graph.get_terr_by_id(terr_id).add_armies(1)
-                self.get_player_from_id(self.player_turn).add_armies(1)
+                if(self.graph.get_terr_by_id(terr_id).add_armies(1)):
+                    self.get_player_from_id(self.player_turn).add_armies(1)
                 self.unallocated_armies -= 1
                 if (self.placement_phase):
                     self.advance_turn()
