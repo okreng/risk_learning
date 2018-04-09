@@ -252,7 +252,6 @@ class RiskGame():
         """
         Calculates the number of armies the active player can place
         """
-        # TODO: Add based on actual game logic
         armies_by_territory = np.floor(ARMIES_PER_TERRITORY * self.get_player_from_id(self.player_turn).total_territories)
         if self.graph.board == 'Original':
             armies_by_continent = 0
@@ -262,29 +261,49 @@ class RiskGame():
             for terr in self.board_state():
                 player_control.append(terr[0])
 
-            print("Player control is as follows: {}".format(player_control))
+            ############# Print for debugging ################
+            # print("Player control is as follows: {}".format(player_control))
 
             ############ ASIA  ######################
-
-
+            asia = [26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 40, 41]
+            c_asia = self.controls_continent(p, player_control, asia)
             ############ EUROPE #####################
-
-
+            europe = [13, 14, 15, 17, 18, 19, 25]
+            c_europe = self.controls_continent(p, player_control, europe)
             ############ NORTH AMERICA ##############
-
-
+            north_america = [0, 1, 2, 3, 4, 8, 9, 11, 12]
+            c_north_america = self.controls_continent(p, player_control, north_america)
             ############ AFRICA ####################
-
-
+            africa = [16, 20, 21, 22, 23, 24]
+            c_africa = self.controls_continent(p, player_control, africa)
             ############ SOUTH AMERICA ##############
-
-
+            south_america = [5, 6, 7, 10]
+            c_south_america = self.controls_continent(p, player_control, south_america)
             ############ AUSTRALIA #################
+            australia = [36, 37, 38, 39]
+            c_australia = self.controls_continent(p, player_control, australia)
+
+            armies_by_continent = c_asia*7+c_europe*5+c_north_america*5+c_africa*3+c_south_america*2+c_australia*2
+
+            ############ For debugging #################
+            # continent_string = ("Asia, " if c_asia else "") + ("Europe, " if c_europe else "") + ("North America, " if c_north_america else "") \
+            #     + ("Africa, " if c_africa else "") + ("South America, " if c_south_america else "") + ("Australia" if c_australia else "")
+            # print("\nPlayer owns: \n{}\nThey have {} armies to allocate for those\n".format(continent_string, armies_by_continent))
 
             self.unallocated_armies = max(MIN_ARMIES_PER_TURN, armies_by_territory + armies_by_continent)
 
         else:
             self.unallocated_armies = max(MIN_ARMIES_PER_TURN, armies_by_territory)
+
+    def controls_continent(self, player_id, player_control, continent_list):
+        """
+        returns 1 if continent is fully controlled by player
+        returns 0 otherwise
+        """
+        for terr in continent_list:
+            if player_id != player_control[terr]:
+                return 0
+        return 1
 
     def allot(self, terr_id):
         """
