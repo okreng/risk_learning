@@ -1,1 +1,1 @@
-agent, greed
+agent, expert

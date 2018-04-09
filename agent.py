@@ -3,7 +3,7 @@ This file contains the agent object for holding multiple q functions
 """
 
 # import all existing policies
-from q_funcs.allot import random_allot
+from q_funcs.allot import random_allot, amass
 from q_funcs.attack import linear_attack_net, max_success
 from q_funcs.fortify import random_fortify
 
@@ -29,6 +29,8 @@ class Agent():
 
         if allot_q_func is "random_allot":
             self.allot_q_func = random_allot.RandomAllot(self.territories, self.act_list)
+        elif allot_q_func is "amass":
+            self.allot_q_func = amass.Amass(self.territories, self.act_list)
         else:
             print("No valid allot Q function specified")
             exit()
@@ -37,7 +39,7 @@ class Agent():
             self.attack_q_func = max_success.MaxSuccess(self.territories, self.act_list)
         elif attack_q_func is "linear_attack_net":
             # TODO pass in arguments to this function
-            self.attack_q_func = linear_attack_net.LinearAttackNet(self.territories, self.act_list, '0-56', 15)
+            self.attack_q_func = linear_attack_net.LinearAttackNet(self.territories, self.act_list, '0')
         else:
             print("No valid attack Q function specified")
             exit()

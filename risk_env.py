@@ -8,6 +8,7 @@ import argparse
 # from OLD import risk_game as gm
 import risk_game as gm
 import numpy as np
+import agent
 
 
 class RiskEnv():
@@ -48,6 +49,33 @@ class RiskEnv():
 			if verbose:
 				new_player.print_player_details()
 
+		print(self.player_names)
+
+		self.agent_list = {}  # Maps agent id to agent object
+		ag_id = 0
+		for player_name in self.player_names:
+			print(player_name)
+			self.agent_list[ag_id] = self.player_name_to_agent(player_name, ag_id)
+			ag_id += 1
+
+	def player_name_to_agent(self, player_name, player_id):
+		"""
+		Create an agent based on a pre-specified player name
+		return:
+		Whether the agent was created successfully
+		"""
+		if player_name == "expert":
+			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "max_success", "random_fortify")
+		elif player_name == "random":
+			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "random_allot", "random_attack", "random_fortify")
+		elif player_name == "agent":
+			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "linear_attack_net", "random_fortify")
+
+		print("Player name not recognized")
+		return None
+
+
+
 	def play_game(self, player_id_list, player_action_list, verbose=False):
 		"""
 		Generates a state vector for each player in player_id_list for what they saw in each action type
@@ -65,11 +93,11 @@ class RiskEnv():
 			# TODO: Implement actual actions based off state
 			action = np.random.randint(0,2)
 			# print(action)
-			print("Player {} trying action {} for action type {}".format(player_turn, action, action_type))
+			# print("Player {} trying action {} for action type {}".format(player_turn, action, action_type))
 			# raw_state, player_turn, action_type, u_armies, r_edge, winner, valid = self.game.act(action, player_turn, action_type)
 			game_state, valid = self.game.act(action, player_turn, action_type)
 			raw_state, player_turn, action_type, u_armies, r_edge, winner = self.unpack_game_state(game_state)
-			print("{}, player:{}, {}, winner:{}".format(raw_state, player_turn, action_type, winner))
+			# print("{}, player:{}, {}, winner:{}".format(raw_state, player_turn, action_type, winner))
 
 
 			# raw_state, player_turn, action_type, u_armies, r_edge, winner
@@ -98,6 +126,8 @@ class RiskEnv():
 			else:
 				state[territory] = -raw_state[territory][1]
 		return state
+
+
 
 
 
@@ -133,10 +163,10 @@ def main(args):
 
 
 	#################### For testing randomness ################
-	wins = 0
-	for i in range(1000):
-		wins += environment.play_game(0,1,verbose)
-	print(wins)
+	# wins = 0
+	# for i in range(1000):
+	# 	wins += environment.play_game(0,1,verbose)
+	# print(wins)
 
 	# states, acts, rewards = environment.play_game(0,1,verbose)
 
