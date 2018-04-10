@@ -162,7 +162,7 @@ class RiskEnv():
 		if verbose:
 			print("Player {} wins".format(winner))
 
-		return winner, g_states, g_actions, g_rewards
+		return winner, g_states, g_actions, g_rewards, num_turns
 
 	def unpack_game_state(self, game_state):
 		"""
@@ -346,17 +346,18 @@ def main(args):
 
 	player_0_action_list = [[int(ActionType.ATTACK)]]
 
-	imitation_states = []
-	imitation_actions = []
+	imitation_states = np.empty((0, environment.game.graph.total_territories))
+	imitation_actions = np.empty((0, len(environment.game.graph.edge_list)))
 
 	record = np.zeros(num_players)
 	for i in range(num_games):
-		winner, states, actions, rewards = environment.play_game(all_player_list, all_players_attack_action, print_game)
+		winner, states, actions, rewards, num_turns = environment.play_game(all_player_list, all_players_attack_action, print_game)
 		
+		print(num_turns)
 		##################### Specific to attack action ####################
 		################## NOTE: Cast to np.array upon return ##################
-		imitation_states.append(np.array(states[winner][int(ActionType.ATTACK)]))
-		imitation_actions.append(np.array(actions[winner][int(ActionType.ATTACK)]))
+		imitation_states = np.concatenate([imitation_states, np.array(states[winner][int(ActionType.ATTACK)])])
+		imitation_actions = np.concatenate([imitation_actions, np.array(actions[winner][int(ActionType.ATTACK)])])
 
 		for player in range(len(record)):
 			if player == winner:
