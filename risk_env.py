@@ -377,42 +377,19 @@ class RiskEnv():
 
 
 
-def parse_arguments():
+def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=10, num_epochs=1000):
 	"""
-	This function helps main read command line arguments
-	:params : none
-	:return Parser: parser object containing arguments passed from command line
+	Plays num_games games between the specified matchup
+	If train is specified, uses these games to train a model
+	The model is not an argument, it is specified below
+	:param board: the .risk file in the boards folder to import
+	:param matchup: the .matchup file in the matchups folder to import, determines which players are being used
+	:param verbose: whether to print, recommended
+	:param print_game: prints every action for the games, used for debugging
+	:param num_games: number of games to run
+	:param epochs: number of epochs to train for
+	:return: nothing
 	"""
-	parser = argparse.ArgumentParser(description=
-		'Risk Environment Argument Parser')
-	parser.add_argument('-b', dest='board', type=str, default='Original')
-	parser.add_argument('-m', dest='matchup', type=str, default="default")
-	parser.add_argument('-v', dest='verbose', action='store_true', default=False)
-	parser.add_argument('-p', dest='print_game', action='store_true', default=False)
-	parser.add_argument('-t', dest='train', action='store_true', default=False)
-	parser.add_argument('--num-games', dest='num_games', default=1)
-	parser.add_argument('--num-epochs', dest='num_epochs', default=100)
-	parser.set_defaults(verbose=False)
-	parser.set_defaults(print_game=False)
-	parser.set_defaults(train=False)
-	return parser.parse_args()
-
-
-def main(args):
-	"""
-	This function initializes a game inside an environment and uses is to train an agent
-	:param args: Command line arguments
-	:return : this function does not return
-	"""
-
-	args = parse_arguments()
-	board = args.board
-	matchup = args.matchup
-	verbose = args.verbose
-	print_game = args.print_game
-	num_games = int(args.num_games)
-	num_epochs = int(args.num_epochs)
-	train = args.train
 
 	environment = RiskEnv(board, matchup, verbose)
 	num_players = environment.game.num_players
@@ -519,6 +496,54 @@ def main(args):
 
 		plt.show()
 		# states, acts, rewards = environment.play_game(0,1,verbose)
+
+	return
+
+# def generate_episode(player_list, player_action_list, train=False, print_game=False)
+
+
+
+
+def parse_arguments():
+	"""
+	This function helps main read command line arguments
+	:params : none
+	:return Parser: parser object containing arguments passed from command line
+	"""
+	parser = argparse.ArgumentParser(description=
+		'Risk Environment Argument Parser')
+	parser.add_argument('-b', dest='board', type=str, default='Original')
+	parser.add_argument('-m', dest='matchup', type=str, default="default")
+	parser.add_argument('-v', dest='verbose', action='store_true', default=False)
+	parser.add_argument('-p', dest='print_game', action='store_true', default=False)
+	parser.add_argument('-t', dest='train', action='store_true', default=False)
+	parser.add_argument('--num-games', dest='num_games', default=1)
+	parser.add_argument('--num-epochs', dest='num_epochs', default=100)
+	parser.set_defaults(verbose=False)
+	parser.set_defaults(print_game=False)
+	parser.set_defaults(train=False)
+	return parser.parse_args()
+
+
+
+def main(args):
+	"""
+	This function initializes a game inside an environment and uses is to train an agent
+	:param args: Command line arguments
+	:return : this function does not return
+	"""
+
+	args = parse_arguments()
+	board = args.board
+	matchup = args.matchup
+	verbose = args.verbose
+	print_game = args.print_game
+	train = args.train
+	num_games = int(args.num_games)
+	num_epochs = int(args.num_epochs)
+
+	imitation_learn(board, matchup, verbose, print_game, train, num_games, num_epochs)
+
 
 import signal
 def signal_handler(signal, frame):
