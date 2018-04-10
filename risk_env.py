@@ -377,7 +377,7 @@ class RiskEnv():
 
 
 
-def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=100, num_epochs=50000):
+def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=100, num_epochs=100000):
 	"""
 	Plays num_games games between the specified matchup
 	If train is specified, uses these games to train a model
@@ -391,8 +391,9 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 	:return: nothing
 	"""
 
-	USEFUL_LIFE = 500
+	USEFUL_LIFE = 1000
 	VALIDATION_GAMES = 10
+	MODEL_INSTANCE = '0-19'
 
 	environment = RiskEnv(board, matchup, verbose)
 
@@ -404,7 +405,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 
 		################# This can be modified ####################
 		from q_funcs.attack import three_layer_attack_net
-		training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, '0', -1, 0.0001)
+		training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, 0, 0.001)
 		##########################################################
 
 		num_players = environment.game.num_players
@@ -420,6 +421,9 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 
 			################### GENERATE TRAINING SET #####################
 			if (epoch%USEFUL_LIFE) == 0: 
+				if verbose:
+					print("Generating {} new episodes".format(num_games), end='')
+					print("Complete, training for {} epochs".format(USEFUL_LIFE))
 				_, t_states, t_actions, t_rewards, t_masks, _ = generate_winners_episodes(environment, num_games, all_player_list, all_players_attack_action, train=True)
 
 			batch = np.random.permutation(num_games)
@@ -448,7 +452,8 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 					print("Validation loss: {}".format(loss_mean))
 
 		training_policy.close()
-
+		save_path = './plots/' + MODEL_INSTANCE + '-training'
+		plt.savefig(save_path)
 		plt.show()
 		# states, acts, rewards = environment.play_game(0,1,verbose)
 
@@ -569,7 +574,7 @@ def main(args):
 
 import signal
 def signal_handler(signal, frame):
-    print('Displaying training on exit:')
+    print('WARNING: PLOT NOT SAVED, SCREENSHOT TO KEEP')
     plt.show()
     sys.exit(0)
 
