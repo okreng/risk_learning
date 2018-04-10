@@ -15,7 +15,8 @@ import utils
 import matplotlib
 import matplotlib.pyplot as plt
 
-
+TRAIN_EPSILON = 0
+TEST_EPSILON = 0.2
 TIMEOUT_STATES = 10000
 
 
@@ -79,13 +80,16 @@ class RiskEnv():
 			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "three_layer_attack_net", "skip_fortify", self.verbose)
 		if player_name == "aggressive":
 			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "army_difference", "skip_fortify", self.verbose)
+		if player_name == "im_learner_1":
+			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "three_layer_attack_net", "skip_fortify", self.verbose)
+
 
 		print("Player name not recognized")
 		return None
 
 
 
-	def play_game(self, player_id_list, player_action_list, verbose=False):
+	def play_game(self, player_id_list, player_action_list, train, verbose=False):
 		"""
 		Generates a state vector for each player in player_id_list for what they saw in each action type
 		:param player_id_list: the ids of the players to generate state vectors for
@@ -94,54 +98,55 @@ class RiskEnv():
 		:return actions: list of lists of numpy arrays, actions taken in those states
 		:return rewards: list of lists of numpy arrays, the rewards earned by those actions
 		"""
+		if train:
+			g_states = {}  # maps player_id to states seen by that player
+			g_actions = {}  # maps player_id to actions taken by that player
+			g_rewards = {}  # maps player_id to rewards earned by action
+			g_masks = {}  # maps player_id to valid masks in states
+
+			#### Only used by array implementation
+			# g_steps = {}
+			num_recorded_players = 0
+			for player in range(max(player_id_list)+1):
+				if player in player_id_list:
+					
+					player_states = {}  # maps action_type to states seen by that player, action
+					player_actions = {}  # maps action_type to actions taken by that player_action
+					player_rewards = {}  # maps action_type to rewards earned by that player_action
+					player_masks = {}  # maps action_type to masks for that player, action
+					player_steps = {}
+					
+					g_states[player] = player_states
+					g_actions[player] = player_actions
+					g_rewards[player] = player_rewards
+					g_masks[player] = player_masks
+
+					# g_steps[player] = player_steps
+					
+					for action_type in range(max(player_action_list[num_recorded_players])+1):
+						if action_type in player_action_list[num_recorded_players]:
+							############ NOTE: Large lists dramatically slow down python, using arrays with resizing instead
+							# player_action_states = np.zeros((TIMEOUT_STATES, self.game.graph.total_territories))
+							# player_action_actions = np.zeros((TIMEOUT_STATES, len(self.game.graph.edge_list)))
+							# player_action_rewards = np.zeros((TIMEOUT_STATES, 1))
+
+							################### TOO SLOW TO CONVERT BETWEEN ARRAYS AND LISTS ################
+							player_action_states = []
+							player_action_actions = []
+							player_action_rewards = []
+							player_action_masks = []
+							# player_action_steps = 0
+
+							############## New code #################
+							g_states[player][action_type] = player_action_states
+							g_actions[player][action_type] = player_action_actions
+							g_rewards[player][action_type] = player_action_rewards
+							g_masks[player][action_type] = player_action_masks
+
+							# g_steps[player][action_type] = player_action_steps
+					num_recorded_players += 1
 
 		num_states = 0
-		g_states = {}  # maps player_id to states seen by that player
-		g_actions = {}  # maps player_id to actions taken by that player
-		g_rewards = {}  # maps player_id to rewards earned by action
-		g_masks = {}  # maps player_id to valid masks in states
-
-		#### Only used by array implementation
-		# g_steps = {}
-		num_recorded_players = 0
-		for player in range(max(player_id_list)+1):
-			if player in player_id_list:
-				
-				player_states = {}  # maps action_type to states seen by that player, action
-				player_actions = {}  # maps action_type to actions taken by that player_action
-				player_rewards = {}  # maps action_type to rewards earned by that player_action
-				player_masks = {}  # maps action_type to masks for that player, action
-				player_steps = {}
-				
-				g_states[player] = player_states
-				g_actions[player] = player_actions
-				g_rewards[player] = player_rewards
-				g_masks[player] = player_masks
-
-				# g_steps[player] = player_steps
-				
-				for action_type in range(max(player_action_list[num_recorded_players])+1):
-					if action_type in player_action_list[num_recorded_players]:
-						############ NOTE: Large lists dramatically slow down python, using arrays with resizing instead
-						# player_action_states = np.zeros((TIMEOUT_STATES, self.game.graph.total_territories))
-						# player_action_actions = np.zeros((TIMEOUT_STATES, len(self.game.graph.edge_list)))
-						# player_action_rewards = np.zeros((TIMEOUT_STATES, 1))
-
-						################### TOO SLOW TO CONVERT BETWEEN ARRAYS AND LISTS ################
-						player_action_states = []
-						player_action_actions = []
-						player_action_rewards = []
-						player_action_masks = []
-						# player_action_steps = 0
-
-						############## New code #################
-						g_states[player][action_type] = player_action_states
-						g_actions[player][action_type] = player_action_actions
-						g_rewards[player][action_type] = player_action_rewards
-						g_masks[player][action_type] = player_action_masks
-
-						# g_steps[player][action_type] = player_action_steps
-				num_recorded_players += 1
 
 		game_state, valid = self.game.random_start(verbose)
 		raw_state, new_player_turn, new_action_type, u_armies, r_edge, winner = self.unpack_game_state(game_state)
@@ -149,16 +154,17 @@ class RiskEnv():
 		while (winner == -1):
 			if valid:
 				num_states += 1
-				if num_states > TIMEOUT_STATES:
-					print("Game exceeded timeout states: {}".format(TIMEOUT_STATES))
-					return None, None, None, None, None, False
+				if train:
+					if num_states > TIMEOUT_STATES:
+						print("Game exceeded timeout states: {}".format(TIMEOUT_STATES))
+						return None, None, None, None, None, None, False
 			old_action_type = new_action_type
 			old_player_turn = new_player_turn
 			state = self.translate_2_state(raw_state, old_player_turn)
-			action, valid_mask = self.game_state_2_action(state, old_player_turn, old_action_type)
+			action, valid_mask = self.game_state_2_action(state, old_player_turn, old_action_type, train)
 
 			if verbose:
-				print("Player {} performs {} for action type {}".format(old_player_turn, action, action_type))
+				print("Player {} performs {} for action type {}".format(old_player_turn, action, old_action_type))
 			game_state, valid = self.game.act(action, old_player_turn, old_action_type)
 			raw_state, new_player_turn, new_action_type, u_armies, r_edge, winner = self.unpack_game_state(game_state)
 
@@ -168,7 +174,7 @@ class RiskEnv():
 			# 	print(valid_mask)
 
 
-			if valid and (old_player_turn in player_id_list):
+			if train and valid and (old_player_turn in player_id_list):
 				if (int(old_action_type) in player_action_list[player_id_list.index(old_player_turn)]):  ## Non-valid states are exactly what was passed
 
 					############ TODO: Save for troubleshooting
@@ -223,7 +229,10 @@ class RiskEnv():
 		if verbose:
 			print("Player {} wins".format(winner))
 
-		return winner, g_states, g_actions, g_rewards, g_masks, num_states, True
+		if train:
+			return winner, g_states, g_actions, g_rewards, g_masks, num_states, True
+		else:
+			return winner, None, None, None, None, num_states, True
 
 	def unpack_game_state(self, game_state):
 		"""
@@ -249,7 +258,7 @@ class RiskEnv():
 				state[territory] = -raw_state[territory][1]
 		return state
 
-	def game_state_2_action(self, state, player_id, action_type):
+	def game_state_2_action(self, state, player_id, action_type, train):
 		"""
 		Returns an action based on the agent corresponding to player_id and action type
 		"""
@@ -267,8 +276,12 @@ class RiskEnv():
 		elif action_type == ActionType.ATTACK:
 			q = agent.attack_q_func.call_Q(state)
 			valid_mask = self.attack_valid(state)
-			q_valid = utils.validate_q_func_for_argmax(q, valid_mask)
-			action = np.argmax(q_valid)
+			# q_valid = utils.validate_q_func_for_argmax(q, valid_mask)
+			# action = np.argmax(q_valid)
+			if train:
+				action = utils.epsilon_greedy_valid(q, valid_mask, TRAIN_EPSILON)
+			else:
+				action = utils.epsilon_greedy_valid(q, valid_mask, TEST_EPSILON)
 		elif action_type == ActionType.REINFORCE:
 			q = agent.reinforce_q_func.call_Q(state)
 			action = q
@@ -376,10 +389,12 @@ def parse_arguments():
 	parser.add_argument('-m', dest='matchup', type=str, default="default")
 	parser.add_argument('-v', dest='verbose', action='store_true', default=False)
 	parser.add_argument('-p', dest='print_game', action='store_true', default=False)
+	parser.add_argument('-t', dest='train', action='store_true', default=False)
 	parser.add_argument('--num-games', dest='num_games', default=1)
 	parser.add_argument('--num-epochs', dest='num_epochs', default=100)
 	parser.set_defaults(verbose=False)
 	parser.set_defaults(print_game=False)
+	parser.set_defaults(train=False)
 	return parser.parse_args()
 
 
@@ -397,6 +412,7 @@ def main(args):
 	print_game = args.print_game
 	num_games = int(args.num_games)
 	num_epochs = int(args.num_epochs)
+	train = args.train
 
 	environment = RiskEnv(board, matchup, verbose)
 	num_players = environment.game.num_players
@@ -425,7 +441,7 @@ def main(args):
 	for i in range(num_games):
 		timeout = False
 		while not timeout:
-			winner, states, actions, rewards, masks, num_turns, timeout = environment.play_game(all_player_list, all_players_attack_action, print_game)
+			winner, states, actions, rewards, masks, num_turns, timeout = environment.play_game(all_player_list, all_players_attack_action, train, print_game)
 		
 		##################### Specific to attack action ####################
 		################## NOTE: Cast to np.array upon return ##################
@@ -443,9 +459,10 @@ def main(args):
 		# print(actions[winner][int(ActionType.ATTACK)])
 
 		################# IN USE #################
-		imitation_states.append(np.array(states[winner][int(ActionType.ATTACK)]))
-		imitation_actions.append(np.array(actions[winner][int(ActionType.ATTACK)]))
-		imitation_masks.append(np.array(masks[winner][int(ActionType.ATTACK)]))
+		if train:
+			imitation_states.append(np.array(states[winner][int(ActionType.ATTACK)]))
+			imitation_actions.append(np.array(actions[winner][int(ActionType.ATTACK)]))
+			imitation_masks.append(np.array(masks[winner][int(ActionType.ATTACK)]))
 
 
 		############### FORMER METHOD ###########
@@ -457,7 +474,7 @@ def main(args):
 			if player == winner:
 				record[player] +=1
 		if verbose:
-			if i%100 == 0:
+			if i%(num_games/10) == 0:
 				print("Completed game {}".format(i))
 	for player in range(len(record)):
 		print("Player {} won {} games".format(player, record[player]))
@@ -467,41 +484,41 @@ def main(args):
 	# print(type(imitation_actions))
 	# print(type(np.array(imitation_states)))
 	# print(type(np.array(imitation_actions)))
+	if train:
+		from q_funcs.attack import three_layer_attack_net
+		training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, '0', -1, 0.0001)
+		# print("Initialized three layer policy")
 
-	from q_funcs.attack import three_layer_attack_net
-	training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, '0', -1, 0.0001)
-	# print("Initialized three layer policy")
+		# print(imitation_states.shape)
+		# print(imitation_actions.shape)
 
-	# print(imitation_states.shape)
-	# print(imitation_actions.shape)
-
-	loss_std = []
-	loss_mean = []
-	for epoch in range(num_epochs):
-		epoch_loss = []
-		num_batches = len(imitation_states)
-		batch = np.random.permutation(num_batches)
-		for index in range(num_batches):
-			batch_state = imitation_states[batch[index]]
-			batch_action = imitation_actions[batch[index]]
-			batch_mask = imitation_masks[batch[index]]
-			epoch_loss.append(np.mean(training_policy.batch_train(batch_state, batch_action, batch_mask)))
-		# loss.append(training_policy.batch_train(imitation_states, imitation_actions, imitation_masks))
-		loss_mean.append(np.mean(epoch_loss))
-		loss_std.append(np.std(epoch_loss))
-		if epoch%(num_epochs/100) == 0:
-			print("Completed epoch {}".format(epoch))
-			plt.errorbar(epoch, loss_mean[epoch], yerr=loss_std[epoch], fmt='--o')
-			plt.title("Mean loss over training")
-			plt.xlabel('Training epochs')
-			plt.ylabel('Mean loss every {} epochs'.format(num_epochs/100))
-			plt.draw()
+		loss_std = []
+		loss_mean = []
+		for epoch in range(num_epochs):
+			epoch_loss = []
+			num_batches = len(imitation_states)
+			batch = np.random.permutation(num_batches)
+			for index in range(num_batches):
+				batch_state = imitation_states[batch[index]]
+				batch_action = imitation_actions[batch[index]]
+				batch_mask = imitation_masks[batch[index]]
+				epoch_loss.append(np.mean(training_policy.batch_train(batch_state, batch_action, batch_mask)))
+			# loss.append(training_policy.batch_train(imitation_states, imitation_actions, imitation_masks))
+			loss_mean.append(np.mean(epoch_loss))
+			loss_std.append(np.std(epoch_loss))
+			if epoch%(num_epochs/100) == 0:
+				print("Completed epoch {}".format(epoch))
+				plt.errorbar(epoch, loss_mean[epoch], yerr=loss_std[epoch], fmt='--o')
+				plt.title("Mean loss over training")
+				plt.xlabel('Training epochs')
+				plt.ylabel('Mean loss every {} epochs'.format(num_epochs/100))
+				plt.draw()
 
 
-	training_policy.close()
+		training_policy.close()
 
-	plt.show()
-	# states, acts, rewards = environment.play_game(0,1,verbose)
+		plt.show()
+		# states, acts, rewards = environment.play_game(0,1,verbose)
 
 import signal
 def signal_handler(signal, frame):
