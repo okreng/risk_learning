@@ -377,7 +377,7 @@ class RiskEnv():
 
 
 
-def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=100, num_epochs=10000):
+def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=100, num_epochs=50000):
 	"""
 	Plays num_games games between the specified matchup
 	If train is specified, uses these games to train a model
@@ -391,13 +391,22 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 	:return: nothing
 	"""
 
+	USEFUL_LIFE = 500
+	VALIDATION_GAMES = 10
+
 	environment = RiskEnv(board, matchup, verbose)
 
 
 	if train == False:
-		record, _, _, _, _, _ = generate_winners_episodes(environment, num_games, verbose=verbose, print_game=print_game)
+		generate_winners_episodes(environment, num_games, verbose=verbose, print_game=print_game)
 
 	if train:
+
+		################# This can be modified ####################
+		from q_funcs.attack import three_layer_attack_net
+		training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, '0', -1, 0.0001)
+		##########################################################
+
 		num_players = environment.game.num_players
 
 		all_player_list = range(num_players)
@@ -409,38 +418,34 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 		epoch = 0
 		while epoch < num_epochs:
 
-			record, states, actions, rewards, masks, num_states = generate_winners_episodes(environment, num_games, all_player_list, all_players_attack_action, verbose=verbose, print_game=print_game)
+			################### GENERATE TRAINING SET #####################
+			if (epoch%USEFUL_LIFE) == 0: 
+				_, t_states, t_actions, t_rewards, t_masks, _ = generate_winners_episodes(environment, num_games, all_player_list, all_players_attack_action, train=True)
 
+			batch = np.random.permutation(num_games)
+			for index in range(num_games):
+				batch_state = t_states[batch[index]]
+				batch_action = t_actions[batch[index]]
+				batch_mask = t_masks[batch[index]]
+				training_policy.batch_train(batch_state, batch_action, batch_mask)
 
-		from q_funcs.attack import three_layer_attack_net
-		training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, '0-19', 0, 0.0001)
-		# print("Initialized three layer policy")
-
-		# print(imitation_states.shape)
-		# print(imitation_actions.shape)
-
-		loss_std = []
-		loss_mean = []
-		for epoch in range(num_epochs):
-			epoch_loss = []
-			num_batches = len(imitation_states)
-			batch = np.random.permutation(num_batches)
-			for index in range(num_batches):
-				batch_state = imitation_states[batch[index]]
-				batch_action = imitation_actions[batch[index]]
-				batch_mask = imitation_masks[batch[index]]
-				epoch_loss.append(np.mean(training_policy.batch_train(batch_state, batch_action, batch_mask)))
-			# loss.append(training_policy.batch_train(imitation_states, imitation_actions, imitation_masks))
-			loss_mean.append(np.mean(epoch_loss))
-			loss_std.append(np.std(epoch_loss))
-			if epoch%(num_epochs/100) == 0:
-				print("Completed epoch {}".format(epoch))
-				plt.errorbar(epoch, loss_mean[epoch], yerr=loss_std[epoch], fmt='--o')
-				plt.title("Mean loss over training")
+			epoch += 1
+			################### GENERATE VALIDATION SET #################
+			if (epoch%USEFUL_LIFE) == 0:
+				_, v_states, v_actions, v_rewards, v_masks, _ = generate_winners_episodes(environment, VALIDATION_GAMES, all_player_list, all_players_attack_action, train=True)
+				v_loss = []
+				for index in range(VALIDATION_GAMES):
+					v_loss.append(np.mean(training_policy.batch_train(v_states[index], v_actions[index], v_masks[index], update=False)))
+				loss_mean = np.mean(v_loss)
+				loss_std = np.std(v_loss)
+				plt.errorbar(epoch, loss_mean, yerr=loss_std, fmt='--o')
+				plt.title("Validation Loss")
 				plt.xlabel('Training epochs')
-				plt.ylabel('Mean loss every {} epochs'.format(num_epochs/100))
+				plt.ylabel('Mean loss over {} games'.format(VALIDATION_GAMES))
 				plt.draw()
-
+				if (verbose):
+					print("Completed epoch {}".format(epoch))
+					print("Validation loss: {}".format(loss_mean))
 
 		training_policy.close()
 
@@ -516,7 +521,7 @@ def generate_winners_episodes(env, num_games, player_list=None, player_action_li
 			print("Player {} won {} games".format(player, record[player]))
 
 	if train:
-		return record, states, actions, rewards, masks, num_states
+		return record, imitation_states, imitation_actions, rewards, imitation_masks, num_states
 	else:
 		return record, None, None, None, None, None
 
@@ -530,7 +535,7 @@ def parse_arguments():
 	parser = argparse.ArgumentParser(description=
 		'Risk Environment Argument Parser')
 	parser.add_argument('-b', dest='board', type=str, default='Original')
-	parser.add_argument('-m', dest='matchup', type=str, default="default")
+	parser.add_argument('-m', dest='matchup', type=str, default="balance_7")
 	parser.add_argument('-v', dest='verbose', action='store_true', default=False)
 	parser.add_argument('-p', dest='print_game', action='store_true', default=False)
 	parser.add_argument('-t', dest='train', action='store_true', default=False)

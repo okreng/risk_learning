@@ -248,7 +248,7 @@ class ThreeLayerAttackNet():
 ################### Determine how best to return q function ##########
 			return q_function[0][0], loss
 
-	def batch_train(self, state_vector, action_vector, mask, batch_size=32, loss_weights=None):
+	def batch_train(self, state_vector, action_vector, mask, update=True, batch_size=32, loss_weights=None):
 		"""
 		Function to perform batch gradient descent on an input tensor
 		"""
@@ -256,11 +256,14 @@ class ThreeLayerAttackNet():
 		# action_batches = tf.train.batch(action_vector, batch_size)
 
 		# for batch in range(len(state_batches)):
-		_, loss = self.sess.run([self.train_op, self.loss], feed_dict={self.features:state_vector, self.labels:action_vector, self.loss_weights:mask})
-		self.num_updates += 1
-		if self.num_updates == self.next_save:
-			self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
-			self.next_save += np.ceil(np.sqrt(self.num_updates))
+		if update:
+			_, loss = self.sess.run([self.train_op, self.loss], feed_dict={self.features:state_vector, self.labels:action_vector, self.loss_weights:mask})
+			self.num_updates += 1
+			if self.num_updates == self.next_save:
+				self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+				self.next_save += np.ceil(np.sqrt(self.num_updates))
+		else:
+			loss = self.sess.run([self.loss], feed_dict={self.features:state_vector, self.labels:action_vector, self.loss_weights:mask})
 			
 		# self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 
