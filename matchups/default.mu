@@ -1,1 +1,1 @@
-agent, greed
+conservative, aggressive

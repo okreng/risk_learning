@@ -5,7 +5,8 @@ This file defines the environment in which an agent can play the Risk game
 
 import sys
 import argparse
-from OLD import risk_game as gm
+# from OLD import risk_game as gm
+import risk_game as gm
 
 
 class RiskEnv():
@@ -62,7 +63,9 @@ def parse_arguments():
 		'Risk Environment Argument Parser')
 	parser.add_argument('-b', dest='board', type=str)
 	parser.add_argument('-m', dest='matchup', type=str, default="default")
-	parser.add_argument('-v', dest='verbose', type=bool, default=False)
+	parser.add_argument('--verbose', dest='verbose', action='store_true')
+	parser.set_defaults(verbose=False)
+
 	return parser.parse_args()
 
 
@@ -77,6 +80,7 @@ def main(args):
 	board = args.board
 	matchup = args.matchup
 	verbose = args.verbose
+	# print(args.verbose)
 
 	environment = RiskEnv(board, matchup, verbose)
 

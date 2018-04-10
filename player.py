@@ -30,7 +30,7 @@ class Player(ABC):
         return
 
     @abstractmethod
-    def get_allotments(self, valid, graph):
+    def get_allotment(self, valid, graph):
         """ Should return tuple of (territory, num_to_allot)
             :param valid: Valid choices
             :param graph: board

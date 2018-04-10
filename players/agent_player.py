@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 
 
 class AgentPlayer(Player, ABC):
+
     @abstractmethod
     def get_attacks(self, valid, graph):
         return

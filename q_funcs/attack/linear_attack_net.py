@@ -149,6 +149,7 @@ class LinearAttackNet():
 						self.exact_load = False
 			else:
 				print("Failed to load model from {}: random initialization within folder".format(self.restore_folder))
+				self.num_updates = 0
 				self.exact_load = False  
 			
 			# Print if loading trained weights

@@ -4,7 +4,8 @@ This file provides the environment for a player to interact with the Risk game b
 """
 
 import numpy as np
-from OLD import risk_graph as rg
+# from OLD import risk_graph as rg
+import risk_graph as rg
 
 
 class RiskGame():

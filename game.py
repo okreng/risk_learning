@@ -2,13 +2,19 @@ from board import Board, Territory
 from players.manual_player import ManualPlayer
 import math
 from random import shuffle, randint
-from enum import Enum, auto
+from enum import Enum  #, auto NOT SUPPORTED FOR PYTHON 3.5
+import numpy as np
 
+ARMIES_PER_TERRITORY = 0.3333333
+MIN_ALLOT_ARMIES = 3
 
 class GameStates(Enum):
-    ALLOT = auto()
-    ATTACK = auto()
-    FORTIFY = auto()
+    ALLOT = 0
+    ATTACK = 1
+    FORTIFY = 2
+    # ALLOT = auto()
+    # ATTACK = auto()
+    # FORTIFY = auto()
 
 
 class Game:
@@ -51,11 +57,17 @@ class Game:
         :param Player player:
         :return:
         """
-        valid_allotments = [(territory, player.unallocated_armies)
-                            for territory in self.board.get_player_territories(player)]
-        allotments = player.get_allotments(valid_allotments, self.board.graph)
-        for territory, num_armies in allotments:
-            territory.add_armies(num_armies)
+        # valid_allotments = [(territory, player.unallocated_armies) 
+        #                     for territory in self.board.get_player_territories(player)]
+        player_terrs = [territory.u_id for territory in self.board.get_player_territories(player)]
+        # allotments = player.get_allotments(valid_allotments, self.board.graph)
+        valid_allotments = np.zeros(self.board.num_territories)
+        valid_allotments[player_terrs] = 1
+        allotment = player.get_allotment(valid_allotments, self.board)
+        territory = self.board.territories_by_id[allotment]
+        territory.add_armies(1)
+        # for territory, num_armies in allotments:
+        # territory.add_armies(num_armies)
 
     def __attack(self, player):
         """
@@ -121,6 +133,16 @@ class Game:
         state = self.board.graph
         return state
 
+    def turn_start_armies(self, player):
+        """
+        Returns the number of armies a player has to allot
+        args:
+        player : the player whose turn is starting
+        # TODO: add armies based on continent
+        """
+        territories = self.board.get_player_territories(player)
+        return max(MIN_ALLOT_ARMIES, int(np.floor(len(territories)*ARMIES_PER_TERRITORY)))
+
     def play_game(self):
         """
         Plays through game without pause or ability to manually step
@@ -129,7 +151,10 @@ class Game:
         while not self.__check_end():
             self.__distribute()
             for player in self.players:
-                self.__allot(player)
+                player.unallocated_armies = self.turn_start_armies(player)
+                while player.unallocated_armies > 0:
+                    self.__allot(player)
+                    player.unallocated_armies -= 1
                 self.__attack(player)
                 self.__fortify(player)
                 self.board.draw()

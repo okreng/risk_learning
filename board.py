@@ -12,12 +12,14 @@ class Board:
     def __init__(self, board="boards/Mini.yaml"):
         self.graph = nx.Graph()  # Graph that holds territories and edges between them
         self.territories = {}  # Maps territory name to Territory
+        self.territories_by_id = {}  # Maps u_id to Territory
+        self.num_territories = 0
 
         if board is not None:
             self.parse_boardfile(board)
 
         self.continents = list(set([territory.continent for territory in self.territories.values()]))
-        print(self.continents)
+        # print(self.continents)
 
     def parse_boardfile(self, boardfile):
         """
@@ -26,11 +28,15 @@ class Board:
         """
         self.graph = nx.Graph()
         self.territories = {}
+        u_id = 0
         with open(boardfile) as f:
             board = yaml.load(f)
             for continent_name, continent_dict in board['continents'].items():
                 for country_name, country_dict in continent_dict.items():
-                    self.territories[country_name] = Territory(country_name, continent_name, country_dict['neighbors'])
+                    self.territories[country_name] = Territory(country_name, continent_name, u_id, country_dict['neighbors'])
+                    self.territories_by_id[u_id] = self.territories[country_name]
+                    u_id += 1
+                    self.num_territories += 1
 
             for territory in self.territories.values():
                 for neighbor in territory.neighbors:
@@ -76,12 +82,13 @@ class Territory:
     """
     Class representing a single territory.
     """
-    def __init__(self, name, continent, neighbors=None):
+    def __init__(self, name, continent, u_id, neighbors=None):
         self.name = name
         self.neighbors = neighbors  # type: [Territory]
         self.continent = continent  # type: str
         self.num_armies = 0         # number of armies contained
         self.owner = None           # type: Player
+        self.u_id = u_id            # type: int
 
     def add_armies(self, num_armies):
         """
