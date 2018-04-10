@@ -486,7 +486,7 @@ def main(args):
 	# print(type(np.array(imitation_actions)))
 	if train:
 		from q_funcs.attack import three_layer_attack_net
-		training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, '0', -1, 0.0001)
+		training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, '0-19', 0, 0.0001)
 		# print("Initialized three layer policy")
 
 		# print(imitation_states.shape)
