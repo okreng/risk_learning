@@ -475,23 +475,23 @@ def main(args):
 	# print(imitation_states.shape)
 	# print(imitation_actions.shape)
 
-	loss = []
+	loss_std = []
+	loss_mean = []
 	for epoch in range(num_epochs):
-		epoch_loss = 0
+		epoch_loss = []
 		num_batches = len(imitation_states)
 		batch = np.random.permutation(num_batches)
 		for index in range(num_batches):
 			batch_state = imitation_states[batch[index]]
 			batch_action = imitation_actions[batch[index]]
 			batch_mask = imitation_masks[batch[index]]
-			epoch_loss += np.mean(training_policy.batch_train(batch_state, batch_action, batch_mask))
+			epoch_loss.append(np.mean(training_policy.batch_train(batch_state, batch_action, batch_mask)))
 		# loss.append(training_policy.batch_train(imitation_states, imitation_actions, imitation_masks))
-		loss.append(epoch_loss/num_batches)
+		loss_mean.append(np.mean(epoch_loss))
+		loss_std.append(np.std(epoch_loss))
 		if epoch%(num_epochs/100) == 0:
 			print("Completed epoch {}".format(epoch))
-			mean = np.mean(loss)
-			std = np.std(loss)
-			plt.errorbar(epoch, mean, yerr=std, fmt='--o')
+			plt.errorbar(epoch, loss_mean[epoch], yerr=loss_std[epoch], fmt='--o')
 			plt.title("Mean loss over training")
 			plt.xlabel('Training epochs')
 			plt.ylabel('Mean loss every {} epochs'.format(num_epochs/100))
@@ -507,9 +507,9 @@ import signal
 def signal_handler(signal, frame):
     print('Displaying training on exit:')
     plt.show()
-    
+    sys.exit(0)
 
-signal.signal(signal.SIGTSTP, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
 
 
 # This is something you have to do in Python... I don't really know why	
