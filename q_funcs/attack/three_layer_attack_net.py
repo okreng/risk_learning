@@ -29,7 +29,7 @@ class ThreeLayerAttackNet():
 	Class to hold a linear neural network
 	Will be used to learn Attacks in RISK
 	"""
-	def __init__(self, nS, act_list, model_instance='0', checkpoint_index=-1, learning_rate = 0.001, verbose=True):
+	def __init__(self, nS, act_list, model_instance='0', checkpoint_index=-1, learning_rate = 0.001, batch_size=32, verbose=True):
 		"""
 		Creates a session of the tensorflow graph defined in this module
 		:param nS: int required, will throw error if does not agree, the number of territories on the graph
@@ -80,6 +80,7 @@ class ThreeLayerAttackNet():
 		self.nA = len(act_list)  # Length of 2D list corresponds to the edges of the graph
 
 		# Holds the global step (so that it can be loaded)
+		self.batch_size = batch_size
 		self.global_step_tensor = tf.Variable(0, trainable=False, name='global_step')
 
 		# Define the graph
@@ -106,6 +107,9 @@ class ThreeLayerAttackNet():
 
 		#####################
 		self.loss = tf.losses.mean_squared_error(labels=self.labels, predictions=self.output, weights=self.loss_weights)
+		# print("Before softmax")
+		# self.loss = tf.losses.softmax_cross_entropy(onehot_labels=[self.batch_size, self.labels], logits=[self.batch_size, self.labels])
+		# print("After softmax")
 
 		# optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.0001)
 
@@ -244,3 +248,15 @@ class ThreeLayerAttackNet():
 			
 ################### Determine how best to return q function ##########
 			return q_function[0][0], loss
+
+	def batch_train(self, state_vector, action_vector, batch_size=32, loss_weights=None):
+		"""
+		Function to perform batch gradient descent on an input tensor
+		"""
+		# state_batches = tf.train.batch(state_vector, batch_size)
+		# action_batches = tf.train.batch(action_vector, batch_size)
+
+		# for batch in range(len(state_batches)):
+		self.sess.run([self.train_op], feed_dict={self.features:state_vector, self.labels:action_vector, self.loss_weights:action_vector})
+		self.num_updates += 1
+		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)

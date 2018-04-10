@@ -186,9 +186,9 @@ class RiskEnv():
 				print("{}, player:{}, {}, winner:{}".format(raw_state, player_turn, action_type, winner))
 
 		############## Resize all return arrays ##############
-		for player in player_id_list:
-			for action_type in player_action_list[player_id_list.index(player)]:
-				g_states[player][action_type] = np.resize(g_states[player][action_type], (g_steps[player][action_type], self.game.graph.total_territories))
+		# for player in player_id_list:
+		# 	for action_type in player_action_list[player_id_list.index(player)]:
+		# 		g_states[player][action_type] = np.resize(g_states[player][action_type], (g_steps[player][action_type], self.game.graph.total_territories))
 
 			# raw_state, player_turn, action_type, u_armies, r_edge, winner
 		if verbose:
@@ -346,6 +346,7 @@ def parse_arguments():
 	parser.add_argument('-v', dest='verbose', action='store_true', default=False)
 	parser.add_argument('-p', dest='print_game', action='store_true', default=False)
 	parser.add_argument('--num-games', dest='num_games', default=1)
+	parser.add_argument('--num-epochs', dest='num_epochs', default=100)
 	parser.set_defaults(verbose=False)
 	parser.set_defaults(print_game=False)
 	return parser.parse_args()
@@ -364,6 +365,7 @@ def main(args):
 	verbose = args.verbose
 	print_game = args.print_game
 	num_games = int(args.num_games)
+	num_epochs = int(args.num_epochs)
 
 	environment = RiskEnv(board, matchup, verbose)
 	num_players = environment.game.num_players
@@ -375,8 +377,7 @@ def main(args):
 
 	################ NOTE: Save to clarify form of query  ##########################
 	# player_0_action_list = [[int(ActionType.ALLOT), int(ActionType.ATTACK)]]
-
-	player_0_action_list = [[int(ActionType.ATTACK)]]
+	# player_0_action_list = [[int(ActionType.ATTACK)]]
 
 	imitation_states = np.empty((0, environment.game.graph.total_territories))
 	imitation_actions = np.empty((0, len(environment.game.graph.edge_list)))
@@ -396,6 +397,9 @@ def main(args):
 		################ Faster method #########
 		# imitation_states = np.concatenate([imitation_states, states[winner][int(ActionType.ATTACK)]])
 		# imitation_actions = np.concatenate([imitation_actions, actions[winner][int(ActionType.ATTACK)]])
+
+		# print(states[winner][int(ActionType.ATTACK)])
+		# print(actions[winner][int(ActionType.ATTACK)])
 
 
 		############### OLD - KEEP FOR BENCHMARKING ###########
@@ -418,6 +422,18 @@ def main(args):
 	# print(type(np.array(imitation_states)))
 	# print(type(np.array(imitation_actions)))
 
+	from q_funcs.attack import three_layer_attack_net
+	training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, '0', -1, 0.0001)
+	# print("Initialized three layer policy")
+
+	# print(imitation_states.shape)
+	# print(imitation_actions.shape)
+
+	for epoch in range(num_epochs):
+		training_policy.batch_train(imitation_states, imitation_actions)
+		print("Completed epoch {}".format(epoch))
+
+	training_policy.close()
 
 	# states, acts, rewards = environment.play_game(0,1,verbose)
 
