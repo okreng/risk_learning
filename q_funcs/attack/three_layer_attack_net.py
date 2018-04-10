@@ -54,7 +54,7 @@ class ThreeLayerAttackNet():
 ################### WARNING!! CHANGE THIS WHEN MAKING NEW NETWORK!!!#################
 		self.module_string = 'three_layer_attack_net'
 		self.action_type_string = 'attack'
-		self.max_saves = 10
+		self.max_saves = 1
 		self.exact_load = True
 
 		self.verbose = verbose
@@ -107,10 +107,10 @@ class ThreeLayerAttackNet():
 
 		#####################
 		# self.loss = tf.losses.mean_squared_error(labels=self.labels, predictions=self.output, weights=self.loss_weights)
-		print("Before softmax")
+		# print("Before softmax")
 		# self.loss = tf.losses.softmax_cross_entropy(onehot_labels=[self.batch_size, self.nA], logits=[self.batch_size, self.nA])
 		self.loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.labels, logits=self.output)
-		print("After softmax")
+		# print("After softmax")
 
 		# optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.0001)
 
@@ -250,7 +250,7 @@ class ThreeLayerAttackNet():
 ################### Determine how best to return q function ##########
 			return q_function[0][0], loss
 
-	def batch_train(self, state_vector, action_vector, batch_size=32, loss_weights=None):
+	def batch_train(self, state_vector, action_vector, mask, batch_size=32, loss_weights=None):
 		"""
 		Function to perform batch gradient descent on an input tensor
 		"""
@@ -258,7 +258,7 @@ class ThreeLayerAttackNet():
 		# action_batches = tf.train.batch(action_vector, batch_size)
 
 		# for batch in range(len(state_batches)):
-		_, loss = self.sess.run([self.train_op, self.loss], feed_dict={self.features:state_vector, self.labels:action_vector})
+		_, loss = self.sess.run([self.train_op, self.loss], feed_dict={self.features:state_vector, self.labels:action_vector, self.loss_weights:mask})
 		self.num_updates += 1
 		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 
