@@ -12,6 +12,8 @@ import numpy as np
 import agent
 import utils
 
+TIMEOUT_STATES = 10000
+
 
 class RiskEnv():
 	"""
@@ -89,10 +91,11 @@ class RiskEnv():
 		:return rewards: list of lists of numpy arrays, the rewards earned by those actions
 		"""
 
-		num_turns = 0
+		num_states = 0
 		g_states = {}  # maps player_id to states seen by that player
 		g_actions = {}  # maps player_id to actions taken by that player
 		g_rewards = {}  # maps player_id to rewards earned by action
+		g_steps = {}
 		num_recorded_players = 0
 		for player in range(max(player_id_list)+1):
 			if player in player_id_list:
@@ -100,22 +103,31 @@ class RiskEnv():
 				player_states = {}  # maps action_type to states seen by that player, action
 				player_actions = {}  # maps action_type to actions taken by that player_action
 				player_rewards = {}  # maps action_type to rewards earned by that player_action
+				player_steps = {}
 				
 				g_states[player] = player_states
 				g_actions[player] = player_actions
 				g_rewards[player] = player_rewards
+				g_steps[player] = player_steps
 				
 				for action_type in range(max(player_action_list[num_recorded_players])+1):
 					if action_type in player_action_list[num_recorded_players]:
-						############ 
+						############ NOTE: Large lists dramatically slow down python, using arrays with resizing instead
 						# print("Player: {}\n action_type: {}".format(player, action_type))
-						player_action_states = []
-						player_action_actions = []
-						player_action_rewards = []
+						player_action_states = np.zeros((TIMEOUT_STATES, self.game.graph.total_territories))
+						player_action_actions = np.zeros((TIMEOUT_STATES, len(self.game.graph.edge_list)))
+						player_action_rewards = np.zeros((TIMEOUT_STATES, 1))
+
+						################### TOO SLOW TO CONVERT BETWEEN ARRAYS AND LISTS ################
+						# player_action_states = []
+						# player_action_actions = []
+						# player_action_rewards = []
+						player_action_steps = 0
 
 						g_states[player][action_type] = player_action_states
 						g_actions[player][action_type] = player_action_actions
 						g_rewards[player][action_type] = player_action_rewards
+						g_steps[player][action_type] = player_action_steps
 				num_recorded_players += 1
 
 		game_state, valid = self.game.random_start(verbose)
@@ -123,7 +135,10 @@ class RiskEnv():
 
 		while (winner == -1):
 			if valid:
-				num_turns += 1
+				num_states += 1
+				if num_states > TIMEOUT_STATES:
+					print("Game exceeded timeout states: {}".format(TIMEOUT_STATES))
+					return None, None, None, None, None, False
 			state = self.translate_2_state(raw_state, player_turn)
 			action = self.game_state_2_action(state, player_turn, action_type)
 
@@ -144,25 +159,40 @@ class RiskEnv():
 						action_vector = np.zeros(len(self.game.graph.edge_list))
 					action_vector[action] = 1
 
-					g_states[player_turn][int(action_type)].append(state)
-					g_actions[player_turn][int(action_type)].append(action_vector)
+
+					g_states[player_turn][int(action_type)][g_steps[player_turn][int(action_type)]] = state
+					g_actions[player_turn][int(action_type)][g_steps[player_turn][int(action_type)]] = action
+					
+					############ KEEP FOR DEBUGGING ################
+					# print(g_steps[player_turn][int(action_type)])
+
+					################## OLD: TOO SLOW #####################
+					# g_states[player_turn][int(action_type)].append(state)
+					# g_actions[player_turn][int(action_type)].append(action_vector)
 
 					if player_turn == winner:
 						reward = 1
 					else:
 						reward = 0
-					g_rewards[player_turn][int(action_type)].append(reward)
+					################### OLD: TOO SLOW ###################
+					# g_rewards[player_turn][int(action_type)].append(reward)
+					g_rewards[player_turn][int(action_type)][g_steps[player_turn][int(action_type)]] = reward
+					g_steps[player_turn][int(action_type)] += 1
 
 
 			if verbose:
 				print("{}, player:{}, {}, winner:{}".format(raw_state, player_turn, action_type, winner))
 
+		############## Resize all return arrays ##############
+		for player in player_id_list:
+			for action_type in player_action_list[player_id_list.index(player)]:
+				g_states[player][action_type] = np.resize(g_states[player][action_type], (g_steps[player][action_type], self.game.graph.total_territories))
 
 			# raw_state, player_turn, action_type, u_armies, r_edge, winner
 		if verbose:
 			print("Player {} wins".format(winner))
 
-		return winner, g_states, g_actions, g_rewards, num_turns
+		return winner, g_states, g_actions, g_rewards, num_states, True
 
 	def unpack_game_state(self, game_state):
 		"""
@@ -351,13 +381,17 @@ def main(args):
 
 	record = np.zeros(num_players)
 	for i in range(num_games):
-		winner, states, actions, rewards, num_turns = environment.play_game(all_player_list, all_players_attack_action, print_game)
+		timeout = False
+		while not timeout:
+			winner, states, actions, rewards, num_turns, timeout = environment.play_game(all_player_list, all_players_attack_action, print_game)
 		
-		print(num_turns)
 		##################### Specific to attack action ####################
 		################## NOTE: Cast to np.array upon return ##################
-		imitation_states = np.concatenate([imitation_states, np.array(states[winner][int(ActionType.ATTACK)])])
-		imitation_actions = np.concatenate([imitation_actions, np.array(actions[winner][int(ActionType.ATTACK)])])
+		# imitation_states = np.concatenate([imitation_states, np.array(states[winner][int(ActionType.ATTACK)])])
+		# print(states[winner][int(ActionType.ATTACK)].shape)
+		# print(states[winner][int(ActionType.ATTACK)])
+		imitation_states = np.concatenate([imitation_states, states[winner][int(ActionType.ATTACK)]])
+		imitation_actions = np.concatenate([imitation_actions, actions[winner][int(ActionType.ATTACK)]])
 
 		for player in range(len(record)):
 			if player == winner:
