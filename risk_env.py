@@ -113,17 +113,17 @@ class RiskEnv():
 				for action_type in range(max(player_action_list[num_recorded_players])+1):
 					if action_type in player_action_list[num_recorded_players]:
 						############ NOTE: Large lists dramatically slow down python, using arrays with resizing instead
-						# print("Player: {}\n action_type: {}".format(player, action_type))
-						player_action_states = np.zeros((TIMEOUT_STATES, self.game.graph.total_territories))
-						player_action_actions = np.zeros((TIMEOUT_STATES, len(self.game.graph.edge_list)))
-						player_action_rewards = np.zeros((TIMEOUT_STATES, 1))
+						# player_action_states = np.zeros((TIMEOUT_STATES, self.game.graph.total_territories))
+						# player_action_actions = np.zeros((TIMEOUT_STATES, len(self.game.graph.edge_list)))
+						# player_action_rewards = np.zeros((TIMEOUT_STATES, 1))
 
 						################### TOO SLOW TO CONVERT BETWEEN ARRAYS AND LISTS ################
-						# player_action_states = []
-						# player_action_actions = []
-						# player_action_rewards = []
+						player_action_states = []
+						player_action_actions = []
+						player_action_rewards = []
 						player_action_steps = 0
 
+						############## New code #################
 						g_states[player][action_type] = player_action_states
 						g_actions[player][action_type] = player_action_actions
 						g_rewards[player][action_type] = player_action_rewards
@@ -159,25 +159,27 @@ class RiskEnv():
 						action_vector = np.zeros(len(self.game.graph.edge_list))
 					action_vector[action] = 1
 
-
-					g_states[player_turn][int(action_type)][g_steps[player_turn][int(action_type)]] = state
-					g_actions[player_turn][int(action_type)][g_steps[player_turn][int(action_type)]] = action
+					############### Faster method ################3
+					# g_states[player_turn][int(action_type)][g_steps[player_turn][int(action_type)]] = state
+					# g_actions[player_turn][int(action_type)][g_steps[player_turn][int(action_type)]] = action
 					
 					############ KEEP FOR DEBUGGING ################
 					# print(g_steps[player_turn][int(action_type)])
 
 					################## OLD: TOO SLOW #####################
-					# g_states[player_turn][int(action_type)].append(state)
-					# g_actions[player_turn][int(action_type)].append(action_vector)
+					g_states[player_turn][int(action_type)].append(state)
+					g_actions[player_turn][int(action_type)].append(action_vector)
 
 					if player_turn == winner:
 						reward = 1
 					else:
 						reward = 0
 					################### OLD: TOO SLOW ###################
-					# g_rewards[player_turn][int(action_type)].append(reward)
-					g_rewards[player_turn][int(action_type)][g_steps[player_turn][int(action_type)]] = reward
-					g_steps[player_turn][int(action_type)] += 1
+					g_rewards[player_turn][int(action_type)].append(reward)
+
+					##################### Faster method ###################
+					# g_rewards[player_turn][int(action_type)][g_steps[player_turn][int(action_type)]] = reward
+					# g_steps[player_turn][int(action_type)] += 1
 
 
 			if verbose:
@@ -390,8 +392,16 @@ def main(args):
 		# imitation_states = np.concatenate([imitation_states, np.array(states[winner][int(ActionType.ATTACK)])])
 		# print(states[winner][int(ActionType.ATTACK)].shape)
 		# print(states[winner][int(ActionType.ATTACK)])
-		imitation_states = np.concatenate([imitation_states, states[winner][int(ActionType.ATTACK)]])
-		imitation_actions = np.concatenate([imitation_actions, actions[winner][int(ActionType.ATTACK)]])
+
+		################ Faster method #########
+		# imitation_states = np.concatenate([imitation_states, states[winner][int(ActionType.ATTACK)]])
+		# imitation_actions = np.concatenate([imitation_actions, actions[winner][int(ActionType.ATTACK)]])
+
+
+		############### OLD - KEEP FOR BENCHMARKING ###########
+		imitation_states = np.concatenate([imitation_states, np.array(states[winner][int(ActionType.ATTACK)])])
+		imitation_actions = np.concatenate([imitation_actions, np.array(actions[winner][int(ActionType.ATTACK)])])
+
 
 		for player in range(len(record)):
 			if player == winner:
