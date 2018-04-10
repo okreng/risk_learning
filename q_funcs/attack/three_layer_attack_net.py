@@ -258,6 +258,6 @@ class ThreeLayerAttackNet():
 		# action_batches = tf.train.batch(action_vector, batch_size)
 
 		# for batch in range(len(state_batches)):
-		self.sess.run([self.train_op], feed_dict={self.features:state_vector, self.labels:action_vector, self.loss_weights:action_vector})
+		self.sess.run([self.train_op], feed_dict={self.features:state_vector, self.labels:action_vector})
 		self.num_updates += 1
 		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
