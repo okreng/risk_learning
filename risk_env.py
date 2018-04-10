@@ -431,7 +431,8 @@ def main(args):
 
 	for epoch in range(num_epochs):
 		training_policy.batch_train(imitation_states, imitation_actions)
-		print("Completed epoch {}".format(epoch))
+		if epoch%(num_epochs/100) == 0:
+			print("Completed epoch {}".format(epoch))
 
 	training_policy.close()
 
