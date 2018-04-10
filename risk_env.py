@@ -410,9 +410,16 @@ def main(args):
 	# player_0_action_list = [[int(ActionType.ALLOT), int(ActionType.ATTACK)]]
 	# player_0_action_list = [[int(ActionType.ATTACK)]]
 
-	imitation_states = np.empty((0, environment.game.graph.total_territories))
-	imitation_actions = np.empty((0, len(environment.game.graph.edge_list)))
-	imitation_masks = np.empty((0, len(environment.game.graph.edge_list)))
+	############### USE FOR CONCATENATION ####################
+	# imitation_states = np.empty((0, environment.game.graph.total_territories))
+	# imitation_actions = np.empty((0, len(environment.game.graph.edge_list)))
+	# imitation_masks = np.empty((0, len(environment.game.graph.edge_list)))
+
+
+	##################### IN USE ################
+	imitation_states = []
+	imitation_actions = []
+	imitation_masks = []
 
 	record = np.zeros(num_players)
 	for i in range(num_games):
@@ -435,11 +442,16 @@ def main(args):
 		# print(states[winner][int(ActionType.ATTACK)])
 		# print(actions[winner][int(ActionType.ATTACK)])
 
+		################# IN USE #################
+		imitation_states.append(np.array(states[winner][int(ActionType.ATTACK)]))
+		imitation_actions.append(np.array(actions[winner][int(ActionType.ATTACK)]))
+		imitation_masks.append(np.array(masks[winner][int(ActionType.ATTACK)]))
 
-		############### IN USE ###########
-		imitation_states = np.concatenate([imitation_states, np.array(states[winner][int(ActionType.ATTACK)])])
-		imitation_actions = np.concatenate([imitation_actions, np.array(actions[winner][int(ActionType.ATTACK)])])
-		imitation_masks = np.concatenate([imitation_masks, np.array(masks[winner][int(ActionType.ATTACK)])])
+
+		############### FORMER METHOD ###########
+		# imitation_states = np.concatenate([imitation_states, np.array(states[winner][int(ActionType.ATTACK)])])
+		# imitation_actions = np.concatenate([imitation_actions, np.array(actions[winner][int(ActionType.ATTACK)])])
+		# imitation_masks = np.concatenate([imitation_masks, np.array(masks[winner][int(ActionType.ATTACK)])])
 
 		for player in range(len(record)):
 			if player == winner:
@@ -465,7 +477,16 @@ def main(args):
 
 	loss = []
 	for epoch in range(num_epochs):
-		loss.append(training_policy.batch_train(imitation_states, imitation_actions, imitation_masks))
+		epoch_loss = 0
+		num_batches = len(imitation_states)
+		batch = np.random.permutation(num_batches)
+		for index in range(num_batches):
+			batch_state = imitation_states[batch[index]]
+			batch_action = imitation_actions[batch[index]]
+			batch_mask = imitation_masks[batch[index]]
+			epoch_loss += np.mean(training_policy.batch_train(batch_state, batch_action, batch_mask))
+		# loss.append(training_policy.batch_train(imitation_states, imitation_actions, imitation_masks))
+		loss.append(epoch_loss/num_batches)
 		if epoch%(num_epochs/100) == 0:
 			print("Completed epoch {}".format(epoch))
 			mean = np.mean(loss)
