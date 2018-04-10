@@ -103,13 +103,14 @@ class ThreeLayerAttackNet():
 
 		# Output Layer
 		# self.output = tf.layers.dense(inputs = self.dense3, units = self.nA, use_bias = True, name = 'output')
-		self.output = tf.layers.dense(inputs = self.dense3, units = self.nA, activation = tf.nn.softmax, use_bias = False, name = 'output')
+		self.output = tf.layers.dense(inputs = self.dense3, units = self.nA, activation = tf.nn.sigmoid, use_bias = False, name = 'output')
 
 		#####################
-		self.loss = tf.losses.mean_squared_error(labels=self.labels, predictions=self.output, weights=self.loss_weights)
-		# print("Before softmax")
-		# self.loss = tf.losses.softmax_cross_entropy(onehot_labels=[self.batch_size, self.labels], logits=[self.batch_size, self.labels])
-		# print("After softmax")
+		# self.loss = tf.losses.mean_squared_error(labels=self.labels, predictions=self.output, weights=self.loss_weights)
+		print("Before softmax")
+		# self.loss = tf.losses.softmax_cross_entropy(onehot_labels=[self.batch_size, self.nA], logits=[self.batch_size, self.nA])
+		self.loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.labels, logits=self.output)
+		print("After softmax")
 
 		# optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.0001)
 
