@@ -133,19 +133,25 @@ class RiskEnv():
 			raw_state, player_turn, action_type, u_armies, r_edge, winner = self.unpack_game_state(game_state)
 
 			if valid and (player_turn in player_id_list):
-				# try:
 				if (int(action_type) in player_action_list[player_id_list.index(player_turn)]):  ## Non-valid states are exactly what was passed
-					print("Player {}, action type: {}".format(player_turn, action_type))
+
+					############# Create one-hot vectors of attack ################
 					if action_type == ActionType.ALLOT:
 						action_vector = np.zeros(self.game.graph.total_territories)
 					elif action_type == ActionType.ATTACK:
 						action_vector = np.zeros(len(self.game.graph.edge_list))
 					elif action_type == ActionType.FORTIFY:
 						action_vector = np.zeros(len(self.game.graph.edge_list))
+					action_vector[action] = 1
 
-				# except:
-				# 	continue
+					g_states[player_turn][int(action_type)].append(state)
+					g_actions[player_turn][int(action_type)].append(action_vector)
 
+					if player_turn == winner:
+						reward = 1
+					else:
+						reward = 0
+					g_rewards[player_turn][int(action_type)].append(reward)
 
 
 			if verbose:
@@ -156,7 +162,7 @@ class RiskEnv():
 		if verbose:
 			print("Player {} wins".format(winner))
 
-		return winner
+		return winner, g_states, g_actions, g_rewards
 
 	def unpack_game_state(self, game_state):
 		"""
@@ -167,6 +173,9 @@ class RiskEnv():
 	def translate_2_state(self, raw_state, player_id):
 		"""
 		Translates a state vector into positive and negative elements
+		############### NOTE ##################
+		Currently, all enemies are simply represented as negative
+		##################################################
 		:param: raw_state - raw_state from the game
 		:param: player_id - the player to transform the state for
 		:return state: the state to be fed into a q function
@@ -175,7 +184,7 @@ class RiskEnv():
 		for territory in range(len(raw_state)):
 			if raw_state[territory][0] == player_id:
 				state[territory] = raw_state[territory][1]
-			else:
+			else:  
 				state[territory] = -raw_state[territory][1]
 		return state
 
@@ -325,28 +334,45 @@ def main(args):
 	num_games = int(args.num_games)
 
 	environment = RiskEnv(board, matchup, verbose)
+	num_players = environment.game.num_players
 
-
-	#################### For testing randomness ################
-	player_0_list = [0]
+	all_player_list = range(num_players)
+	all_players_attack_action = []
+	for player in all_player_list:
+		all_players_attack_action.append([int(ActionType.ATTACK)])
 
 	################ NOTE: Save to clarify form of query  ##########################
 	# player_0_action_list = [[int(ActionType.ALLOT), int(ActionType.ATTACK)]]
 
 	player_0_action_list = [[int(ActionType.ATTACK)]]
 
-	wins_0 = 0
-	wins_1 = 0
+	imitation_states = []
+	imitation_actions = []
+
+	record = np.zeros(num_players)
 	for i in range(num_games):
-		winner = environment.play_game(player_0_list, player_0_action_list, print_game)
-		if winner == 0:
-			wins_0 += 1
-		else:
-			wins_1 += 1
+		winner, states, actions, rewards = environment.play_game(all_player_list, all_players_attack_action, print_game)
+		
+		##################### Specific to attack action ####################
+		################## NOTE: Cast to np.array upon return ##################
+		imitation_states.append(np.array(states[winner][int(ActionType.ATTACK)]))
+		imitation_actions.append(np.array(actions[winner][int(ActionType.ATTACK)]))
+
+		for player in range(len(record)):
+			if player == winner:
+				record[player] +=1
 		if verbose:
 			if i%100 == 0:
 				print("Completed game {}".format(i))
-	print("Player 0 won {} games\nPlayer 1 won {} games".format(wins_0, wins_1))
+	for player in range(len(record)):
+		print("Player {} won {} games".format(player, record[player]))
+
+############### TODO: Keep as reference for types
+	# print(type(imitation_states))
+	# print(type(imitation_actions))
+	# print(type(np.array(imitation_states)))
+	# print(type(np.array(imitation_actions)))
+
 
 	# states, acts, rewards = environment.play_game(0,1,verbose)
 
