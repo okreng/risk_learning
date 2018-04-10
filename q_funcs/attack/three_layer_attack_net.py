@@ -29,7 +29,7 @@ class ThreeLayerAttackNet():
 	Class to hold a linear neural network
 	Will be used to learn Attacks in RISK
 	"""
-	def __init__(self, nS, act_list, model_instance='0', checkpoint_index=-1, learning_rate = 0.001, batch_size=32, verbose=True):
+	def __init__(self, nS, act_list, model_instance='0', checkpoint_index=-1, learning_rate = 0.0001, batch_size=32, verbose=True):
 		"""
 		Creates a session of the tensorflow graph defined in this module
 		:param nS: int required, will throw error if does not agree, the number of territories on the graph
@@ -258,6 +258,8 @@ class ThreeLayerAttackNet():
 		# action_batches = tf.train.batch(action_vector, batch_size)
 
 		# for batch in range(len(state_batches)):
-		self.sess.run([self.train_op], feed_dict={self.features:state_vector, self.labels:action_vector})
+		_, loss = self.sess.run([self.train_op, self.loss], feed_dict={self.features:state_vector, self.labels:action_vector})
 		self.num_updates += 1
 		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+
+		return loss

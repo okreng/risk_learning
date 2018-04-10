@@ -12,6 +12,10 @@ import numpy as np
 import agent
 import utils
 
+import matplotlib
+import matplotlib.pyplot as plt
+
+
 TIMEOUT_STATES = 10000
 
 
@@ -429,14 +433,32 @@ def main(args):
 	# print(imitation_states.shape)
 	# print(imitation_actions.shape)
 
+	loss = []
 	for epoch in range(num_epochs):
-		training_policy.batch_train(imitation_states, imitation_actions)
+		loss.append(training_policy.batch_train(imitation_states, imitation_actions))
 		if epoch%(num_epochs/100) == 0:
 			print("Completed epoch {}".format(epoch))
+			mean = np.mean(loss)
+			std = np.std(loss)
+			plt.errorbar(epoch, mean, yerr=std, fmt='--o')
+			plt.title("Mean loss over training")
+			plt.xlabel('Training epochs')
+			plt.ylabel('Mean loss every {} epochs'.format(num_epochs/100))
+			plt.draw()
+
 
 	training_policy.close()
 
+	plt.show()
 	# states, acts, rewards = environment.play_game(0,1,verbose)
+
+import signal
+def signal_handler(signal, frame):
+    print('Displaying training on exit:')
+    plt.show()
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 
 # This is something you have to do in Python... I don't really know why	
