@@ -417,23 +417,35 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 
 
 		epoch = 0
+		train_loss = []
 		while epoch < num_epochs:
 
 			################### GENERATE TRAINING SET #####################
 			if (epoch%USEFUL_LIFE) == 0: 
 				if verbose:
-					print("Generating {} new episodes".format(num_games), end='')
-					print("Complete, training for {} epochs".format(USEFUL_LIFE))
+					print("Generating {} new games".format(num_games), end='')
 				_, t_states, t_actions, t_rewards, t_masks, _ = generate_winners_episodes(environment, num_games, all_player_list, all_players_attack_action, train=True)
+				if verbose:
+					print(" complete, training for {} epochs".format(USEFUL_LIFE))
+
 
 			batch = np.random.permutation(num_games)
 			for index in range(num_games):
 				batch_state = t_states[batch[index]]
 				batch_action = t_actions[batch[index]]
 				batch_mask = t_masks[batch[index]]
-				training_policy.batch_train(batch_state, batch_action, batch_mask)
+				train_loss.append(np.mean(training_policy.batch_train(batch_state, batch_action, batch_mask)))
 
 			epoch += 1
+
+			################## CREATE TRAINING LOSS PLOT ##############3
+			if (epoch%(USEFUL_LIFE/100)) == 0:
+				train_mean = np.mean(train_loss)
+				train_std = np.std(train_loss)
+				plt.errorbar(epoch, train_mean, yerr=train_std, fmt='--o', color='red')
+				plt.draw()
+				train_loss = []
+
 			################### GENERATE VALIDATION SET #################
 			if (epoch%USEFUL_LIFE) == 0:
 				_, v_states, v_actions, v_rewards, v_masks, _ = generate_winners_episodes(environment, VALIDATION_GAMES, all_player_list, all_players_attack_action, train=True)
@@ -442,10 +454,10 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 					v_loss.append(np.mean(training_policy.batch_train(v_states[index], v_actions[index], v_masks[index], update=False)))
 				loss_mean = np.mean(v_loss)
 				loss_std = np.std(v_loss)
-				plt.errorbar(epoch, loss_mean, yerr=loss_std, fmt='--o')
-				plt.title("Validation Loss")
+				plt.errorbar(epoch, loss_mean, yerr=loss_std, fmt='--o', color='blue')
+				plt.title("Loss: red-training, blue-validation")
 				plt.xlabel('Training epochs')
-				plt.ylabel('Mean loss over {} games'.format(VALIDATION_GAMES))
+				plt.ylabel('Mean validation loss over {} games'.format(VALIDATION_GAMES))
 				plt.draw()
 				if (verbose):
 					print("Completed epoch {}".format(epoch))
@@ -545,7 +557,7 @@ def parse_arguments():
 	parser.add_argument('-p', dest='print_game', action='store_true', default=False)
 	parser.add_argument('-t', dest='train', action='store_true', default=False)
 	parser.add_argument('--num-games', dest='num_games', default=100)
-	parser.add_argument('--num-epochs', dest='num_epochs', default=100)
+	parser.add_argument('--num-epochs', dest='num_epochs', default=100000)
 	parser.set_defaults(verbose=False)
 	parser.set_defaults(print_game=False)
 	parser.set_defaults(train=False)
