@@ -621,9 +621,9 @@ class Player():
         :return : none
         """
         if (self.isAgent):
-            print("Player {}, {}, is an agent".format(self.player_id, self.name)) ## following {} policy".format(self.player_id, self.name, self.policy))
+            print("Player {}: {}".format(self.player_id, self.name)) ## following {} policy".format(self.player_id, self.name, self.policy))
         else:
-            print("Player {}, {}, is a bot".format(self.player_id, self.name)) ## following {} policy".format(self.player_id, self.name, self.policy))
+            print("Player {}: {}".format(self.player_id, self.name)) ## following {} policy".format(self.player_id, self.name, self.policy))
 
     def add_armies(self, num_armies):
         """
