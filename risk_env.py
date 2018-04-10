@@ -377,7 +377,7 @@ class RiskEnv():
 
 
 
-def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=10, num_epochs=1000):
+def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=100, num_epochs=10000):
 	"""
 	Plays num_games games between the specified matchup
 	If train is specified, uses these games to train a model
@@ -392,76 +392,26 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 	"""
 
 	environment = RiskEnv(board, matchup, verbose)
-	num_players = environment.game.num_players
-
-	all_player_list = range(num_players)
-	all_players_attack_action = []
-	for player in all_player_list:
-		all_players_attack_action.append([int(ActionType.ATTACK)])
-
-	################ NOTE: Save to clarify form of query  ##########################
-	# player_0_action_list = [[int(ActionType.ALLOT), int(ActionType.ATTACK)]]
-	# player_0_action_list = [[int(ActionType.ATTACK)]]
-
-	############### USE FOR CONCATENATION ####################
-	# imitation_states = np.empty((0, environment.game.graph.total_territories))
-	# imitation_actions = np.empty((0, len(environment.game.graph.edge_list)))
-	# imitation_masks = np.empty((0, len(environment.game.graph.edge_list)))
 
 
-	##################### IN USE ################
-	imitation_states = []
-	imitation_actions = []
-	imitation_masks = []
+	if train == False:
+		record, _, _, _, _, _ = generate_winners_episodes(environment, num_games, verbose=verbose, print_game=print_game)
 
-	record = np.zeros(num_players)
-	for i in range(num_games):
-		timeout = False
-		while not timeout:
-			winner, states, actions, rewards, masks, num_turns, timeout = environment.play_game(all_player_list, all_players_attack_action, train, print_game)
-		
-		##################### Specific to attack action ####################
-		################## NOTE: Cast to np.array upon return ##################
-		# imitation_states = np.concatenate([imitation_states, np.array(states[winner][int(ActionType.ATTACK)])])
-		# print(states[winner][int(ActionType.ATTACK)].shape)
-		# print(np.array(actions[winner][int(ActionType.ATTACK)]).shape)
-		# print(np.array(masks[winner][int(ActionType.ATTACK)]).shape)
-
-
-		################ Faster method #########
-		# imitation_states = np.concatenate([imitation_states, states[winner][int(ActionType.ATTACK)]])
-		# imitation_actions = np.concatenate([imitation_actions, actions[winner][int(ActionType.ATTACK)]])
-
-		# print(states[winner][int(ActionType.ATTACK)])
-		# print(actions[winner][int(ActionType.ATTACK)])
-
-		################# IN USE #################
-		if train:
-			imitation_states.append(np.array(states[winner][int(ActionType.ATTACK)]))
-			imitation_actions.append(np.array(actions[winner][int(ActionType.ATTACK)]))
-			imitation_masks.append(np.array(masks[winner][int(ActionType.ATTACK)]))
-
-
-		############### FORMER METHOD ###########
-		# imitation_states = np.concatenate([imitation_states, np.array(states[winner][int(ActionType.ATTACK)])])
-		# imitation_actions = np.concatenate([imitation_actions, np.array(actions[winner][int(ActionType.ATTACK)])])
-		# imitation_masks = np.concatenate([imitation_masks, np.array(masks[winner][int(ActionType.ATTACK)])])
-
-		for player in range(len(record)):
-			if player == winner:
-				record[player] +=1
-		if verbose:
-			if i%(num_games/10) == 0:
-				print("Completed game {}".format(i))
-	for player in range(len(record)):
-		print("Player {} won {} games".format(player, record[player]))
-
-############### TODO: Keep as reference for types
-	# print(type(imitation_states))
-	# print(type(imitation_actions))
-	# print(type(np.array(imitation_states)))
-	# print(type(np.array(imitation_actions)))
 	if train:
+		num_players = environment.game.num_players
+
+		all_player_list = range(num_players)
+		all_players_attack_action = []
+		for player in all_player_list:
+			all_players_attack_action.append([int(ActionType.ATTACK)])
+
+
+		epoch = 0
+		while epoch < num_epochs:
+
+			record, states, actions, rewards, masks, num_states = generate_winners_episodes(environment, num_games, all_player_list, all_players_attack_action, verbose=verbose, print_game=print_game)
+
+
 		from q_funcs.attack import three_layer_attack_net
 		training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, '0-19', 0, 0.0001)
 		# print("Initialized three layer policy")
@@ -499,9 +449,76 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 
 	return
 
-# def generate_episode(player_list, player_action_list, train=False, print_game=False)
+def generate_winners_episodes(env, num_games, player_list=None, player_action_list=None, train=False, verbose=False, print_game=False):
+	"""
+	Runs num_games and returns lists describing the games, depending on player_list and player_action_list
+	:param env: The environment object holding the game to be played
+	:param num_games: the number of games to play
+	:param player_list: which players information is desired about
+	:param player_action_list: which actions information is needed for those players
+	:param train: Whether to train (true) or test (false)
+	:param print_game: whether to print game information, used for debugging, not recommended
+	:return record: ndarray of size (num_player,), how many games each player won, respectively
+	:return states: list of ndarrays containing the states seen by the winner of the game
+	:return actions: list of ndarrays containing the actions (one-hot) taken by the winner of each game
+	:return rewards: list of ndarrays containing the rewards earned by the winner of the game 
+	:return masks: list of ndarrays containing the valid actions available to the winner for each action taken
+	:return num_states: list of the number of total states the game advanced through
+	"""
+	##################### IN USE ################
 
+	if train:
+		imitation_states = []
+		imitation_actions = []
+		imitation_masks = []
 
+	num_players = env.game.num_players
+	record = np.zeros(num_players)
+	for i in range(num_games):
+		timeout = False
+		while not timeout:
+			winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train, print_game)
+		
+		##################### Specific to attack action ####################
+		################## NOTE: Cast to np.array upon return ##################
+		# imitation_states = np.concatenate([imitation_states, np.array(states[winner][int(ActionType.ATTACK)])])
+		# print(states[winner][int(ActionType.ATTACK)].shape)
+		# print(np.array(actions[winner][int(ActionType.ATTACK)]).shape)
+		# print(np.array(masks[winner][int(ActionType.ATTACK)]).shape)
+
+		############### TODO: Keep as reference for types
+		# print(type(imitation_states))
+		# print(type(imitation_actions))
+		# print(type(np.array(imitation_states)))
+		# print(type(np.array(imitation_actions)))
+
+		################ Faster method #########
+		# imitation_states = np.concatenate([imitation_states, states[winner][int(ActionType.ATTACK)]])
+		# imitation_actions = np.concatenate([imitation_actions, actions[winner][int(ActionType.ATTACK)]])
+
+		# print(states[winner][int(ActionType.ATTACK)])
+		# print(actions[winner][int(ActionType.ATTACK)])
+
+		################# IN USE #################
+		if train:
+			imitation_states.append(np.array(states[winner][int(ActionType.ATTACK)]))
+			imitation_actions.append(np.array(actions[winner][int(ActionType.ATTACK)]))
+			imitation_masks.append(np.array(masks[winner][int(ActionType.ATTACK)]))
+
+		for player in range(len(record)):
+			if player == winner:
+				record[player] +=1
+		if verbose:
+			if i%(num_games/10) == 0:
+				print("Completed game {}".format(i))
+	if verbose:
+		for player in range(len(record)):
+			print("Player {} won {} games".format(player, record[player]))
+
+	if train:
+		return record, states, actions, rewards, masks, num_states
+	else:
+		return record, None, None, None, None, None
 
 
 def parse_arguments():
@@ -517,7 +534,7 @@ def parse_arguments():
 	parser.add_argument('-v', dest='verbose', action='store_true', default=False)
 	parser.add_argument('-p', dest='print_game', action='store_true', default=False)
 	parser.add_argument('-t', dest='train', action='store_true', default=False)
-	parser.add_argument('--num-games', dest='num_games', default=1)
+	parser.add_argument('--num-games', dest='num_games', default=100)
 	parser.add_argument('--num-epochs', dest='num_epochs', default=100)
 	parser.set_defaults(verbose=False)
 	parser.set_defaults(print_game=False)
