@@ -208,16 +208,14 @@ class ThreeLayerAttackNet():
 		:return none:
 		"""
 		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
-		if self.verbose:
-			print("Weights are:")
-			for v in tf.trainable_variables():
-				print(v)
-				print(self.sess.run([v]))
+		# if self.verbose:
+		# 	print("Weights are:")
+		# 	for v in tf.trainable_variables():
+		# 		print(v)
+		# 		print(self.sess.run([v]))
 		self.sess.close()
 		
 		print("{} closed and saved to {}, checkpoint {}".format(self.module_string, self.save_folder, self.num_updates))
-		
-
 		return
 
 
@@ -260,6 +258,10 @@ class ThreeLayerAttackNet():
 		# for batch in range(len(state_batches)):
 		_, loss = self.sess.run([self.train_op, self.loss], feed_dict={self.features:state_vector, self.labels:action_vector, self.loss_weights:mask})
 		self.num_updates += 1
-		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+		if self.num_updates == self.next_save:
+			self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+			self.next_save += np.ceil(np.sqrt(self.num_updates))
+			
+		# self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 
 		return loss
