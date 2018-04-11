@@ -29,7 +29,7 @@ class ThreeLayerAttackNet():
 	Class to hold a linear neural network
 	Will be used to learn Attacks in RISK
 	"""
-	def __init__(self, nS, act_list, model_instance='0', checkpoint_index=-1, learning_rate = 0.001, verbose=True):
+	def __init__(self, nS, act_list, model_instance='0', checkpoint_index=-1, learning_rate = 0.0001, batch_size=32, verbose=True):
 		"""
 		Creates a session of the tensorflow graph defined in this module
 		:param nS: int required, will throw error if does not agree, the number of territories on the graph
@@ -54,7 +54,7 @@ class ThreeLayerAttackNet():
 ################### WARNING!! CHANGE THIS WHEN MAKING NEW NETWORK!!!#################
 		self.module_string = 'three_layer_attack_net'
 		self.action_type_string = 'attack'
-		self.max_saves = 10
+		self.max_saves = 1
 		self.exact_load = True
 
 		self.verbose = verbose
@@ -80,6 +80,7 @@ class ThreeLayerAttackNet():
 		self.nA = len(act_list)  # Length of 2D list corresponds to the edges of the graph
 
 		# Holds the global step (so that it can be loaded)
+		self.batch_size = batch_size
 		self.global_step_tensor = tf.Variable(0, trainable=False, name='global_step')
 
 		# Define the graph
@@ -94,18 +95,22 @@ class ThreeLayerAttackNet():
 		self.loss_weights = tf.placeholder(dtype = tf.float32, shape = [None, self.nA], name='loss_weights')
 
 		# First hidden Layer
-		self.dense1 = tf.layers.dense(inputs = self.features, units = 4, activation = tf.nn.sigmoid, use_bias = False, name = 'dense1')
-		self.dense2 = tf.layers.dense(inputs = self.dense1, units = 4, activation = tf.nn.sigmoid, use_bias = False, name = 'dense2')
-		self.dense3 = tf.layers.dense(inputs = self.dense2, units = 4,  activation = tf.nn.relu, use_bias = False, name = 'dense3')
+		self.dense1 = tf.layers.dense(inputs = self.features, units = 512, activation = tf.nn.sigmoid, use_bias = False, name = 'dense1')
+		self.dense2 = tf.layers.dense(inputs = self.dense1, units = 256, activation = tf.nn.sigmoid, use_bias = False, name = 'dense2')
+		self.dense3 = tf.layers.dense(inputs = self.dense2, units = 128,  activation = tf.nn.sigmoid, use_bias = False, name = 'dense3')
 
 		
 
 		# Output Layer
 		# self.output = tf.layers.dense(inputs = self.dense3, units = self.nA, use_bias = True, name = 'output')
-		self.output = tf.layers.dense(inputs = self.dense3, units = self.nA, activation = tf.nn.softmax, use_bias = False, name = 'output')
+		self.output = tf.layers.dense(inputs = self.dense3, units = self.nA, activation = tf.nn.sigmoid, use_bias = False, name = 'output')
 
 		#####################
-		self.loss = tf.losses.mean_squared_error(labels=self.labels, predictions=self.output, weights=self.loss_weights)
+		# self.loss = tf.losses.mean_squared_error(labels=self.labels, predictions=self.output, weights=self.loss_weights)
+		# print("Before softmax")
+		# self.loss = tf.losses.softmax_cross_entropy(onehot_labels=[self.batch_size, self.nA], logits=[self.batch_size, self.nA])
+		self.loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.labels, logits=self.output)
+		# print("After softmax")
 
 		# optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.0001)
 
@@ -203,16 +208,14 @@ class ThreeLayerAttackNet():
 		:return none:
 		"""
 		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
-		if self.verbose:
-			print("Weights are:")
-			for v in tf.trainable_variables():
-				print(v)
-				print(self.sess.run([v]))
+		# if self.verbose:
+		# 	print("Weights are:")
+		# 	for v in tf.trainable_variables():
+		# 		print(v)
+		# 		print(self.sess.run([v]))
 		self.sess.close()
 		
 		print("{} closed and saved to {}, checkpoint {}".format(self.module_string, self.save_folder, self.num_updates))
-		
-
 		return
 
 
@@ -244,3 +247,24 @@ class ThreeLayerAttackNet():
 			
 ################### Determine how best to return q function ##########
 			return q_function[0][0], loss
+
+	def batch_train(self, state_vector, action_vector, mask, update=True, batch_size=32, loss_weights=None):
+		"""
+		Function to perform batch gradient descent on an input tensor
+		"""
+		# state_batches = tf.train.batch(state_vector, batch_size)
+		# action_batches = tf.train.batch(action_vector, batch_size)
+
+		# for batch in range(len(state_batches)):
+		if update:
+			_, loss = self.sess.run([self.train_op, self.loss], feed_dict={self.features:state_vector, self.labels:action_vector, self.loss_weights:mask})
+			self.num_updates += 1
+			if self.num_updates == self.next_save:
+				self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+				self.next_save += np.ceil(np.sqrt(self.num_updates))
+		else:
+			loss = self.sess.run([self.loss], feed_dict={self.features:state_vector, self.labels:action_vector, self.loss_weights:mask})
+			
+		# self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
+
+		return loss

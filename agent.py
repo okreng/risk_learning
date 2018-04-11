@@ -44,7 +44,7 @@ class Agent():
             # TODO pass in arguments to this function            
             self.attack_q_func = linear_attack_net.LinearAttackNet(self.territories, self.act_list, '0', verbose=verbose)
         elif attack_q_func is "three_layer_attack_net":
-            self.attack_q_func = three_layer_attack_net.ThreeLayerAttackNet(self.territories, self.act_list, '0', verbose=verbose)
+            self.attack_q_func = three_layer_attack_net.ThreeLayerAttackNet(self.territories, self.act_list, '0-19-1', verbose=verbose)
         elif attack_q_func is "army_difference":
             self.attack_q_func = army_difference.ArmyDifference(self.territories, self.act_list)
         else:

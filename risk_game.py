@@ -8,10 +8,21 @@ import numpy as np
 import risk_graph as rg
 from enum import Enum
 
-ActionType = Enum('ActionType','ALLOT ATTACK REINFORCE FORTIFY GAMEOVER')
+# ActionType = Enum('ActionType','ALLOT ATTACK REINFORCE FORTIFY GAMEOVER')
+class ActionType(Enum):
+    ALLOT = 0
+    ATTACK = 1
+    REINFORCE = 2
+    FORTIFY = 3
+    GAMEOVER = 4
+
+    def __int__(self):
+        return self.value
+
+
 MIN_ARMIES_PER_TURN = 3
 ARMIES_PER_TERRITORY = 0.33333
-INITIAL_PLACEMENT_ARMIES = 40
+INITIAL_PLACEMENT_ARMIES = 120
 
 class RiskGame():
     """
@@ -66,7 +77,14 @@ class RiskGame():
 
             # TOOD - determine how many armies to put on each territory
 
-        self.player_turn_order = np.random.permutation(len(self.player_list)).tolist()
+        self.order_map = np.random.permutation(len(self.player_list))
+        self.player_turn_order = np.zeros(len(self.player_list))
+        for index in range(len(self.order_map)):
+            self.player_turn_order[self.order_map[index]] = index
+        self.player_turn_order = self.player_turn_order.astype(int).tolist()
+        # self.player_turn_order.astype(int)
+        # print(self.order_map)
+        # print(self.player_turn_order)
 
         terr_armies = 0
         player_armies = 0
@@ -217,6 +235,13 @@ class RiskGame():
                     player.lose()
                     self.player_turn_order.remove(player.player_id)
                     self.active_players -= 1
+
+                    thresh = self.order_map[player.player_id]
+                    for index in range(len(self.order_map)):
+                        if index == player.player_id:
+                            self.order_map[index] = -1
+                        elif self.order_map[index] > thresh:
+                            self.order_map[index] -= 1
                 else:
                     winning = player.player_id
 
@@ -510,8 +535,12 @@ class RiskGame():
         Moves the turn to the next player, changes action type to allot, calculates allotment
         :returns: game_state
         """
-        index = self.player_turn_order[self.player_turn]
-        self.player_turn = self.player_turn_order[(index+1)%self.active_players]
+        ############## DEFUNCT, WORKS FOR TWO PLAYERS  ###########
+        # index = self.player_turn_order[self.player_turn]
+        # self.player_turn = self.player_turn_order[(index+1)%self.active_players]
+        ################## DEFUNCT ########################
+        next_player = (self.order_map[self.player_turn] + 1) % self.active_players
+        self.player_turn = self.player_turn_order[next_player]
         self.action_type = ActionType.ALLOT
         if not self.placement_phase:
             self.calculate_allotment()
@@ -592,9 +621,9 @@ class Player():
         :return : none
         """
         if (self.isAgent):
-            print("Player {}, {}, is an agent".format(self.player_id, self.name)) ## following {} policy".format(self.player_id, self.name, self.policy))
+            print("Player {}: {}".format(self.player_id, self.name)) ## following {} policy".format(self.player_id, self.name, self.policy))
         else:
-            print("Player {}, {}, is a bot".format(self.player_id, self.name)) ## following {} policy".format(self.player_id, self.name, self.policy))
+            print("Player {}: {}".format(self.player_id, self.name)) ## following {} policy".format(self.player_id, self.name, self.policy))
 
     def add_armies(self, num_armies):
         """
