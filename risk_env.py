@@ -395,7 +395,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 	USEFUL_LIFE = 1000
 	VALIDATION_GAMES = 10
 	MODEL_INSTANCE = '0'
-	LEARNING_RATE = 0.01
+	LEARNING_RATE = 0.0001
 
 	environment = RiskEnv(board, matchup, verbose)
 
@@ -406,10 +406,11 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 	if train:
 
 		################# This can be modified ####################
-		# from q_funcs.attack import three_layer_attack_net
-		# training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
-		from q_funcs.attack import two_layer_attack_net
-		training_policy = two_layer_attack_net.TwoLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
+		from q_funcs.attack import three_layer_attack_net
+		training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
+		
+		# from q_funcs.attack import two_layer_attack_net
+		# training_policy = two_layer_attack_net.TwoLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
 
 		##########################################################
 

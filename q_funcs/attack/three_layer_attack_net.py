@@ -101,10 +101,12 @@ class ThreeLayerAttackNet():
 		self.dense3 = tf.layers.dense(inputs = self.dense2, units = 128,  activation = tf.nn.tanh, use_bias = False, name = 'dense3')
 
 		
-
+		self.valid_mask = tf.placeholder(dtype=tf.float32, shape=[None, self.nA], name='valid_mask')
 		# Output Layer
 		# self.output = tf.layers.dense(inputs = self.dense3, units = self.nA, use_bias = True, name = 'output')
-		self.output = tf.layers.dense(inputs = self.dense3, units = self.nA, activation = tf.nn.sigmoid, use_bias = False, name = 'output')
+		self.pre_mask_output = tf.layers.dense(inputs = self.dense3, units = self.nA, activation = tf.nn.sigmoid, use_bias = False, name = 'output')
+
+		self.output = tf.multiply(x = self.pre_mask_output, y = self.valid_mask)
 
 		#####################
 		# self.loss = tf.losses.mean_squared_error(labels=self.labels, predictions=self.output, weights=self.loss_weights)
@@ -220,7 +222,7 @@ class ThreeLayerAttackNet():
 		return
 
 
-	def call_Q(self, state_vector, update=False, action_taken=0, target=0, loss_weights=None):
+	def call_Q(self, state_vector, valid_mask, update=False, action_taken=0, target=0, loss_weights=None):
 		"""
 		This Q function will output the action specified by the function approximator
 		:param state_vector: int the state of the board
@@ -229,9 +231,10 @@ class ThreeLayerAttackNet():
 		:return action_vector: float The Q-function outputted by the network
 		"""
 		# print(is_training)
+		valid_mask = np.array([valid_mask])
 
 		if not update:
-			q_function = self.sess.run([self.output], feed_dict={self.features:state_vector})
+			q_function = self.sess.run([self.output], feed_dict={self.features:state_vector, self.valid_mask:valid_mask})
 			
 			###### Leave in here in case of troubleshooting #######
 			# print(q_function)
@@ -241,7 +244,7 @@ class ThreeLayerAttackNet():
 			return q_function[0][0]
 		else:
 			self.num_updates += 1
-			_, q_function, loss = self.sess.run([self.train_op, self.output, self.loss], feed_dict={self.features:state_vector, self.act: action_taken, self.labels:target, self.loss_weights:loss_weights})
+			_, q_function, loss = self.sess.run([self.train_op, self.output, self.loss], feed_dict={self.features:state_vector, self.valid_mask:valid_mask, self.act: action_taken, self.labels:target, self.loss_weights:loss_weights})
 			if self.num_updates == self.next_save:
 				self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 				self.next_save += np.ceil(np.sqrt(self.num_updates))
@@ -249,7 +252,7 @@ class ThreeLayerAttackNet():
 ################### Determine how best to return q function ##########
 			return q_function[0][0], loss
 
-	def batch_train(self, state_vector, action_vector, mask, update=True, batch_size=32, loss_weights=None):
+	def batch_train(self, state_vector, action_vector, valid_mask, update=True, batch_size=32, loss_weights=None):
 		"""
 		Function to perform batch gradient descent on an input tensor
 		"""
@@ -259,13 +262,13 @@ class ThreeLayerAttackNet():
 		# for batch in range(len(state_batches)):
 		state_vector /= MAX_ARMIES
 		if update:
-			_, loss = self.sess.run([self.train_op, self.loss], feed_dict={self.features:state_vector, self.labels:action_vector, self.loss_weights:mask})
+			_, loss = self.sess.run([self.train_op, self.loss], feed_dict={self.features:state_vector, self.valid_mask:valid_mask, self.labels:action_vector, self.loss_weights:valid_mask})
 			self.num_updates += 1
 			if self.num_updates == self.next_save:
 				self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 				self.next_save += np.ceil(np.sqrt(self.num_updates))
 		else:
-			loss = self.sess.run([self.loss], feed_dict={self.features:state_vector, self.labels:action_vector, self.loss_weights:mask})
+			loss = self.sess.run([self.loss], feed_dict={self.features:state_vector, self.valid_mask:valid_mask, self.labels:action_vector, self.loss_weights:valid_mask})
 			
 		# self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 
