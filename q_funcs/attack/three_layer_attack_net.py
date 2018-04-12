@@ -245,7 +245,7 @@ class ThreeLayerAttackNet():
 		else:
 			self.num_updates += 1
 			_, q_function, loss = self.sess.run([self.train_op, self.output, self.loss], feed_dict={self.features:state_vector, self.valid_mask:valid_mask, self.act: action_taken, self.labels:target, self.loss_weights:loss_weights})
-			if self.num_updates == self.next_save:
+			if self.num_updates >= self.next_save:
 				self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 				self.next_save += np.ceil(np.sqrt(self.num_updates))
 			
@@ -264,7 +264,7 @@ class ThreeLayerAttackNet():
 		if update:
 			_, loss = self.sess.run([self.train_op, self.loss], feed_dict={self.features:state_vector, self.valid_mask:valid_mask, self.labels:action_vector, self.loss_weights:valid_mask})
 			self.num_updates += 1
-			if self.num_updates == self.next_save:
+			if self.num_updates >= self.next_save:
 				self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 				self.next_save += np.ceil(np.sqrt(self.num_updates))
 		else:
