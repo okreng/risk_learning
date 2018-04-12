@@ -51,7 +51,7 @@ class ArmyDifference():
 		return
 
 
-	def call_Q(self, state_vector, update=None, action_taken=None, target=None, loss_weights=None):
+	def call_Q(self, state_vector, valid_mask=None, update=None, action_taken=None, target=None, loss_weights=None):
 		"""
 		Function for executing maximum battle success
 		:param state_vector: np-array 1D vector of armies on territory

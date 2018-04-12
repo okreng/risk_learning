@@ -30,7 +30,7 @@ class RandomAttack():
 		self.act_list = act_list
 		return
 
-	def call_Q(self, state_vector):
+	def call_Q(self, state_vector, valid_mask=None):
 		"""
 		Function for executing maximum battle success
 		:param state_vector: np-array 1D vector of armies on territory

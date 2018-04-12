@@ -20,9 +20,16 @@ class ActionType(Enum):
         return self.value
 
 
-MIN_ARMIES_PER_TURN = 3
-ARMIES_PER_TERRITORY = 0.33333
-INITIAL_PLACEMENT_ARMIES = 120
+############ For original #######
+# MIN_ARMIES_PER_TURN = 3
+# ARMIES_PER_TERRITORY = 0.33333
+# INITIAL_PLACEMENT_ARMIES = 120
+
+########### For Australia
+MIN_ARMIES_PER_TURN = 2
+ARMIES_PER_TERRITORY = 1
+INITIAL_PLACEMENT_ARMIES = 10
+
 
 class RiskGame():
     """

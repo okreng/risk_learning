@@ -17,6 +17,7 @@ import os, sys
 # # statement below appears to re-run from inner directory
 # # from risk_definitions import ROOT_DIR
 
+MAX_ARMIES = 12
 
 ##### Working from root directory #####
 import repackage
@@ -95,9 +96,9 @@ class ThreeLayerAttackNet():
 		self.loss_weights = tf.placeholder(dtype = tf.float32, shape = [None, self.nA], name='loss_weights')
 
 		# First hidden Layer
-		self.dense1 = tf.layers.dense(inputs = self.features, units = 512, activation = tf.nn.sigmoid, use_bias = False, name = 'dense1')
-		self.dense2 = tf.layers.dense(inputs = self.dense1, units = 256, activation = tf.nn.sigmoid, use_bias = False, name = 'dense2')
-		self.dense3 = tf.layers.dense(inputs = self.dense2, units = 128,  activation = tf.nn.sigmoid, use_bias = False, name = 'dense3')
+		self.dense1 = tf.layers.dense(inputs = self.features, units = 512, activation = tf.nn.tanh, use_bias = False, name = 'dense1')
+		self.dense2 = tf.layers.dense(inputs = self.dense1, units = 256, activation = tf.nn.tanh, use_bias = False, name = 'dense2')
+		self.dense3 = tf.layers.dense(inputs = self.dense2, units = 128,  activation = tf.nn.tanh, use_bias = False, name = 'dense3')
 
 		
 
@@ -256,6 +257,7 @@ class ThreeLayerAttackNet():
 		# action_batches = tf.train.batch(action_vector, batch_size)
 
 		# for batch in range(len(state_batches)):
+		state_vector /= MAX_ARMIES
 		if update:
 			_, loss = self.sess.run([self.train_op, self.loss], feed_dict={self.features:state_vector, self.labels:action_vector, self.loss_weights:mask})
 			self.num_updates += 1

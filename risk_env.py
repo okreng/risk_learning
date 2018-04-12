@@ -78,11 +78,12 @@ class RiskEnv():
 			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "random_allot", "random_attack", "skip_fortify", self.verbose)
 		elif player_name == "agent":
 			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "three_layer_attack_net", "skip_fortify", self.verbose)
-		if player_name == "aggressive":
+		elif player_name == "aggressive":
 			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "army_difference", "skip_fortify", self.verbose)
-		if player_name == "im_learner_1":
+		elif player_name == "im_learner_1":
 			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "three_layer_attack_net", "skip_fortify", self.verbose)
-
+		elif player_name == "im_learner_2":
+			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "two_layer_attack_net", "skip_fortify", self.verbose)
 
 		print("Player name not recognized")
 		return None
@@ -270,12 +271,12 @@ class RiskEnv():
 		########### TODO wrap strategies around q functions  ###########
 
 		if action_type == ActionType.ALLOT:
-			q = agent.allot_q_func.call_Q(state)
 			valid_mask = self.allot_valid(state)
+			q = agent.allot_q_func.call_Q(state)
 			action = utils.choose_by_weight(np.multiply(valid_mask, q))
 		elif action_type == ActionType.ATTACK:
-			q = agent.attack_q_func.call_Q(state)
 			valid_mask = self.attack_valid(state)
+			q = agent.attack_q_func.call_Q(state, valid_mask=valid_mask)
 			# q_valid = utils.validate_q_func_for_argmax(q, valid_mask)
 			# action = np.argmax(q_valid)
 			if train:
@@ -393,7 +394,8 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 
 	USEFUL_LIFE = 1000
 	VALIDATION_GAMES = 10
-	MODEL_INSTANCE = '0-19'
+	MODEL_INSTANCE = '0'
+	LEARNING_RATE = 0.01
 
 	environment = RiskEnv(board, matchup, verbose)
 
@@ -404,8 +406,11 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 	if train:
 
 		################# This can be modified ####################
-		from q_funcs.attack import three_layer_attack_net
-		training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, 0, 0.001)
+		# from q_funcs.attack import three_layer_attack_net
+		# training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
+		from q_funcs.attack import two_layer_attack_net
+		training_policy = two_layer_attack_net.TwoLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
+
 		##########################################################
 
 		num_players = environment.game.num_players
@@ -439,7 +444,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 			epoch += 1
 
 			################## CREATE TRAINING LOSS PLOT ##############3
-			if (epoch%(USEFUL_LIFE/100)) == 0:
+			if (epoch%(USEFUL_LIFE/10)) == 0:
 				train_mean = np.mean(train_loss)
 				train_std = np.std(train_loss)
 				plt.errorbar(epoch, train_mean, yerr=train_std, fmt='--o', color='red')
@@ -558,7 +563,7 @@ def parse_arguments():
 	parser.add_argument('-t', dest='train', action='store_true', default=False)
 	parser.add_argument('--num-games', dest='num_games', default=100)
 	parser.add_argument('--num-epochs', dest='num_epochs', default=100000)
-	parser.set_defaults(verbose=False)
+	parser.set_defaults(verbose=True)
 	parser.set_defaults(print_game=False)
 	parser.set_defaults(train=False)
 	return parser.parse_args()
