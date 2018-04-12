@@ -1,1 +1,1 @@
-conservative, conservative, conservative, random, random, random, random
+conservative, conservative, conservative, aggressive, aggressive, random, random

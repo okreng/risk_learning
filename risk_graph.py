@@ -50,8 +50,8 @@ class RiskGraph():
 				neighbor_names[-1] = neighbor_names[-1].strip('\n')
 				new_territory = Territory(terr_edges[0], neighbor_names, len(neighbor_names), terr_id)
 				self.territory_list.append(new_territory)
-				if verbose:
-					print('Created territory {}: {}'.format(terr_id, new_territory.name))
+				# if verbose:
+				# 	print('Created territory {}: {}'.format(terr_id, new_territory.name))
 				terr_id += 1
 
 			fboard.close()
@@ -81,9 +81,9 @@ class RiskGraph():
 		self.edge_list.append([-1])  # Pass action
 
 
-		if verbose:
-			self.edge_set.print_edge_list()
-			print ("Graph Initialized")
+		# if verbose:
+		# 	self.edge_set.print_edge_list()
+		# 	print ("Graph Initialized")
 		return
 		
 

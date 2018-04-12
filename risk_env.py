@@ -392,7 +392,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 	:return: nothing
 	"""
 
-	USEFUL_LIFE = 1
+	USEFUL_LIFE = 1000
 	VALIDATION_GAMES = 10
 	MODEL_INSTANCE = '0'
 	LEARNING_RATE = 0.0001
@@ -416,7 +416,11 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 
 		num_players = environment.game.num_players
 
-		## all_player_list = range(num_players)
+
+		all_player_list = range(num_players)
+		all_players_attack_action = []
+		for player in all_player_list:
+			all_players_attack_action.append([int(ActionType.ATTACK)])
 		######### three player list ##########
 		player_list = range(3)
 		players_attack_action = []
@@ -435,8 +439,6 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 				_, t_states, t_actions, t_rewards, t_masks, _ = generate_winners_episodes(environment, num_games, player_list, players_attack_action, train=True)
 				if verbose:
 					print(" complete, training for {} epochs".format(USEFUL_LIFE))
-
-			print (len(t_states))
 
 			batch_size = len(t_states)
 			batch = np.random.permutation(batch_size)
@@ -458,9 +460,10 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 
 			################### GENERATE VALIDATION SET #################
 			if (epoch%USEFUL_LIFE) == 0:
-				_, v_states, v_actions, v_rewards, v_masks, _ = generate_winners_episodes(environment, VALIDATION_GAMES, player_list, players_attack_action, train=True)
+				v_winners, v_states, v_actions, v_rewards, v_masks, _ = generate_winners_episodes(environment, VALIDATION_GAMES, player_list, players_attack_action, train=True)
 				v_loss = []
-				for index in range(VALIDATION_GAMES):
+				v_batch_size = len(v_states)
+				for index in range(v_batch_size):
 					v_loss.append(np.mean(training_policy.batch_train(v_states[index], v_actions[index], v_masks[index], update=False)))
 				loss_mean = np.mean(v_loss)
 				loss_std = np.std(v_loss)
@@ -532,13 +535,10 @@ def generate_winners_episodes(env, num_games, player_list=None, player_action_li
 		# print(actions[winner][int(ActionType.ATTACK)])
 
 		################# IN USE #################
-		try:
-			if train:
-				imitation_states.append(np.array(states[winner][int(ActionType.ATTACK)]))
-				imitation_actions.append(np.array(actions[winner][int(ActionType.ATTACK)]))
-				imitation_masks.append(np.array(masks[winner][int(ActionType.ATTACK)]))
-		except:
-			pass
+		if train and (winner in player_list):
+			imitation_states.append(np.array(states[winner][int(ActionType.ATTACK)]))
+			imitation_actions.append(np.array(actions[winner][int(ActionType.ATTACK)]))
+			imitation_masks.append(np.array(masks[winner][int(ActionType.ATTACK)]))
 
 		for player in range(len(record)):
 			if player == winner:
