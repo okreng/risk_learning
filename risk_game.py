@@ -7,6 +7,7 @@ import numpy as np
 # from OLD import risk_graph as rg
 import risk_graph as rg
 from enum import Enum
+import params
 
 # ActionType = Enum('ActionType','ALLOT ATTACK REINFORCE FORTIFY GAMEOVER')
 class ActionType(Enum):
@@ -18,11 +19,6 @@ class ActionType(Enum):
 
     def __int__(self):
         return self.value
-
-
-MIN_ARMIES_PER_TURN = 3
-ARMIES_PER_TERRITORY = 0.33333
-INITIAL_PLACEMENT_ARMIES = 120
 
 class RiskGame():
     """
@@ -269,7 +265,7 @@ class RiskGame():
         These are share among all players
         """
         # TODO: base this on game logic
-        self.unallocated_armies = INITIAL_PLACEMENT_ARMIES
+        self.unallocated_armies = params.INITIAL_PLACEMENT_ARMIES
         return
 
 
@@ -277,6 +273,10 @@ class RiskGame():
         """
         Calculates the number of armies the active player can place
         """
+
+        MIN_ARMIES_PER_TURN = params.MIN_ARMIES_PER_TURN
+        ARMIES_PER_TERRITORY = params.ARMIES_PER_TERRITORY
+
         armies_by_territory = np.floor(ARMIES_PER_TERRITORY * self.get_player_from_id(self.player_turn).total_territories)
         if self.graph.board == 'Original':
             armies_by_continent = 0

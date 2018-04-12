@@ -11,8 +11,7 @@ import time
 import matplotlib as plot
 import sys
 import argparse
-
-MAX_ARMIES = 12
+import params
 
 class RiskGraph():
 	"""
@@ -32,8 +31,8 @@ class RiskGraph():
 		self.territory_list = []
 		self.board = board
 
-		MAX_ARMIES = 12
-		self.MAX_ARMIES = MAX_ARMIES
+		# MAX_ARMIES = 12
+		self.MAX_ARMIES = params.MAX_ARMIES
 
 		# Read through the .risk file and convert it to graph
 		if verbose:
@@ -275,7 +274,7 @@ class Territory():
 		self.terr_id = terr_id
 
 		#### TODO: Figure out how to best share this information
-		self.MAX_ARMIES = MAX_ARMIES
+		self.MAX_ARMIES = params.MAX_ARMIES
 		
 		# Note - armies of size <= 0 and player_id of <0 will produced errors after initalization
 		self.armies = armies

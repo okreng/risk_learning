@@ -11,13 +11,10 @@ from risk_game import ActionType
 import numpy as np
 import agent
 import utils
+import params
 
 import matplotlib
 import matplotlib.pyplot as plt
-
-TRAIN_EPSILON = 0
-TEST_EPSILON = 0.2
-TIMEOUT_STATES = 10000
 
 
 class RiskEnv():
@@ -98,6 +95,9 @@ class RiskEnv():
 		:return actions: list of lists of numpy arrays, actions taken in those states
 		:return rewards: list of lists of numpy arrays, the rewards earned by those actions
 		"""
+
+		TIMEOUT_STATES = params.TIMEOUT_STATES
+
 		if train:
 			g_states = {}  # maps player_id to states seen by that player
 			g_actions = {}  # maps player_id to actions taken by that player
@@ -267,6 +267,9 @@ class RiskEnv():
 		# Wrap state to work with general q functions
 		state = np.array([state])
 
+		TRAIN_EPSILON = params.TRAIN_EPSILON
+		TEST_EPSILON = params.TEST_EPSILON
+
 		########### TODO wrap strategies around q functions  ###########
 
 		if action_type == ActionType.ALLOT:
@@ -391,9 +394,10 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 	:return: nothing
 	"""
 
-	USEFUL_LIFE = 1000
-	VALIDATION_GAMES = 10
-	MODEL_INSTANCE = '0-19'
+	USEFUL_LIFE = params.USEFUL_LIFE#1000
+	VALIDATION_GAMES = params.VALIDATION_GAMES#10
+	MODEL_INSTANCE = params.MODEL_INSTANCE#'0-19'
+	LEARNING_RATE = params.LEARNING_RATE
 
 	environment = RiskEnv(board, matchup, verbose)
 
@@ -405,7 +409,9 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 
 		################# This can be modified ####################
 		from q_funcs.attack import three_layer_attack_net
-		training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, 0, 0.001)
+		training_policy = three_layer_attack_net.ThreeLayerAttackNet(
+			environment.game.graph.total_territories, environment.game.graph.edge_list, 
+			MODEL_INSTANCE, 0, LEARNING_RATE)
 		##########################################################
 
 		num_players = environment.game.num_players
@@ -431,7 +437,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 
 			batch = np.random.permutation(num_games)
 			for index in range(num_games):
-				batch_state = t_states[batch[index]]
+				batch_state = t_states[batch[index]] / environment.game.graph.MAX_ARMIES # normalize
 				batch_action = t_actions[batch[index]]
 				batch_mask = t_masks[batch[index]]
 				train_loss.append(np.mean(training_policy.batch_train(batch_state, batch_action, batch_mask)))
