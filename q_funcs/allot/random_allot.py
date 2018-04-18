@@ -54,4 +54,9 @@ class RandomAllot():
 		action_vector = np.random.rand(self.T)
 		return action_vector
 
-		
+	def get_action(self, state_vector, valid_mask, update=None, action_taken=None, target=None, loss_weights=None):
+		"""
+		Chooses an action based on the state vector and valid_mask inputted
+		"""
+		q = self.call_Q(state_vector)
+		return np.argmax(action)

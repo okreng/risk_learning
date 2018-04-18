@@ -16,7 +16,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 TRAIN_EPSILON = 0
-TEST_EPSILON = 0.2
+TEST_EPSILON = 0.05
 TIMEOUT_STATES = 10000
 
 
@@ -272,28 +272,32 @@ class RiskEnv():
 
 		if action_type == ActionType.ALLOT:
 			valid_mask = self.allot_valid(state)
-			q = agent.allot_q_func.call_Q(state)
-			action = utils.choose_by_weight(np.multiply(valid_mask, q))
+			# return agent.allot_q_func.get_action(state, valid_mask)
+			# q = agent.allot_q_func.call_Q(state)
+			# action = utils.choose_by_weight(np.multiply(valid_mask, q))
+			action = agent.allot_q_func.get_action(state, valid_mask)
 		elif action_type == ActionType.ATTACK:
 			valid_mask = self.attack_valid(state)
-			q = agent.attack_q_func.call_Q(state, valid_mask=valid_mask)
-			# q_valid = utils.validate_q_func_for_argmax(q, valid_mask)
-			# action = np.argmax(q_valid)
-			if train:
-				action = utils.epsilon_greedy_valid(q, valid_mask, TRAIN_EPSILON)
-			else:
-				action = utils.epsilon_greedy_valid(q, valid_mask, TEST_EPSILON)
+			action = agent.attack_q_func.get_action(state, valid_mask)
+			# q = agent.attack_q_func.call_Q(state, valid_mask=valid_mask)
+			# # q_valid = utils.validate_q_func_for_argmax(q, valid_mask)
+			# # action = np.argmax(q_valid)
+			# if train:
+			# 	action = utils.epsilon_greedy_valid(q, valid_mask, TRAIN_EPSILON)
+			# else:
+			# 	action = utils.epsilon_greedy_valid(q, valid_mask, TEST_EPSILON)
 		elif action_type == ActionType.REINFORCE:
 			q = agent.reinforce_q_func.call_Q(state)
 			action = q
 			######## Replace once true reinforce in place
 			return action, None
 		elif action_type == ActionType.FORTIFY:
-			q = agent.fortify_q_func.call_Q(state)
+			# q = agent.fortify_q_func.call_Q(state)
 			######### Activate this if anything is not using skip_fortify ######
 			valid_mask = self.fortify_valid(state)
-			q_valid = utils.validate_q_func_for_argmax(q, valid_mask)
-			action = np.argmax(q_valid)
+			# q_valid = utils.validate_q_func_for_argmax(q, valid_mask)
+			# action = np.argmax(q_valid)
+			action = agent.fortify_q_func.get_action(state, valid_mask)
 			###############################3#############
 			# action = np.argmax(q)
 
@@ -392,7 +396,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 	:return: nothing
 	"""
 
-	USEFUL_LIFE = 100000
+	USEFUL_LIFE = 100
 	VALIDATION_GAMES = 10
 	MODEL_INSTANCE = '0'
 	LEARNING_RATE = 0.0001
@@ -451,7 +455,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 			epoch += 1
 
 			################## CREATE TRAINING LOSS PLOT ##############3
-			if (epoch%(USEFUL_LIFE/100)) == 0:
+			if (epoch%(USEFUL_LIFE/10)) == 0:
 				train_mean = np.mean(train_loss)
 				train_std = np.std(train_loss)
 				plt.errorbar(epoch, train_mean, yerr=train_std, fmt='--o', color='red')
@@ -459,7 +463,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 				train_loss = []
 
 			################### GENERATE VALIDATION SET #################
-			if (epoch%(USEFUL_LIFE/10)) == 0:
+			if (epoch%(USEFUL_LIFE/1)) == 0:
 				v_winners, v_states, v_actions, v_rewards, v_masks, _ = generate_winners_episodes(environment, VALIDATION_GAMES, player_list, players_attack_action, train=True)
 				v_loss = []
 				v_batch_size = len(v_states)

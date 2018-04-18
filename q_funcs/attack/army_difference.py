@@ -33,6 +33,13 @@ Environment will translate maxmimum valid element into attack in the game
 
 import numpy as np
 
+##### Working from root directory #####
+import repackage
+repackage.up(2)
+import utils
+##### End Working from root directory #####
+
+
 global MAX_ARMIES #max armies per player
 
 class ArmyDifference():
@@ -68,7 +75,6 @@ class ArmyDifference():
 		# Pass value is prioritized below 0 difference matchups
 		pass_value = army_offset - 1
 
-
 		################ Updated code for new action space ################
 		action_vector = np.zeros(len(self.act_list))
 		for act_index in range(len(self.act_list)):
@@ -94,11 +100,14 @@ class ArmyDifference():
 					else:
 						print("Neither army is player, exiting")
 						exit()
-
-
-
 		action_vector[-1] = pass_value
-
 		return action_vector
 
-		
+	def get_action(self, state_vector, valid_mask, update=None, action_taken=None, target=None, loss_weights=None):
+		"""
+		Chooses an action based on the state vector and valid_mask inputted
+		"""
+		q = self.call_Q(state_vector)
+		valid_q = utils.validate_q_func_for_argmax(q, valid_mask)
+		action = utils.epsilon_greedy_valid(q, valid_mask, 0)
+		return action

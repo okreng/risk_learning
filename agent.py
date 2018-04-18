@@ -4,7 +4,7 @@ This file contains the agent object for holding multiple q functions
 
 # import all existing policies
 from q_funcs.allot import random_allot, amass
-from q_funcs.attack import linear_attack_net, max_success, three_layer_attack_net, random_attack, army_difference, two_layer_attack_net
+from q_funcs.attack import linear_attack_net, max_success, three_layer_attack_net, random_attack, army_difference, two_layer_attack_net, manual_attack
 from q_funcs.fortify import random_fortify, skip_fortify
 from q_funcs.reinforce import reinforce_all
 
@@ -45,9 +45,11 @@ class Agent():
         elif attack_q_func is "two_layer_attack_net":
             self.attack_q_func = two_layer_attack_net.TwoLayerAttackNet(self.territories, self.act_list, '0-31', verbose=verbose)
         elif attack_q_func is "three_layer_attack_net":
-            self.attack_q_func = three_layer_attack_net.ThreeLayerAttackNet(self.territories, self.act_list, '0-59', verbose=verbose)
+            self.attack_q_func = three_layer_attack_net.ThreeLayerAttackNet(self.territories, self.act_list, '0', verbose=verbose)
         elif attack_q_func is "army_difference":
             self.attack_q_func = army_difference.ArmyDifference(self.territories, self.act_list)
+        elif attack_q_func is "manual":
+            self.attack_q_func = manual_attack.ManualAttack(self.territories, self.act_list)
         else:
             print("No valid attack Q function specified")
             exit()

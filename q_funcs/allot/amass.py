@@ -9,6 +9,12 @@ Each territory held by the player has an equal probability of being selected
 import numpy as np
 import random
 
+##### Working from root directory #####
+import repackage
+repackage.up(2)
+import utils
+##### End Working from root directory #####
+
 global MAX_ARMIES #max armies per player
 
 class Amass():
@@ -45,4 +51,11 @@ class Amass():
 
 		return action_vector
 
+	def get_action(self, state_vector, valid_mask, update=None, action_taken=None, target=None, loss_weights=None):
+		"""
+		Chooses an action based on the state vector and valid_mask inputted
+		"""
+		q = self.call_Q(state_vector)
+		action = utils.choose_by_weight(np.multiply(valid_mask, q))
+		return action
 		

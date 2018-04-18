@@ -21,8 +21,9 @@ MAX_ARMIES = 12
 
 ##### Working from root directory #####
 import repackage
-repackage.up(1)
-from model_tree import model_tree
+repackage.up(2)
+from q_funcs.model_tree import model_tree
+import utils
 ##### End Working from root directory #####
 
 class ThreeLayerAttackNet():
@@ -57,6 +58,8 @@ class ThreeLayerAttackNet():
 		self.action_type_string = 'attack'
 		self.max_saves = 1
 		self.exact_load = True
+		#### will be overwritten unless instantiating a new random network #########3
+		self.num_updates = 0
 
 		self.verbose = verbose
 
@@ -251,6 +254,14 @@ class ThreeLayerAttackNet():
 			
 ################### Determine how best to return q function ##########
 			return q_function[0][0], loss
+
+	def get_action(self, state_vector, valid_mask, update=None, action_taken=None, target=None, loss_weights=None):
+		"""
+		Chooses an action based on the state vector and valid_mask inputted
+		"""
+		q = self.call_Q(state_vector, valid_mask)
+		action = utils.choose_by_weight(q)
+		return action
 
 	def batch_train(self, state_vector, action_vector, valid_mask, update=True, batch_size=32, loss_weights=None):
 		"""
