@@ -7,6 +7,12 @@ Each territory held by the player has an equal probability of being selected
 import numpy as np
 import random
 
+##### Working from root directory #####
+import repackage
+repackage.up(2)
+import utils
+##### End Working from root directory #####
+
 global MAX_ARMIES #max armies per player
 
 class RandomAllot():
@@ -59,4 +65,6 @@ class RandomAllot():
 		Chooses an action based on the state vector and valid_mask inputted
 		"""
 		q = self.call_Q(state_vector)
-		return np.argmax(action)
+		valid_q = utils.validate_q_func_for_argmax(q, valid_mask)
+		action = utils.epsilon_greedy_valid(q, valid_mask, 0)
+		return action

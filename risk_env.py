@@ -75,7 +75,7 @@ class RiskEnv():
 		if player_name == "conservative":
 			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "max_success", "skip_fortify", self.verbose)
 		elif player_name == "random":
-			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "random_allot", "random_attack", "skip_fortify", self.verbose)
+			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "random_attack", "skip_fortify", self.verbose)
 		elif player_name == "agent":
 			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "three_layer_attack_net", "skip_fortify", self.verbose)
 		elif player_name == "aggressive":
