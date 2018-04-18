@@ -54,8 +54,8 @@ class RiskGame():
         for player_id in range(self.num_players):
             self.add_player(player_id)
             # self.activate_player(player_id) # Maybe do this here
-            if verbose:
-                print("Created inactive player: {}".format(player_id))
+            # if verbose:
+            #     print("Created inactive player: {}".format(player_id))
 
         # global MAX_ARMIES_PER_PLAYER
         # MAX_ARMIES_PER_PLAYER = 42

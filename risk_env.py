@@ -392,7 +392,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 	:return: nothing
 	"""
 
-	USEFUL_LIFE = 1000
+	USEFUL_LIFE = 100000
 	VALIDATION_GAMES = 10
 	MODEL_INSTANCE = '0'
 	LEARNING_RATE = 0.0001
@@ -422,7 +422,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 		for player in all_player_list:
 			all_players_attack_action.append([int(ActionType.ATTACK)])
 		######### three player list ##########
-		player_list = range(3)
+		player_list = range(7)
 		players_attack_action = []
 		for player in player_list:
 			players_attack_action.append([int(ActionType.ATTACK)])
@@ -451,7 +451,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 			epoch += 1
 
 			################## CREATE TRAINING LOSS PLOT ##############3
-			if (epoch%(USEFUL_LIFE/10)) == 0:
+			if (epoch%(USEFUL_LIFE/100)) == 0:
 				train_mean = np.mean(train_loss)
 				train_std = np.std(train_loss)
 				plt.errorbar(epoch, train_mean, yerr=train_std, fmt='--o', color='red')
@@ -459,7 +459,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 				train_loss = []
 
 			################### GENERATE VALIDATION SET #################
-			if (epoch%USEFUL_LIFE) == 0:
+			if (epoch%(USEFUL_LIFE/10)) == 0:
 				v_winners, v_states, v_actions, v_rewards, v_masks, _ = generate_winners_episodes(environment, VALIDATION_GAMES, player_list, players_attack_action, train=True)
 				v_loss = []
 				v_batch_size = len(v_states)
