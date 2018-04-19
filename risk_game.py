@@ -324,6 +324,21 @@ class RiskGame():
 
             self.unallocated_armies = max(MIN_ARMIES_PER_TURN, armies_by_territory + armies_by_continent)
 
+        elif self.graph.board == 'Australia':
+            armies_by_continent = 0
+            p = self.player_turn
+
+            player_control = []
+            for terr in self.board_state():
+                player_control.append(terr[0])
+
+            eastern_australia = [1]
+            c_eastern_australia = self.controls_continent(p, player_control, eastern_australia)
+
+            armies_by_continent = c_eastern_australia  ## Plus one to whoever owns eastern australia
+
+            self.unallocated_armies = max(MIN_ARMIES_PER_TURN, armies_by_territory + armies_by_continent)
+
         else:
             self.unallocated_armies = max(MIN_ARMIES_PER_TURN, armies_by_territory)
 

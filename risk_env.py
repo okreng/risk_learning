@@ -215,7 +215,7 @@ class RiskEnv():
 
 					##################### Faster method ###################
 					# g_rewards[player_turn][int(action_type)][g_steps[player_turn][int(action_type)]] = reward
-					g_steps[player_turn][int(action_type)] += 1
+					g_steps[old_player_turn][int(action_type)] += 1
 
 
 			if verbose:
@@ -398,8 +398,8 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 
 	USEFUL_LIFE = 1000
 	VALIDATION_GAMES = 10
-	MODEL_INSTANCE = '0'
-	LEARNING_RATE = 0.00005
+	MODEL_INSTANCE = '0-51'
+	LEARNING_RATE = 0.0001
 
 	######### 0-44 is conservative-conservative ###############
 	######### 0... is conservative-aggressive #################
@@ -417,7 +417,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 		# training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
 		
 		from q_funcs.attack import two_layer_attack_net
-		training_policy = two_layer_attack_net.TwoLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
+		training_policy = two_layer_attack_net.TwoLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, 0, LEARNING_RATE)
 
 		##########################################################
 
@@ -586,7 +586,7 @@ def generate_a2c_learning_episodes(env, num_games, player_list=None, player_acti
 		winner_targets[action_type] = action_targets
 		winner_steps[action_type] = action_steps
 
-	for i in range(num_games):
+	for game in range(num_games):
 		winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train, print_game)
 
 		# for action_type in player_action_list[winner]:
@@ -602,19 +602,21 @@ def generate_a2c_learning_episodes(env, num_games, player_list=None, player_acti
 
 
 ##################### Copied from a2c in hw3, not yet implemented ############################
-			R = np.zeros(T)
+			R = np.zeros(winner_steps[action_type][game])
 			V_end = np.zeros(T)
 			actor_target = np.zeros((T, ACTION_SPACE))
 			for t in reversed(range(T)):
 			# Note: V_end = 0 case is default, handled by zero initialization
-			if (t+n < T):
-				V_end[t] = e_Vw[t+n]
-			R[t] = (GAMMA**n) * V_end[t]
-			for k in range(n):
-				if (t+k < T):
-					R[t] += (GAMMA**k) * e_rewards[t+k]
-			actor_target[t, :] = R[t] - e_Vw[t] 
-			actor_target[t,:] = np.multiply(actor_target[t, :], e_actions[t])
+				if (t+n < T):
+					V_end[t] = e_Vw[t+n]
+				R[t] = (GAMMA**n) * V_end[t]
+				for k in range(n):
+					if (t+k < T):
+						R[t] += (GAMMA**k) * e_rewards[t+k]
+				actor_target[t, :] = R[t] - e_Vw[t] 
+				actor_target[t,:] = np.multiply(actor_target[t, :], e_actions[t])
+
+
 
 
 	return winner_states, winner_actions, winner_rewards
