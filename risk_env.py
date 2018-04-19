@@ -398,7 +398,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 
 	USEFUL_LIFE = 1000
 	VALIDATION_GAMES = 10
-	MODEL_INSTANCE = '0-51'
+	MODEL_INSTANCE = '0'
 	LEARNING_RATE = 0.0001
 
 	######### 0-44 is conservative-conservative ###############
@@ -417,7 +417,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 		# training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
 		
 		from q_funcs.attack import two_layer_attack_net
-		training_policy = two_layer_attack_net.TwoLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, 0, LEARNING_RATE)
+		training_policy = two_layer_attack_net.TwoLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
 
 		##########################################################
 
@@ -563,27 +563,33 @@ def generate_winners_episodes(env, num_games, player_list=None, player_action_li
 		return record, None, None, None, None, None
 
 
-def generate_a2c_learning_episodes(env, num_games, player_list=None, player_action_list=None, train=False, verbose=False, print_game=False, N=250):
+def generate_a2c_learning_episodes(env, num_games, player_list=None, player_action_list=None, train=False, verbose=False, print_game=False, n=250):
 	"""
 	Similar to generate_winners_episode, but includes targets for a2c
-	Currently
 	"""
+	GAMMA = 1
 
 	winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train, print_game)
 
 	winner_states = {}
 	winner_actions = {}
+	winner_masks = {}
 	winner_targets = {}
+	winner_R = {}
 	winner_steps = {}
 	if action_type in player_action_list[winner]:
 		action_states = []
 		action_actions = []
+		action_masks = []
 		action_targets = []
+		action_R = []
 		action_steps = 0
 
 		winner_states[action_type] = action_states
 		winner_actions[action_type] = action_actions
+		winner_masks[action_type] = action_masks
 		winner_targets[action_type] = action_targets
+		winner_R[action_type] = action_R
 		winner_steps[action_type] = action_steps
 
 	for game in range(num_games):
@@ -596,15 +602,16 @@ def generate_a2c_learning_episodes(env, num_games, player_list=None, player_acti
 			################# Currently only for single action type - attack
 			winner_states[action_type].append(np.array(states[winner][int(ActionType.ATTACK)]))
 			winner_actions[action_type].append(np.array(actions[winner][int(ActionType.ATTACK)]))
-			winner_targets[action_type].append(np.array(masks[winner][int(ActionType.ATTACK)]))
+			winner_masks[action_type].append(np.array(masks[winner][int(ActionType.ATTACK)]))
 			winner_steps[action_type].append(num_states[winner][int(ActionType.ATTACK)])
 
 
-
 ##################### Copied from a2c in hw3, not yet implemented ############################
-			R = np.zeros(winner_steps[action_type][game])
+			T = winner_steps[action_type][game]
+			R = np.zeros(T)
 			V_end = np.zeros(T)
-			actor_target = np.zeros((T, ACTION_SPACE))
+			# actor_target = np.zeros((T, ACTION_SPACE))
+			actor_target = np.zeros((T, len(env.game.graph.edge_list)))
 			for t in reversed(range(T)):
 			# Note: V_end = 0 case is default, handled by zero initialization
 				if (t+n < T):
@@ -612,14 +619,17 @@ def generate_a2c_learning_episodes(env, num_games, player_list=None, player_acti
 				R[t] = (GAMMA**n) * V_end[t]
 				for k in range(n):
 					if (t+k < T):
-						R[t] += (GAMMA**k) * e_rewards[t+k]
+						R[t] += (GAMMA**k) * rewards[winner][action_type][t+k]
 				actor_target[t, :] = R[t] - e_Vw[t] 
-				actor_target[t,:] = np.multiply(actor_target[t, :], e_actions[t])
+				actor_target[t,:] = np.multiply(actor_target[t, :], actions[winner][action_type][t])
+
+			winner_R[action_type].append(R)
+			winner_target[action_type].append(actor_target)
 
 
 
 
-	return winner_states, winner_actions, winner_rewards
+	return winner_states, winner_actions, winner_masks, winner_R, winner_targets, winner_steps
 
 
 
