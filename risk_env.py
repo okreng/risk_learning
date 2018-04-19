@@ -213,9 +213,9 @@ class RiskEnv():
 					# print(valid_mask)
 
 					if old_player_turn == winner:
-						reward = 1
+						reward = 1000
 					else:
-						reward = 0
+						reward = 0  ################ NOTE: State-based rewards will be computed in post-processing by generate_reinforcement_learning_episodes #######
 					################### OLD: TOO SLOW ###################
 					g_rewards[old_player_turn][int(old_action_type)].append(reward)
 
@@ -264,6 +264,7 @@ class RiskEnv():
 			else:  
 				state[territory] = -raw_state[territory][1]
 		return state
+
 
 	def game_state_2_action(self, state, player_id, action_type, train):
 		"""
@@ -604,13 +605,13 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 	# print("States:")
 	# print(winner_states[1][0])
 	print("Actions:")
-	print(winner_actions[1][0][-2])
+	print(winner_actions[1][0])
 	# print("Masks:")
 	# print(winner_masks[1][0])
 	# print("Rewards:")
 	# print(winner_rewards[1][0])
 	print("Targets:")
-	print(winner_targets[1][0][-2])
+	print(winner_targets[1][0])
 
 
 
@@ -692,9 +693,13 @@ def generate_reinforcement_learning_episodes(env, num_games, player_list=None, p
 					returns_scalar[t] = winner_rewards[action_type][game][t]
 					game_returns[t, :] = returns_scalar[t]
 				else:
+					winner_rewards[action_type][game][t] = change_in_army_difference_reward(winner_states[action_type][game][t+1], winner_states[action_type][game][t])
 					returns_scalar[t] = winner_rewards[action_type][game][t] + GAMMA*returns_scalar[t+1]
 					game_returns[t, :] = returns_scalar[t]
 				game_returns[t, :] = np.multiply(game_returns[t,:], winner_actions[action_type][game][t])
+			################## In order to scale properly ###############
+			game_returns /= 1000
+			###########################################
 			winner_targets[action_type].append(game_returns)
 
 
@@ -704,6 +709,28 @@ def generate_reinforcement_learning_episodes(env, num_games, player_list=None, p
 
 	return winner_states, winner_actions, winner_masks, winner_targets, winner_steps
 
+
+def change_in_army_difference_reward(new_state, old_state):
+	"""
+	This function returns the change of army difference from the old state to the new state
+	"""
+	old_state_difference = compute_army_difference(old_state)
+	new_state_difference = compute_army_difference(new_state)
+	return new_state_difference - old_state_difference
+
+def compute_army_difference(state_vector):
+	"""
+	This function computes player_armies - opponent_armies
+	"""
+	opponent_armies = 0
+	player_armies = 0
+	for territory in range(len(state_vector)):
+		armies = state_vector[territory]
+		if armies < 0:
+			opponent_armies -= armies  # Negate and add
+		else:
+			player_armies += armies
+	return player_armies-opponent_armies
 
 
 def parse_arguments():
