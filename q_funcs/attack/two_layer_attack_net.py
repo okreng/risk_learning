@@ -265,8 +265,8 @@ class TwoLayerAttackNet():
 		Chooses an action based on the state vector and valid_mask inputted
 		"""
 		q = self.call_Q(state_vector, valid_mask)
-		action = np.argmax(q)
-		# action = utils.choose_by_weight(q)
+		# action = np.argmax(q)
+		action = utils.choose_by_weight(q)
 		return action
 
 	def batch_train(self, state_vector, action_vector, valid_mask, update=True, batch_size=32, loss_weights=None):

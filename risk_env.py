@@ -596,9 +596,9 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 	################# This can be modified ####################
 	# from q_funcs.attack import three_layer_attack_net
 	# training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
-	
-	from q_funcs.attack import two_layer_attack_net
-	training_policy = two_layer_attack_net.TwoLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
+	# from q_funcs.attack import two_layer_attack_net
+	# training_policy = two_layer_attack_net.TwoLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
+	training_policy = environment.agent_list[0].attack_q_func
 
 	##########################################################
 
@@ -618,6 +618,9 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 
 	train_loss = []
 	for game in range(num_games):
+
+
+
 		states, actions, masks, targets, steps = generate_reinforcement_learning_episodes(environment, 1, player_list, players_attack_action, verbose)
 
 		reinforcement_states = np.array(states[int(ActionType.ATTACK)][0])
@@ -638,7 +641,7 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 		train_loss.append(np.mean(training_policy.batch_train(state_vector=reinforcement_states, action_vector=reinforcement_targets, valid_mask=reinforcement_masks, update=True, batch_size=batch_size)))
 
 		################## CREATE TRAINING LOSS PLOT ##############3
-		if (game%(num_games/100)) == 0:
+		if (game%(num_games/100) == 0) and not (game == 0):
 			train_mean = np.mean(train_loss)
 			train_std = np.std(train_loss)
 			plt.errorbar(game, train_mean, yerr=train_std, fmt='--o', color='red')
