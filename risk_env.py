@@ -106,7 +106,7 @@ class RiskEnv():
 			g_masks = {}  # maps player_id to valid masks in states
 
 			#### Only used by array implementation
-			# g_steps = {}
+			g_steps = {}
 			num_recorded_players = 0
 			for player in range(max(player_id_list)+1):
 				if player in player_id_list:
@@ -122,7 +122,7 @@ class RiskEnv():
 					g_rewards[player] = player_rewards
 					g_masks[player] = player_masks
 
-					# g_steps[player] = player_steps
+					g_steps[player] = player_steps
 					
 					for action_type in range(max(player_action_list[num_recorded_players])+1):
 						if action_type in player_action_list[num_recorded_players]:
@@ -136,7 +136,7 @@ class RiskEnv():
 							player_action_actions = []
 							player_action_rewards = []
 							player_action_masks = []
-							# player_action_steps = 0
+							player_action_steps = 0
 
 							############## New code #################
 							g_states[player][action_type] = player_action_states
@@ -144,7 +144,7 @@ class RiskEnv():
 							g_rewards[player][action_type] = player_action_rewards
 							g_masks[player][action_type] = player_action_masks
 
-							# g_steps[player][action_type] = player_action_steps
+							g_steps[player][action_type] = player_action_steps
 					num_recorded_players += 1
 
 		num_states = 0
@@ -215,7 +215,7 @@ class RiskEnv():
 
 					##################### Faster method ###################
 					# g_rewards[player_turn][int(action_type)][g_steps[player_turn][int(action_type)]] = reward
-					# g_steps[player_turn][int(action_type)] += 1
+					g_steps[player_turn][int(action_type)] += 1
 
 
 			if verbose:
@@ -231,9 +231,9 @@ class RiskEnv():
 			print("Player {} wins".format(winner))
 
 		if train:
-			return winner, g_states, g_actions, g_rewards, g_masks, num_states, True
+			return winner, g_states, g_actions, g_rewards, g_masks, g_steps, True
 		else:
-			return winner, None, None, None, None, num_states, True
+			return winner, None, None, None, None, None, True
 
 	def unpack_game_state(self, game_state):
 		"""
@@ -561,6 +561,64 @@ def generate_winners_episodes(env, num_games, player_list=None, player_action_li
 		return record, imitation_states, imitation_actions, rewards, imitation_masks, num_states
 	else:
 		return record, None, None, None, None, None
+
+
+def generate_a2c_learning_episodes(env, num_games, player_list=None, player_action_list=None, train=False, verbose=False, print_game=False, N=250):
+	"""
+	Similar to generate_winners_episode, but includes targets for a2c
+	Currently
+	"""
+
+	winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train, print_game)
+
+	winner_states = {}
+	winner_actions = {}
+	winner_targets = {}
+	winner_steps = {}
+	if action_type in player_action_list[winner]:
+		action_states = []
+		action_actions = []
+		action_targets = []
+		action_steps = 0
+
+		winner_states[action_type] = action_states
+		winner_actions[action_type] = action_actions
+		winner_targets[action_type] = action_targets
+		winner_steps[action_type] = action_steps
+
+	for i in range(num_games):
+		winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train, print_game)
+
+		# for action_type in player_action_list[winner]:
+		action_type = int(ActionType.ATTACK)
+		if train and (winner in player_list):
+
+			################# Currently only for single action type - attack
+			winner_states[action_type].append(np.array(states[winner][int(ActionType.ATTACK)]))
+			winner_actions[action_type].append(np.array(actions[winner][int(ActionType.ATTACK)]))
+			winner_targets[action_type].append(np.array(masks[winner][int(ActionType.ATTACK)]))
+			winner_steps[action_type].append(num_states[winner][int(ActionType.ATTACK)])
+
+
+
+##################### Copied from a2c in hw3, not yet implemented ############################
+			R = np.zeros(T)
+			V_end = np.zeros(T)
+			actor_target = np.zeros((T, ACTION_SPACE))
+			for t in reversed(range(T)):
+			# Note: V_end = 0 case is default, handled by zero initialization
+			if (t+n < T):
+				V_end[t] = e_Vw[t+n]
+			R[t] = (GAMMA**n) * V_end[t]
+			for k in range(n):
+				if (t+k < T):
+					R[t] += (GAMMA**k) * e_rewards[t+k]
+			actor_target[t, :] = R[t] - e_Vw[t] 
+			actor_target[t,:] = np.multiply(actor_target[t, :], e_actions[t])
+
+
+	return winner_states, winner_actions, winner_rewards
+
 
 
 def parse_arguments():
