@@ -103,7 +103,7 @@ class RiskEnv():
 		if train:
 			g_states = {}  # maps player_id to states seen by that player
 			g_actions = {}  # maps player_id to actions taken by that player
-			g_rewards = {}  # maps player_id to rewards earned by action
+			# g_rewards = {}  # maps player_id to rewards earned by action
 			g_masks = {}  # maps player_id to valid masks in states
 
 			#### Only used by array implementation
@@ -114,13 +114,13 @@ class RiskEnv():
 					
 					player_states = {}  # maps action_type to states seen by that player, action
 					player_actions = {}  # maps action_type to actions taken by that player_action
-					player_rewards = {}  # maps action_type to rewards earned by that player_action
+					# player_rewards = {}  # maps action_type to rewards earned by that player_action
 					player_masks = {}  # maps action_type to masks for that player, action
 					player_steps = {}
 					
 					g_states[player] = player_states
 					g_actions[player] = player_actions
-					g_rewards[player] = player_rewards
+					# g_rewards[player] = player_rewards
 					g_masks[player] = player_masks
 
 					g_steps[player] = player_steps
@@ -135,14 +135,14 @@ class RiskEnv():
 							################### TOO SLOW TO CONVERT BETWEEN ARRAYS AND LISTS ################
 							player_action_states = []
 							player_action_actions = []
-							player_action_rewards = []
+							# player_action_rewards = []
 							player_action_masks = []
 							player_action_steps = 0
 
 							############## New code #################
 							g_states[player][action_type] = player_action_states
 							g_actions[player][action_type] = player_action_actions
-							g_rewards[player][action_type] = player_action_rewards
+							# g_rewards[player][action_type] = player_action_rewards
 							g_masks[player][action_type] = player_action_masks
 
 							g_steps[player][action_type] = player_action_steps
@@ -161,7 +161,7 @@ class RiskEnv():
 				if train:
 					if num_states > TIMEOUT_STATES:
 						print("Game exceeded timeout states: {}".format(TIMEOUT_STATES))
-						return None, None, None, None, None, None, False
+						return None, None, None, None, None, False
 			old_action_type = new_action_type
 			old_player_turn = new_player_turn
 			state = self.translate_2_state(raw_state, old_player_turn)
@@ -212,12 +212,12 @@ class RiskEnv():
 					# print("second mask")
 					# print(valid_mask)
 
-					if old_player_turn == winner:
-						reward = 1000
-					else:
-						reward = 0  ################ NOTE: State-based rewards will be computed in post-processing by generate_reinforcement_learning_episodes #######
+					# if old_player_turn == winner:
+					# 	reward = 1000
+					# else:
+					# 	reward = 0  ################ NOTE: State-based rewards will be computed in post-processing by generate_reinforcement_learning_episodes #######
 					################### OLD: TOO SLOW ###################
-					g_rewards[old_player_turn][int(old_action_type)].append(reward)
+					# g_rewards[old_player_turn][int(old_action_type)].append(reward)
 
 					##################### Faster method ###################
 					# g_rewards[player_turn][int(action_type)][g_steps[player_turn][int(action_type)]] = reward
@@ -237,9 +237,10 @@ class RiskEnv():
 			print("Player {} wins in {} turns".format(winner, num_turns))
 
 		if train:
-			return winner, g_states, g_actions, g_rewards, g_masks, g_steps, True
+			# return winner, g_states, g_actions, g_rewards, g_masks, g_steps, True
+			return winner, g_states, g_actions, g_masks, g_steps, True
 		else:
-			return winner, None, None, None, None, None, True
+			return winner, None, None, None, None, True
 
 	def unpack_game_state(self, game_state):
 		"""
@@ -528,7 +529,8 @@ def generate_winners_episodes(env, num_games, player_list=None, player_action_li
 	for i in range(num_games):
 		timeout = False
 		while not timeout:
-			winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train, print_game)
+			# winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train, print_game)
+			winner, states, actions, masks, num_states, timeout = env.play_game(player_list, player_action_list, train, print_game)
 		
 		##################### Specific to attack action ####################
 		################## NOTE: Cast to np.array upon return ##################
@@ -600,18 +602,27 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 	for player in player_list:
 		players_attack_action.append([int(ActionType.ATTACK)])
 
-	winner_states, winner_actions, winner_masks, winner_targets, winner_steps = generate_reinforcement_learning_episodes(environment, num_games, player_list, players_attack_action, verbose)
+	timeout = False
+	for game in range(num_games):
+		states, actions, masks, targets, steps = generate_reinforcement_learning_episodes(environment, 1, player_list, players_attack_action, verbose)
 
-	# print("States:")
-	# print(winner_states[1][0])
-	print("Actions:")
-	print(winner_actions[1][0])
-	# print("Masks:")
-	# print(winner_masks[1][0])
-	# print("Rewards:")
-	# print(winner_rewards[1][0])
-	print("Targets:")
-	print(winner_targets[1][0])
+		reinforcement_states = np.array(states[int(ActionType.ATTACK)][0])
+		reinforcement_actions = np.array(actions[int(ActionType.ATTACK)][0])
+		reinforcement_masks = np.array(masks[int(ActionType.ATTACK)][0])
+		reinforcement_targets = np.array(targets[int(ActionType.ATTACK)][0])
+
+		batch_size = steps[int(ActionType.ATTACK)][0]
+
+		# print("States:")
+		# print(reinforcement_states)
+		# print("Actions:")
+		# print(reinforcement_actions)
+		# print("Masks:")
+		# print(reinforcement_masks)
+		# print("Targets:")
+		# print(reinforcement_targets)
+
+
 
 
 
@@ -622,26 +633,31 @@ def generate_reinforcement_learning_episodes(env, num_games, player_list=None, p
 	Similar to generate_winners_episode, but includes targets for a2c
 	"""
 	GAMMA = 1
+	################ Should be significantly larger than army difference can change from turn to turn
+	WINNING_REWARD = 10
 
 	# winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train=True, verbose=False)
 
 	winner_states = {}
 	winner_actions = {}
 	winner_masks = {}
-	winner_rewards = {}
+	# winner_rewards = {}
 	winner_targets = {}
 	# winner_R = {}
 	winner_steps = {}
 
 	for game in range(num_games):
-		winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train=True, verbose=False)
+		# winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train=True, verbose=False)
+		timeout = False
+		while not timeout:
+			winner, states, actions, masks, num_states, timeout = env.play_game(player_list, player_action_list, train=True, verbose=False)
 
 		for action_type in player_action_list[winner]:
 		# if action_type in player_action_list[winner]:
 			action_states = []
 			action_actions = []
 			action_masks = []
-			action_rewards = []
+			# action_rewards = []
 			action_targets = []
 			# action_R = []
 			action_steps = []
@@ -649,7 +665,7 @@ def generate_reinforcement_learning_episodes(env, num_games, player_list=None, p
 			winner_states[action_type] = action_states
 			winner_actions[action_type] = action_actions
 			winner_masks[action_type] = action_masks
-			winner_rewards[action_type] = action_rewards
+			# winner_rewards[action_type] = action_rewards
 			winner_targets[action_type] = action_targets
 			# winner_R[action_type] = action_R
 			winner_steps[action_type] = action_steps
@@ -662,7 +678,7 @@ def generate_reinforcement_learning_episodes(env, num_games, player_list=None, p
 			winner_states[action_type].append(np.array(states[winner][int(ActionType.ATTACK)]))
 			winner_actions[action_type].append(np.array(actions[winner][int(ActionType.ATTACK)]))
 			winner_masks[action_type].append(np.array(masks[winner][int(ActionType.ATTACK)]))
-			winner_rewards[action_type].append(np.array(rewards[winner][int(ActionType.ATTACK)]))
+			# winner_rewards[action_type].append(np.array(rewards[winner][int(ActionType.ATTACK)]))
 			winner_steps[action_type].append(num_states[winner][int(ActionType.ATTACK)])
 
 
@@ -690,15 +706,16 @@ def generate_reinforcement_learning_episodes(env, num_games, player_list=None, p
 			game_returns = np.zeros((T, len(env.game.graph.edge_list)))
 			for t in reversed(range(T)):
 				if (t == T-1):
-					returns_scalar[t] = winner_rewards[action_type][game][t]
+					reward = WINNING_REWARD
+					returns_scalar[t] = reward
 					game_returns[t, :] = returns_scalar[t]
 				else:
-					winner_rewards[action_type][game][t] = change_in_army_difference_reward(winner_states[action_type][game][t+1], winner_states[action_type][game][t])
-					returns_scalar[t] = winner_rewards[action_type][game][t] + GAMMA*returns_scalar[t+1]
+					reward = change_in_army_difference_reward(winner_states[action_type][game][t+1], winner_states[action_type][game][t])
+					returns_scalar[t] = reward + GAMMA*returns_scalar[t+1]
 					game_returns[t, :] = returns_scalar[t]
 				game_returns[t, :] = np.multiply(game_returns[t,:], winner_actions[action_type][game][t])
 			################## In order to scale properly ###############
-			game_returns /= 1000
+			game_returns /= 2*WINNING_REWARD
 			###########################################
 			winner_targets[action_type].append(game_returns)
 
