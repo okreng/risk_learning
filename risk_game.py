@@ -23,7 +23,7 @@ class ActionType(Enum):
 ############ For original #######
 # MIN_ARMIES_PER_TURN = 3
 # ARMIES_PER_TERRITORY = 0.33333
-# INITIAL_PLACEMENT_ARMIES = 120
+# INITIAL_PLACEMENT_ARMIES = 105
 
 ########### For Australia
 MIN_ARMIES_PER_TURN = 2

@@ -99,6 +99,7 @@ class RiskEnv():
 		:return actions: list of lists of numpy arrays, actions taken in those states
 		:return rewards: list of lists of numpy arrays, the rewards earned by those actions
 		"""
+
 		if train:
 			g_states = {}  # maps player_id to states seen by that player
 			g_actions = {}  # maps player_id to actions taken by that player
@@ -148,6 +149,8 @@ class RiskEnv():
 					num_recorded_players += 1
 
 		num_states = 0
+		num_turns = 0
+		old_player_turn = -1
 
 		game_state, valid = self.game.random_start(verbose)
 		raw_state, new_player_turn, new_action_type, u_armies, r_edge, winner = self.unpack_game_state(game_state)
@@ -169,6 +172,9 @@ class RiskEnv():
 			game_state, valid = self.game.act(action, old_player_turn, old_action_type)
 			raw_state, new_player_turn, new_action_type, u_armies, r_edge, winner = self.unpack_game_state(game_state)
 
+			if verbose:
+				if (old_player_turn != new_player_turn):
+					num_turns += 1
 			############### KEEP FOR DEBUGGING ################
 			# if action_type == ActionType.ATTACK:
 			# 	print("first mask")
@@ -215,11 +221,11 @@ class RiskEnv():
 
 					##################### Faster method ###################
 					# g_rewards[player_turn][int(action_type)][g_steps[player_turn][int(action_type)]] = reward
-					g_steps[old_player_turn][int(action_type)] += 1
+					g_steps[old_player_turn][int(old_action_type)] += 1
 
 
 			if verbose:
-				print("{}, player:{}, {}, winner:{}".format(raw_state, player_turn, action_type, winner))
+				print("{}, player:{}, {}, winner:{}".format(raw_state, old_player_turn, old_action_type, winner))
 
 		############## Resize all return arrays ##############
 		# for player in player_id_list:
@@ -228,7 +234,7 @@ class RiskEnv():
 
 			# raw_state, player_turn, action_type, u_armies, r_edge, winner
 		if verbose:
-			print("Player {} wins".format(winner))
+			print("Player {} wins in {} turns".format(winner, num_turns))
 
 		if train:
 			return winner, g_states, g_actions, g_rewards, g_masks, g_steps, True
@@ -491,6 +497,8 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 
 	return
 
+
+
 def generate_winners_episodes(env, num_games, player_list=None, player_action_list=None, train=False, verbose=False, print_game=False):
 	"""
 	Runs num_games and returns lists describing the games, depending on player_list and player_action_list
@@ -563,13 +571,50 @@ def generate_winners_episodes(env, num_games, player_list=None, player_action_li
 		return record, None, None, None, None, None
 
 
-def generate_a2c_learning_episodes(env, num_games, player_list=None, player_action_list=None, train=False, verbose=False, print_game=False, n=250):
+def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
+	"""
+	Plays num_games games between the specified matchup
+	If train is specified, uses these games to train a model
+	The model is not an argument, it is specified below
+	:param board: the .risk file in the boards folder to import
+	:param matchup: the .matchup file in the matchups folder to import, determines which players are being used
+	:param verbose: whether to print, recommended
+	:param print_game: prints every action for the games, used for debugging
+	:param num_games: number of games to run
+	:param epochs: number of epochs to train for
+	:return: nothing
+	"""
+
+	environment = RiskEnv(board, matchup, verbose)
+
+	num_players = environment.game.num_players
+
+	all_player_list = range(num_players)
+	all_players_attack_action = []
+	for player in all_player_list:
+		all_players_attack_action.append([int(ActionType.ATTACK)])
+	######### n player list ##########
+	player_list = range(num_players)
+	players_attack_action = []
+	for player in player_list:
+		players_attack_action.append([int(ActionType.ATTACK)])
+
+	winner_states, winner_actions, winner_masks, winner_R, winner_targets, winner_steps = generate_reinforcement_learning_episodes(environment, num_games, player_list, players_attack_action, verbose)
+
+
+	print(winner_states)
+
+
+
+	return 
+
+def generate_reinforcement_learning_episodes(env, num_games, player_list=None, player_action_list=None, verbose=False):
 	"""
 	Similar to generate_winners_episode, but includes targets for a2c
 	"""
 	GAMMA = 1
 
-	winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train, print_game)
+	# winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train=True, verbose=False)
 
 	winner_states = {}
 	winner_actions = {}
@@ -577,27 +622,29 @@ def generate_a2c_learning_episodes(env, num_games, player_list=None, player_acti
 	winner_targets = {}
 	winner_R = {}
 	winner_steps = {}
-	if action_type in player_action_list[winner]:
-		action_states = []
-		action_actions = []
-		action_masks = []
-		action_targets = []
-		action_R = []
-		action_steps = 0
-
-		winner_states[action_type] = action_states
-		winner_actions[action_type] = action_actions
-		winner_masks[action_type] = action_masks
-		winner_targets[action_type] = action_targets
-		winner_R[action_type] = action_R
-		winner_steps[action_type] = action_steps
 
 	for game in range(num_games):
-		winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train, print_game)
+		winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train=True, verbose=False)
+
+		for action_type in player_action_list[winner]:
+		# if action_type in player_action_list[winner]:
+			action_states = []
+			action_actions = []
+			action_masks = []
+			action_targets = []
+			action_R = []
+			action_steps = []
+
+			winner_states[action_type] = action_states
+			winner_actions[action_type] = action_actions
+			winner_masks[action_type] = action_masks
+			winner_targets[action_type] = action_targets
+			winner_R[action_type] = action_R
+			winner_steps[action_type] = action_steps
 
 		# for action_type in player_action_list[winner]:
 		action_type = int(ActionType.ATTACK)
-		if train and (winner in player_list):
+		if (winner in player_list):
 
 			################# Currently only for single action type - attack
 			winner_states[action_type].append(np.array(states[winner][int(ActionType.ATTACK)]))
@@ -606,27 +653,30 @@ def generate_a2c_learning_episodes(env, num_games, player_list=None, player_acti
 			winner_steps[action_type].append(num_states[winner][int(ActionType.ATTACK)])
 
 
-##################### Copied from a2c in hw3, not yet implemented ############################
-			T = winner_steps[action_type][game]
-			R = np.zeros(T)
-			V_end = np.zeros(T)
-			# actor_target = np.zeros((T, ACTION_SPACE))
-			actor_target = np.zeros((T, len(env.game.graph.edge_list)))
-			for t in reversed(range(T)):
-			# Note: V_end = 0 case is default, handled by zero initialization
-				if (t+n < T):
-					V_end[t] = e_Vw[t+n]
-				R[t] = (GAMMA**n) * V_end[t]
-				for k in range(n):
-					if (t+k < T):
-						R[t] += (GAMMA**k) * rewards[winner][action_type][t+k]
-				actor_target[t, :] = R[t] - e_Vw[t] 
-				actor_target[t,:] = np.multiply(actor_target[t, :], actions[winner][action_type][t])
+# ##################### For use with a2c in hw3, not yet implemented ############################
+# 			T = winner_steps[action_type][game]
+# 			R = np.zeros(T)
+# 			V_end = np.zeros(T)
+# 			# actor_target = np.zeros((T, ACTION_SPACE))
+# 			actor_target = np.zeros((T, len(env.game.graph.edge_list)))
+# 			for t in reversed(range(T)):
+# 			# Note: V_end = 0 case is default, handled by zero initialization
+# 				if (t+n < T):
+# 					V_end[t] = e_Vw[t+n]
+# 				R[t] = (GAMMA**n) * V_end[t]
+# 				for k in range(n):
+# 					if (t+k < T):
+# 						R[t] += (GAMMA**k) * rewards[winner][action_type][t+k]
+# 				actor_target[t, :] = R[t] - e_Vw[t] 
+# 				actor_target[t,:] = np.multiply(actor_target[t, :], actions[winner][action_type][t])
 
-			winner_R[action_type].append(R)
-			winner_target[action_type].append(actor_target)
+# 			winner_R[action_type].append(R)
+# 			winner_target[action_type].append(actor_target)
 
 
+
+		else:
+			return winner_states, winner_actions, winner_masks, None, None, None
 
 
 	return winner_states, winner_actions, winner_masks, winner_R, winner_targets, winner_steps
@@ -671,7 +721,12 @@ def main(args):
 	num_games = int(args.num_games)
 	num_epochs = int(args.num_epochs)
 
-	imitation_learn(board, matchup, verbose, print_game, train, num_games, num_epochs)
+
+	if train:
+		reinforcement_learn(board, matchup, verbose, num_games)
+	else:
+		imitation_learn(board, matchup, verbose, print_game, train, num_games, num_epochs)
+
 
 
 import signal
