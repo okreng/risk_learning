@@ -590,6 +590,18 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 
 	environment = RiskEnv(board, matchup, verbose)
 
+	MODEL_INSTANCE = '0'
+	LEARNING_RATE = 0.0001
+
+	################# This can be modified ####################
+	# from q_funcs.attack import three_layer_attack_net
+	# training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
+	
+	from q_funcs.attack import two_layer_attack_net
+	training_policy = two_layer_attack_net.TwoLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
+
+	##########################################################
+
 	num_players = environment.game.num_players
 
 	all_player_list = range(num_players)
@@ -603,6 +615,8 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 		players_attack_action.append([int(ActionType.ATTACK)])
 
 	timeout = False
+
+	train_loss = []
 	for game in range(num_games):
 		states, actions, masks, targets, steps = generate_reinforcement_learning_episodes(environment, 1, player_list, players_attack_action, verbose)
 
@@ -610,7 +624,6 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 		reinforcement_actions = np.array(actions[int(ActionType.ATTACK)][0])
 		reinforcement_masks = np.array(masks[int(ActionType.ATTACK)][0])
 		reinforcement_targets = np.array(targets[int(ActionType.ATTACK)][0])
-
 		batch_size = steps[int(ActionType.ATTACK)][0]
 
 		# print("States:")
@@ -622,8 +635,27 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 		# print("Targets:")
 		# print(reinforcement_targets)
 
+		train_loss.append(np.mean(training_policy.batch_train(state_vector=reinforcement_states, action_vector=reinforcement_targets, valid_mask=reinforcement_masks, update=True, batch_size=batch_size)))
 
+		################## CREATE TRAINING LOSS PLOT ##############3
+		if (game%(num_games/100)) == 0:
+			train_mean = np.mean(train_loss)
+			train_std = np.std(train_loss)
+			plt.errorbar(game, train_mean, yerr=train_std, fmt='--o', color='red')
+			plt.draw()
+			train_loss = []
+			if (verbose):
+				print("Completed game {}".format(game))
+				print("training loss: {}".format(train_mean))
 
+	plt.title("Loss:")
+	plt.xlabel('Training games')
+	plt.ylabel('Mean training loss over {} games'.format(num_games))
+	training_policy.close()
+	save_path = './plots/' + MODEL_INSTANCE + '-REINFORCE'
+	plt.savefig(save_path)
+	plt.show()
+	# states, acts, rewards = environment.play_game(0,1,verbose)	
 
 
 	return 
