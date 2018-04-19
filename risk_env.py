@@ -599,10 +599,18 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 	for player in player_list:
 		players_attack_action.append([int(ActionType.ATTACK)])
 
-	winner_states, winner_actions, winner_masks, winner_R, winner_targets, winner_steps = generate_reinforcement_learning_episodes(environment, num_games, player_list, players_attack_action, verbose)
+	winner_states, winner_actions, winner_masks, winner_targets, winner_steps = generate_reinforcement_learning_episodes(environment, num_games, player_list, players_attack_action, verbose)
 
-
-	print(winner_states)
+	# print("States:")
+	# print(winner_states[1][0])
+	print("Actions:")
+	print(winner_actions[1][0][-2])
+	# print("Masks:")
+	# print(winner_masks[1][0])
+	# print("Rewards:")
+	# print(winner_rewards[1][0])
+	print("Targets:")
+	print(winner_targets[1][0][-2])
 
 
 
@@ -619,8 +627,9 @@ def generate_reinforcement_learning_episodes(env, num_games, player_list=None, p
 	winner_states = {}
 	winner_actions = {}
 	winner_masks = {}
+	winner_rewards = {}
 	winner_targets = {}
-	winner_R = {}
+	# winner_R = {}
 	winner_steps = {}
 
 	for game in range(num_games):
@@ -631,15 +640,17 @@ def generate_reinforcement_learning_episodes(env, num_games, player_list=None, p
 			action_states = []
 			action_actions = []
 			action_masks = []
+			action_rewards = []
 			action_targets = []
-			action_R = []
+			# action_R = []
 			action_steps = []
 
 			winner_states[action_type] = action_states
 			winner_actions[action_type] = action_actions
 			winner_masks[action_type] = action_masks
+			winner_rewards[action_type] = action_rewards
 			winner_targets[action_type] = action_targets
-			winner_R[action_type] = action_R
+			# winner_R[action_type] = action_R
 			winner_steps[action_type] = action_steps
 
 		# for action_type in player_action_list[winner]:
@@ -650,6 +661,7 @@ def generate_reinforcement_learning_episodes(env, num_games, player_list=None, p
 			winner_states[action_type].append(np.array(states[winner][int(ActionType.ATTACK)]))
 			winner_actions[action_type].append(np.array(actions[winner][int(ActionType.ATTACK)]))
 			winner_masks[action_type].append(np.array(masks[winner][int(ActionType.ATTACK)]))
+			winner_rewards[action_type].append(np.array(rewards[winner][int(ActionType.ATTACK)]))
 			winner_steps[action_type].append(num_states[winner][int(ActionType.ATTACK)])
 
 
@@ -672,14 +684,25 @@ def generate_reinforcement_learning_episodes(env, num_games, player_list=None, p
 
 # 			winner_R[action_type].append(R)
 # 			winner_target[action_type].append(actor_target)
-
+			T = winner_steps[action_type][game]
+			returns_scalar = np.zeros(T)
+			game_returns = np.zeros((T, len(env.game.graph.edge_list)))
+			for t in reversed(range(T)):
+				if (t == T-1):
+					returns_scalar[t] = winner_rewards[action_type][game][t]
+					game_returns[t, :] = returns_scalar[t]
+				else:
+					returns_scalar[t] = winner_rewards[action_type][game][t] + GAMMA*returns_scalar[t+1]
+					game_returns[t, :] = returns_scalar[t]
+				game_returns[t, :] = np.multiply(game_returns[t,:], winner_actions[action_type][game][t])
+			winner_targets[action_type].append(game_returns)
 
 
 		else:
 			return winner_states, winner_actions, winner_masks, None, None, None
 
 
-	return winner_states, winner_actions, winner_masks, winner_R, winner_targets, winner_steps
+	return winner_states, winner_actions, winner_masks, winner_targets, winner_steps
 
 
 
