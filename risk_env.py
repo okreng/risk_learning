@@ -49,8 +49,8 @@ class RiskEnv():
 			isAgent = False
 
 			# TODO - refer to list of agents
-			if self.player_names[player_num] is "agent":
-				isAgent = True
+			# if self.player_names[player_num] is "agent":
+			# 	isAgent = True
 
 			# TODO - add policy with player
 			new_player = self.game.get_player_from_id(player_num)
@@ -59,10 +59,23 @@ class RiskEnv():
 				new_player.print_player_details()
 
 		self.agent_list = []  # Maps agent id to agent object
-		ag_id = 0
-		for player_name in self.player_names:  # Same order as player_id in game
-			self.agent_list.append(self.player_name_to_agent(player_name, ag_id))
-			ag_id += 1
+		# ag_id = 0
+		# for player_name in self.player_names:  # Same order as player_id in game
+		for ag_id in range(len(self.player_names)):
+			unique_player = True
+			for ag_id_2 in range(len(self.player_names)):  # Create pointer to earlier agent if the same
+				if (self.player_names[ag_id] == self.player_names[ag_id_2]) and (ag_id_2 < ag_id):
+					if self.verbose:
+						print("Creating player {}: {}, as reference to player {}".format(ag_id, self.player_names[ag_id], ag_id_2))
+					self.agent_list.append(self.agent_list[ag_id_2])
+					unique_player = False
+					break
+
+			if unique_player == True:
+				if self.verbose:
+					print("Creating player {}: {}".format(ag_id, self.player_names[ag_id]))
+				self.agent_list.append(self.player_name_to_agent(self.player_names[ag_id], ag_id))
+			# ag_id += 1
 
 	def player_name_to_agent(self, player_name, player_id):
 		"""
@@ -70,8 +83,6 @@ class RiskEnv():
 		return:
 		Whether the agent was created successfully
 		"""
-		if self.verbose:
-			print("Creating player {}: {}".format(player_id, player_name))
 		if player_name == "conservative":
 			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "max_success", "skip_fortify", self.verbose)
 		elif player_name == "random":
@@ -600,6 +611,10 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 	# training_policy = two_layer_attack_net.TwoLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
 	training_policy = environment.agent_list[0].attack_q_func
 
+	plt.title("Loss w.r.t. winner:")
+	plt.xlabel('Training games')
+	plt.ylabel('Mean training loss over {} games'.format(num_games))
+
 	##########################################################
 
 	num_players = environment.game.num_players
@@ -618,27 +633,39 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 
 	train_loss = []
 	for game in range(num_games):
+		reinforcement_states = []
+		reinforcement_actions = []
+		reinforcement_masks = []
+		reinforcement_targets = []
+		batch_size = []
+
+		for player in player_list:
 
 
+			winner, states, actions, masks, targets, steps = generate_reinforcement_learning_episodes(environment, 1, player_list, players_attack_action, verbose)
 
-		states, actions, masks, targets, steps = generate_reinforcement_learning_episodes(environment, 1, player_list, players_attack_action, verbose)
+			reinforcement_states.append(np.array(states[player][int(ActionType.ATTACK)][0]))
+			reinforcement_actions.append(np.array(actions[player][int(ActionType.ATTACK)][0]))
+			reinforcement_masks.append(np.array(masks[player][int(ActionType.ATTACK)][0]))
+			reinforcement_targets.append(np.array(targets[player][int(ActionType.ATTACK)][0]))
+			batch_size.append(steps[player][int(ActionType.ATTACK)][0])
 
-		reinforcement_states = np.array(states[int(ActionType.ATTACK)][0])
-		reinforcement_actions = np.array(actions[int(ActionType.ATTACK)][0])
-		reinforcement_masks = np.array(masks[int(ActionType.ATTACK)][0])
-		reinforcement_targets = np.array(targets[int(ActionType.ATTACK)][0])
-		batch_size = steps[int(ActionType.ATTACK)][0]
+		for player in player_list:
+			# print("States:")
+			# print(reinforcement_states[player])
+			# print("Actions:")
+			# print(reinforcement_actions[player])
+			# print("Masks:")
+			# print(reinforcement_masks[player])
+			# print("Targets:")
+			# print(reinforcement_targets[player])
+			# print("Batch size:")
+			# print(batch_size[player])
 
-		# print("States:")
-		# print(reinforcement_states)
-		# print("Actions:")
-		# print(reinforcement_actions)
-		# print("Masks:")
-		# print(reinforcement_masks)
-		# print("Targets:")
-		# print(reinforcement_targets)
-
-		train_loss.append(np.mean(training_policy.batch_train(state_vector=reinforcement_states, action_vector=reinforcement_targets, valid_mask=reinforcement_masks, update=True, batch_size=batch_size)))
+			if player == winner:
+				train_loss.append(np.mean(training_policy.batch_train(state_vector=reinforcement_states[player], action_vector=reinforcement_targets[player], valid_mask=reinforcement_masks[player], update=True, batch_size=batch_size[player])))
+			elif (batch_size[player] != 0):
+				training_policy.batch_train(state_vector=reinforcement_states[player], action_vector=reinforcement_targets[player], valid_mask=reinforcement_masks[player], update=True, batch_size=batch_size[player])
 
 		################## CREATE TRAINING LOSS PLOT ##############3
 		if (game%(num_games/100) == 0) and not (game == 0):
@@ -649,11 +676,8 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 			train_loss = []
 			if (verbose):
 				print("Completed game {}".format(game))
-				print("training loss: {}".format(train_mean))
+				print("training loss w.r.t. winner: {}".format(train_mean))
 
-	plt.title("Loss:")
-	plt.xlabel('Training games')
-	plt.ylabel('Mean training loss over {} games'.format(num_games))
 	training_policy.close()
 	save_path = './plots/' + MODEL_INSTANCE + '-REINFORCE'
 	plt.savefig(save_path)
@@ -673,13 +697,12 @@ def generate_reinforcement_learning_episodes(env, num_games, player_list=None, p
 
 	# winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train=True, verbose=False)
 
-	winner_states = {}
-	winner_actions = {}
-	winner_masks = {}
-	# winner_rewards = {}
-	winner_targets = {}
-	# winner_R = {}
-	winner_steps = {}
+	e_states = {}
+	e_actions = {}
+	e_masks = {}
+	e_targets = {}
+	e_steps = {}
+
 
 	for game in range(num_games):
 		# winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train=True, verbose=False)
@@ -687,34 +710,43 @@ def generate_reinforcement_learning_episodes(env, num_games, player_list=None, p
 		while not timeout:
 			winner, states, actions, masks, num_states, timeout = env.play_game(player_list, player_action_list, train=True, verbose=False)
 
-		for action_type in player_action_list[winner]:
-		# if action_type in player_action_list[winner]:
-			action_states = []
-			action_actions = []
-			action_masks = []
-			# action_rewards = []
-			action_targets = []
-			# action_R = []
-			action_steps = []
+		for player in player_list:
 
-			winner_states[action_type] = action_states
-			winner_actions[action_type] = action_actions
-			winner_masks[action_type] = action_masks
-			# winner_rewards[action_type] = action_rewards
-			winner_targets[action_type] = action_targets
-			# winner_R[action_type] = action_R
-			winner_steps[action_type] = action_steps
+			player_states = {}
+			player_actions = {}
+			player_masks = {}
+			player_targets = {}
+			player_steps = {}
+
+			e_states[player] = player_states
+			e_actions[player] = player_actions
+			e_masks[player] = player_masks
+			e_targets[player] = player_targets
+			e_steps[player] = player_steps
+
+
+			for action_type in player_action_list[player]:
+				player_action_states = []
+				player_action_actions = []
+				player_action_masks = []
+				player_action_targets = []
+				player_action_steps = []
+
+				e_states[player][action_type] = player_action_states
+				e_actions[player][action_type] = player_action_actions
+				e_masks[player][action_type] = player_action_masks
+				e_targets[player][action_type] = player_action_targets
+				e_steps[player][action_type] = player_action_steps
 
 		# for action_type in player_action_list[winner]:
 		action_type = int(ActionType.ATTACK)
-		if (winner in player_list):
-
-			################# Currently only for single action type - attack
-			winner_states[action_type].append(np.array(states[winner][int(ActionType.ATTACK)]))
-			winner_actions[action_type].append(np.array(actions[winner][int(ActionType.ATTACK)]))
-			winner_masks[action_type].append(np.array(masks[winner][int(ActionType.ATTACK)]))
-			# winner_rewards[action_type].append(np.array(rewards[winner][int(ActionType.ATTACK)]))
-			winner_steps[action_type].append(num_states[winner][int(ActionType.ATTACK)])
+		# if (winner in player_list):
+		for player in player_list:
+			################# Currently only for single action type - attack ####################
+			e_states[player][action_type].append(np.array(states[player][int(ActionType.ATTACK)]))
+			e_actions[player][action_type].append(np.array(actions[player][int(ActionType.ATTACK)]))
+			e_masks[player][action_type].append(np.array(masks[player][int(ActionType.ATTACK)]))
+			e_steps[player][action_type].append(num_states[player][int(ActionType.ATTACK)])
 
 
 # ##################### For use with a2c in hw3, not yet implemented ############################
@@ -736,30 +768,31 @@ def generate_reinforcement_learning_episodes(env, num_games, player_list=None, p
 
 # 			winner_R[action_type].append(R)
 # 			winner_target[action_type].append(actor_target)
-			T = winner_steps[action_type][game]
+			T = e_steps[player][action_type][game]
 			returns_scalar = np.zeros(T)
 			game_returns = np.zeros((T, len(env.game.graph.edge_list)))
 			for t in reversed(range(T)):
 				if (t == T-1):
-					reward = WINNING_REWARD
+					if player == winner:
+						reward = WINNING_REWARD
+					else:
+						reward = -WINNING_REWARD
 					returns_scalar[t] = reward
 					game_returns[t, :] = returns_scalar[t]
 				else:
-					reward = change_in_army_difference_reward(winner_states[action_type][game][t+1], winner_states[action_type][game][t])
+					reward = change_in_army_difference_reward(e_states[player][action_type][game][t+1], e_states[player][action_type][game][t])
 					returns_scalar[t] = reward + GAMMA*returns_scalar[t+1]
 					game_returns[t, :] = returns_scalar[t]
-				game_returns[t, :] = np.multiply(game_returns[t,:], winner_actions[action_type][game][t])
+				game_returns[t, :] = np.multiply(game_returns[t,:], e_actions[player][action_type][game][t])
 			################## In order to scale properly ###############
 			game_returns /= 2*WINNING_REWARD
 			###########################################
-			winner_targets[action_type].append(game_returns)
+			e_targets[player][action_type].append(game_returns)
 
+		# else:
+		# 	return winner, e_states, e_actions, e_masks, None, None, None
 
-		else:
-			return winner_states, winner_actions, winner_masks, None, None, None
-
-
-	return winner_states, winner_actions, winner_masks, winner_targets, winner_steps
+	return winner, e_states, e_actions, e_masks, e_targets, e_steps
 
 
 def change_in_army_difference_reward(new_state, old_state):
