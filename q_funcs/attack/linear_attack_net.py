@@ -264,5 +264,8 @@ class LinearAttackNet():
 		Chooses an action based on the state vector and valid_mask inputted
 		"""
 		q = self.call_Q(state_vector, valid_mask)
-		action = utils.choose_by_weight(q)
+		if update:
+			action = utils.choose_by_weight(q)
+		else:
+			action = np.argmax(q)
 		return action

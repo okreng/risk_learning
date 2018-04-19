@@ -294,10 +294,10 @@ class RiskEnv():
 			# return agent.allot_q_func.get_action(state, valid_mask)
 			# q = agent.allot_q_func.call_Q(state)
 			# action = utils.choose_by_weight(np.multiply(valid_mask, q))
-			action = agent.allot_q_func.get_action(state, valid_mask)
+			action = agent.allot_q_func.get_action(state, valid_mask, update=train)
 		elif action_type == ActionType.ATTACK:
 			valid_mask = self.attack_valid(state)
-			action = agent.attack_q_func.get_action(state, valid_mask)
+			action = agent.attack_q_func.get_action(state, valid_mask, update=train)
 			# q = agent.attack_q_func.call_Q(state, valid_mask=valid_mask)
 			# # q_valid = utils.validate_q_func_for_argmax(q, valid_mask)
 			# # action = np.argmax(q_valid)
@@ -316,7 +316,7 @@ class RiskEnv():
 			valid_mask = self.fortify_valid(state)
 			# q_valid = utils.validate_q_func_for_argmax(q, valid_mask)
 			# action = np.argmax(q_valid)
-			action = agent.fortify_q_func.get_action(state, valid_mask)
+			action = agent.fortify_q_func.get_action(state, valid_mask, update=train)
 			###############################3#############
 			# action = np.argmax(q)
 
@@ -662,7 +662,7 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 			# print("Batch size:")
 			# print(batch_size[player])
 
-			if player == winner:
+			if player == winner and (batch_size[player] != 0):
 				train_loss.append(np.mean(training_policy.batch_train(state_vector=reinforcement_states[player], action_vector=reinforcement_targets[player], valid_mask=reinforcement_masks[player], update=True, batch_size=batch_size[player])))
 			elif (batch_size[player] != 0):
 				training_policy.batch_train(state_vector=reinforcement_states[player], action_vector=reinforcement_targets[player], valid_mask=reinforcement_masks[player], update=True, batch_size=batch_size[player])
