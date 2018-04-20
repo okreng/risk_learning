@@ -261,10 +261,11 @@ class ThreeLayerAttackNet():
 		Chooses an action based on the state vector and valid_mask inputted
 		"""
 		q = self.call_Q(state_vector, valid_mask)
+		soft_q = utils.softmax_valid(q)
 		if update:
-			action = utils.choose_by_weight(q)
+			action = utils.choose_by_weight(soft_q)
 		else:
-			action = np.argmax(q)
+			action = np.argmax(soft_q)
 		return action
 
 	def batch_train(self, state_vector, action_vector, valid_mask, update=True, batch_size=32, loss_weights=None):
