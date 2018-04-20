@@ -43,7 +43,7 @@ class Agent():
         elif attack_q_func is "linear_attack_net":
             self.attack_q_func = linear_attack_net.LinearAttackNet(self.territories, self.act_list, '0', 0, verbose=verbose)
         elif attack_q_func is "two_layer_attack_net":
-            self.attack_q_func = two_layer_attack_net.TwoLayerAttackNet(self.territories, self.act_list, '0-137-2-17', 0, verbose=verbose, learning_rate=1e-5)
+            self.attack_q_func = two_layer_attack_net.TwoLayerAttackNet(self.territories, self.act_list, '0-144', 0, verbose=verbose, learning_rate=1e-5)
         elif attack_q_func is "three_layer_attack_net":
             self.attack_q_func = three_layer_attack_net.ThreeLayerAttackNet(self.territories, self.act_list, '0-77', 0, verbose=verbose)
         elif attack_q_func is "army_difference":
