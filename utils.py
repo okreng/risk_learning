@@ -33,6 +33,14 @@ def validate_q_func_for_argmax(q_func, valid_mask):
     return valid_q_func
 
 
+# https://stackoverflow.com/questions/34968722/how-to-implement-the-softmax-function-in-python
+def softmax(q_func):
+    """
+    Returns the softmax output of a general linear activation
+    """
+    softmax_q = np.exp(q_func) / np.sum(np.exp(q_func), axis=0)
+    return -softmax_q
+
 
 def choose_by_weight(q_func):
     """

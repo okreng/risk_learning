@@ -107,7 +107,8 @@ class ThreeLayerAttackNet():
 		self.valid_mask = tf.placeholder(dtype=tf.float32, shape=[None, self.nA], name='valid_mask')
 		# Output Layer
 		# self.output = tf.layers.dense(inputs = self.dense3, units = self.nA, use_bias = True, name = 'output')
-		self.pre_mask_output = tf.layers.dense(inputs = self.dense3, units = self.nA, activation = tf.nn.sigmoid, use_bias = False, name = 'output')
+		# self.pre_mask_output = tf.layers.dense(inputs = self.dense3, units = self.nA, activation = tf.nn.sigmoid, use_bias = False, name = 'output')
+		self.pre_mask_output = tf.layers.dense(inputs = self.dense3, units = self.nA, activation = None, use_bias = False, name = 'output')
 
 		self.output = tf.multiply(x = self.pre_mask_output, y = self.valid_mask)
 
