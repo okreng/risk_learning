@@ -462,7 +462,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 			if (epoch%USEFUL_LIFE) == 0: 
 				if verbose:
 					print("Generating {} new games".format(num_games), end='')
-				_, t_states, t_actions, t_rewards, t_masks, _ = generate_winners_episodes(environment, num_games, player_list, players_attack_action, train=True)
+				_, t_states, t_actions, t_masks, _ = generate_winners_episodes(environment, num_games, player_list, players_attack_action, train=True)
 				if verbose:
 					print(" complete, training for {} epochs".format(USEFUL_LIFE))
 
@@ -486,7 +486,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 
 			################### GENERATE VALIDATION SET #################
 			if (epoch%(USEFUL_LIFE/10)) == 0:
-				v_winners, v_states, v_actions, v_rewards, v_masks, _ = generate_winners_episodes(environment, VALIDATION_GAMES, player_list, players_attack_action, train=True)
+				v_winners, v_states, v_actions, v_masks, _ = generate_winners_episodes(environment, VALIDATION_GAMES, player_list, players_attack_action, train=True)
 				v_loss = []
 				v_batch_size = len(v_states)
 				for index in range(v_batch_size):
@@ -580,7 +580,7 @@ def generate_winners_episodes(env, num_games, player_list=None, player_action_li
 			print("Player {} won {} games".format(player, record[player]))
 
 	if train:
-		return record, imitation_states, imitation_actions, rewards, imitation_masks, num_states
+		return record, imitation_states, imitation_actions, imitation_masks, num_states
 	else:
 		return record, None, None, None, None, None
 
@@ -833,6 +833,7 @@ def parse_arguments():
 	parser.add_argument('-t', dest='train', action='store_true', default=False)
 	parser.add_argument('--num-games', dest='num_games', default=100)
 	parser.add_argument('--num-epochs', dest='num_epochs', default=100000)
+	parser.add_argument('--training-type', dest='training_type', default='I')
 	parser.set_defaults(verbose=True)
 	parser.set_defaults(print_game=False)
 	parser.set_defaults(train=False)
@@ -853,11 +854,12 @@ def main(args):
 	verbose = args.verbose
 	print_game = args.print_game
 	train = args.train
+	training_type = args.training_type
 	num_games = int(args.num_games)
 	num_epochs = int(args.num_epochs)
 
 
-	if train:
+	if training_type == "R":
 		reinforcement_learn(board, matchup, verbose, num_games)
 	else:
 		imitation_learn(board, matchup, verbose, print_game, train, num_games, num_epochs)
