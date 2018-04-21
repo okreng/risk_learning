@@ -420,6 +420,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 	VALIDATION_GAMES = 10
 	MODEL_INSTANCE = '0'
 	LEARNING_RATE = 0.0001
+	TRIM_TO_STATES = 318  ## mean - standard deviation
 
 	######### 0-44 is conservative-conservative ###############
 	######### 0... is conservative-aggressive #################
@@ -459,11 +460,30 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 		train_loss = []
 		while epoch < num_epochs:
 
+			################## GAME STATISTICS ##########################
+			## For a game with 7 conservative players:
+			## Returned t_steps, on sample of 100 games:
+			## Mean of 420 steps
+			## Median of 404.5 steps
+			## Standard deviation of 102 steps
+			##################### End game statistics ###############3
+
+
 			################### GENERATE TRAINING SET #####################
 			if (epoch%USEFUL_LIFE) == 0: 
 				if verbose:
 					print("Generating {} new games".format(num_games), end='')
-				_, t_states, t_actions, t_masks, t_steps = generate_winners_episodes(environment, num_games, player_list, players_attack_action, train=True)
+				_, t_states, t_actions, t_masks, t_steps = generate_winners_episodes(environment, num_games, player_list, players_attack_action, train=True, maximum_states=TRIM_TO_STATES)
+
+				################# For quick game statistics #######################3
+				# num_steps = []
+				# for ii in range(len(t_steps)):
+				# 	num_steps.append(t_steps[ii])
+				# print("Median of steps is: {}".format(np.median(num_steps)))
+				# print("Mean   of steps is: {}".format(np.mean(num_steps)))
+				# print("Std    of steps is: {}".format(np.std(num_steps)))
+
+
 				if verbose:
 					print(" complete, training for {} epochs".format(USEFUL_LIFE))
 
@@ -515,7 +535,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 
 
 
-def generate_winners_episodes(env, num_games, player_list=None, player_action_list=None, train=False, verbose=False, print_game=False):
+def generate_winners_episodes(env, num_games, player_list=None, player_action_list=None, train=False, maximum_states=10000, verbose=False, print_game=False):
 	"""
 	Runs num_games and returns lists describing the games, depending on player_list and player_action_list
 	:param env: The environment object holding the game to be played
@@ -523,6 +543,8 @@ def generate_winners_episodes(env, num_games, player_list=None, player_action_li
 	:param player_list: which players information is desired about
 	:param player_action_list: which actions information is needed for those players
 	:param train: Whether to train (true) or test (false)
+	:param maximum_states: If specified, will return states, actions, etc, with axis 1 length <= maximum_states.  Default is timeout limit
+	:param verbose: Whether to print record and game completion
 	:param print_game: whether to print game information, used for debugging, not recommended
 	:return record: ndarray of size (num_player,), how many games each player won, respectively
 	:return states: list of ndarrays containing the states seen by the winner of the game
@@ -569,10 +591,26 @@ def generate_winners_episodes(env, num_games, player_list=None, player_action_li
 
 		################# IN USE #################
 		if train and (winner in player_list):
-			imitation_states.append(np.array(states[winner][int(ActionType.ATTACK)]))
-			imitation_actions.append(np.array(actions[winner][int(ActionType.ATTACK)]))
-			imitation_masks.append(np.array(masks[winner][int(ActionType.ATTACK)]))
-			imitation_steps.append(np.array(steps[winner][int(ActionType.ATTACK)]))
+			if (steps[winner][int(ActionType.ATTACK)]) <= maximum_states:
+				imitation_states.append(np.array(states[winner][int(ActionType.ATTACK)]))
+				imitation_actions.append(np.array(actions[winner][int(ActionType.ATTACK)]))
+				imitation_masks.append(np.array(masks[winner][int(ActionType.ATTACK)]))
+				imitation_steps.append(np.array(steps[winner][int(ActionType.ATTACK)]))
+
+				# print(imitation_actions[-1].shape)
+				# print(imitation_steps[-1])
+			else:
+				############## Saving for reference #################
+				# print(np.array(states[winner][int(ActionType.ATTACK)]).shape)
+				# print(np.array(states[winner][int(ActionType.ATTACK)])[1:maximum_states+1, :].shape)
+				###################################################
+				imitation_states.append(np.array(states[winner][int(ActionType.ATTACK)])[1:maximum_states+1, :])
+				imitation_actions.append(np.array(actions[winner][int(ActionType.ATTACK)])[1:maximum_states+1, :])
+				imitation_masks.append(np.array(masks[winner][int(ActionType.ATTACK)])[1:maximum_states+1, :])
+				imitation_steps.append(maximum_states)
+
+				# print(imitation_actions[-1].shape)
+				# print(imitation_steps[-1])
 
 		for player in range(len(record)):
 			if player == winner:
