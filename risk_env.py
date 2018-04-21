@@ -169,10 +169,11 @@ class RiskEnv():
 		while (winner == -1):
 			if valid:
 				num_states += 1
-				if train:
-					if num_states > TIMEOUT_STATES:
+				# if train:
+				if num_states > TIMEOUT_STATES:
+					if verbose:
 						print("Game exceeded timeout states: {}".format(TIMEOUT_STATES))
-						return None, None, None, None, None, False
+					return None, None, None, None, None, False
 			old_action_type = new_action_type
 			old_player_turn = new_player_turn
 			state = self.translate_2_state(raw_state, old_player_turn)
@@ -436,7 +437,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 		# training_policy = three_layer_attack_net.ThreeLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
 		
 		from q_funcs.attack import two_layer_attack_net
-		training_policy = two_layer_attack_net.TwoLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, -1, LEARNING_RATE)
+		training_policy = two_layer_attack_net.TwoLayerAttackNet(environment.game.graph.total_territories, environment.game.graph.edge_list, MODEL_INSTANCE, 0, LEARNING_RATE)
 
 		##########################################################
 
@@ -462,7 +463,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 			if (epoch%USEFUL_LIFE) == 0: 
 				if verbose:
 					print("Generating {} new games".format(num_games), end='')
-				_, t_states, t_actions, t_masks, _ = generate_winners_episodes(environment, num_games, player_list, players_attack_action, train=True)
+				_, t_states, t_actions, t_masks, t_steps = generate_winners_episodes(environment, num_games, player_list, players_attack_action, train=True)
 				if verbose:
 					print(" complete, training for {} epochs".format(USEFUL_LIFE))
 
@@ -472,7 +473,9 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 				batch_state = t_states[batch[index]]
 				batch_action = t_actions[batch[index]]
 				batch_mask = t_masks[batch[index]]
-				train_loss.append(np.mean(training_policy.batch_train(batch_state, batch_action, batch_mask)))
+				batch_steps = t_steps[batch[index]]
+				# print(batch_steps[int(ActionType.ATTACK)])
+				train_loss.append(np.mean(training_policy.batch_train(batch_state, batch_action, batch_mask, update=True, batch_size=batch_steps)))
 
 			epoch += 1
 
@@ -534,6 +537,7 @@ def generate_winners_episodes(env, num_games, player_list=None, player_action_li
 		imitation_states = []
 		imitation_actions = []
 		imitation_masks = []
+		imitation_steps = []
 
 	num_players = env.game.num_players
 	record = np.zeros(num_players)
@@ -541,7 +545,7 @@ def generate_winners_episodes(env, num_games, player_list=None, player_action_li
 		timeout = False
 		while not timeout:
 			# winner, states, actions, rewards, masks, num_states, timeout = env.play_game(player_list, player_action_list, train, print_game)
-			winner, states, actions, masks, num_states, timeout = env.play_game(player_list, player_action_list, train, print_game)
+			winner, states, actions, masks, steps, timeout = env.play_game(player_list, player_action_list, train, print_game)
 		
 		##################### Specific to attack action ####################
 		################## NOTE: Cast to np.array upon return ##################
@@ -568,6 +572,7 @@ def generate_winners_episodes(env, num_games, player_list=None, player_action_li
 			imitation_states.append(np.array(states[winner][int(ActionType.ATTACK)]))
 			imitation_actions.append(np.array(actions[winner][int(ActionType.ATTACK)]))
 			imitation_masks.append(np.array(masks[winner][int(ActionType.ATTACK)]))
+			imitation_steps.append(np.array(steps[winner][int(ActionType.ATTACK)]))
 
 		for player in range(len(record)):
 			if player == winner:
@@ -580,7 +585,7 @@ def generate_winners_episodes(env, num_games, player_list=None, player_action_li
 			print("Player {} won {} games".format(player, record[player]))
 
 	if train:
-		return record, imitation_states, imitation_actions, imitation_masks, num_states
+		return record, imitation_states, imitation_actions, imitation_masks, imitation_steps
 	else:
 		return record, None, None, None, None, None
 
