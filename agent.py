@@ -43,9 +43,9 @@ class Agent():
         elif attack_q_func is "linear_attack_net":
             self.attack_q_func = linear_attack_net.LinearAttackNet(self.territories, self.act_list, '0', 0, verbose=verbose)
         elif attack_q_func is "two_layer_attack_net":
-            self.attack_q_func = two_layer_attack_net.TwoLayerAttackNet(self.territories, self.act_list, '0-145-6', 0, verbose=verbose, learning_rate=5e-6)
+            self.attack_q_func = two_layer_attack_net.TwoLayerAttackNet(self.territories, self.act_list, '0', 0, verbose=verbose, learning_rate=1e-4)
         elif attack_q_func is "three_layer_attack_net":
-            self.attack_q_func = three_layer_attack_net.ThreeLayerAttackNet(self.territories, self.act_list, '0-79', 0, verbose=verbose)
+            self.attack_q_func = three_layer_attack_net.ThreeLayerAttackNet(self.territories, self.act_list, '0', 0, verbose=verbose)
         elif attack_q_func is "army_difference":
             self.attack_q_func = army_difference.ArmyDifference(self.territories, self.act_list)
         elif attack_q_func is "manual":
