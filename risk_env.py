@@ -416,10 +416,10 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 	:return: nothing
 	"""
 
-	USEFUL_LIFE = 1000
+	USEFUL_LIFE = num_epochs
 	VALIDATION_GAMES = 10
 	MODEL_INSTANCE = '0'
-	LEARNING_RATE = 0.0001
+	LEARNING_RATE = 1e-4
 	TRIM_TO_STATES = 318  ## mean - standard deviation
 
 	######### 0-44 is conservative-conservative ###############
@@ -500,7 +500,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 			epoch += 1
 
 			################## CREATE TRAINING LOSS PLOT ##############3
-			if (epoch%(USEFUL_LIFE/100)) == 0:
+			if (epoch%(USEFUL_LIFE/1000)) == 0:
 				train_mean = np.mean(train_loss)
 				train_std = np.std(train_loss)
 				plt.errorbar(epoch, train_mean, yerr=train_std, fmt='--o', color='red')
@@ -508,7 +508,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 				train_loss = []
 
 			################### GENERATE VALIDATION SET #################
-			if (epoch%(USEFUL_LIFE/10)) == 0:
+			if (epoch%(USEFUL_LIFE/100)) == 0:
 				v_winners, v_states, v_actions, v_masks, _ = generate_winners_episodes(environment, VALIDATION_GAMES, player_list, players_attack_action, train=True)
 				v_loss = []
 				v_batch_size = len(v_states)
@@ -645,7 +645,7 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 	environment = RiskEnv(board, matchup, verbose)
 
 	MODEL_INSTANCE = '0'
-	LEARNING_RATE = 0.0001
+	LEARNING_RATE = 1e-4
 
 	################# This can be modified ####################
 	# from q_funcs.attack import three_layer_attack_net
