@@ -185,19 +185,8 @@ class TwoLayerAttackNet():
 		else:
 			self.num_updates = 0
 
+		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 		self.next_save = self.num_updates + 1
-
-############# I believe this is causing checkpoint to be overwritten #########
-		# # Save first copy of model if new instance
-		# if not (self.exact_load):
-		# 	self.num_updates = 0
-		# 	# self.checkpoint_path = self.save_folder + '/model.ckpt'
-		# 	self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
-		# 	if verbose:
-		# 		print("Saved first copy in: {}".format(self.checkpoint_path))
-
-		# else:
-		# 	print("---------------WARNING--------------\nModel did not load or save correctly")
 
 		return
 
