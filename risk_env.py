@@ -500,7 +500,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 			epoch += 1
 
 			################## CREATE TRAINING LOSS PLOT ##############3
-			if (epoch%(USEFUL_LIFE/1000)) == 0:
+			if (epoch%(USEFUL_LIFE/100)) == 0:
 				train_mean = np.mean(train_loss)
 				train_std = np.std(train_loss)
 				plt.errorbar(epoch, train_mean, yerr=train_std, fmt='--o', color='red')
@@ -508,7 +508,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 				train_loss = []
 
 			################### GENERATE VALIDATION SET #################
-			if (epoch%(USEFUL_LIFE/100)) == 0:
+			if (epoch%(USEFUL_LIFE/10)) == 0:
 				v_winners, v_states, v_actions, v_masks, _ = generate_winners_episodes(environment, VALIDATION_GAMES, player_list, players_attack_action, train=True)
 				v_loss = []
 				v_batch_size = len(v_states)
