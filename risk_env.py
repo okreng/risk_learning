@@ -95,6 +95,8 @@ class RiskEnv():
 			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "three_layer_attack_net", "skip_fortify", self.verbose)
 		elif player_name == "im_learner_2":
 			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "two_layer_attack_net", "skip_fortify", self.verbose)
+		elif player_name == "manual":
+			return agent.Agent(player_id, self.game.graph.total_territories, self.game.graph.edge_list, "amass", "manual", "skip_fortify", self.verbose)
 
 		print("Player name not recognized")
 		return None
@@ -870,7 +872,7 @@ def parse_arguments():
 	parser = argparse.ArgumentParser(description=
 		'Risk Environment Argument Parser')
 	parser.add_argument('-b', dest='board', type=str, default='Original')
-	parser.add_argument('-m', dest='matchup', type=str, default="balance_7")
+	parser.add_argument('-m', dest='matchup', type=str, default="manual")
 	parser.add_argument('-v', dest='verbose', action='store_true', default=False)
 	parser.add_argument('-p', dest='print_game', action='store_true', default=False)
 	parser.add_argument('-t', dest='train', action='store_true', default=False)
