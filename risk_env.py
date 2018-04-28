@@ -103,7 +103,7 @@ class RiskEnv():
 
 
 
-	def play_game(self, player_id_list, player_action_list, train, verbose=False):
+	def play_game(self, player_id_list, player_action_list, train, verbose=True):
 		"""
 		Generates a state vector for each player in player_id_list for what they saw in each action type
 		:param player_id_list: the ids of the players to generate state vectors for
