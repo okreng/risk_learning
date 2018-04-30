@@ -667,7 +667,8 @@ def reinforcement_learn(board, matchup, verbose, num_games=100, n=250):
 	for player in all_player_list:
 		all_players_attack_action.append([int(ActionType.ATTACK)])
 	######### n player list ##########
-	player_list = range(num_players)
+	# player_list = range(num_players)
+	player_list = [0]
 	players_attack_action = []
 	for player in player_list:
 		players_attack_action.append([int(ActionType.ATTACK)])
