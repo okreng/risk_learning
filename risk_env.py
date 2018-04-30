@@ -458,6 +458,13 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 
 		epoch = 0
 		train_loss = []
+		train_accuracy = []
+		plt.title("Training loss and accuracy: red-training, blue-validation")
+		plt.subplot(2,1,1)
+		plt.ylabel("Loss")
+		plt.subplot(2,1,2)
+		plt.ylabel("Accuracy")
+		plt.xlabel("Training epoch")
 		while epoch < num_epochs:
 
 			################## GAME STATISTICS ##########################
@@ -495,35 +502,54 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 				batch_mask = t_masks[batch[index]]
 				batch_steps = t_steps[batch[index]]
 				# print(batch_steps[int(ActionType.ATTACK)])
-				train_loss.append(np.mean(training_policy.batch_train(batch_state, batch_action, batch_mask, update=True, batch_size=batch_steps)))
+				batch_loss, batch_accuracy = training_policy.batch_train(batch_state, batch_action, batch_mask, update=True, batch_size=batch_steps)
+				train_loss.append(np.mean(batch_loss))
+				train_accuracy.append(np.mean(batch_accuracy))
 
 			epoch += 1
 
 			################## CREATE TRAINING LOSS PLOT ##############3
-			if (epoch%(USEFUL_LIFE/100)) == 0:
-				train_mean = np.mean(train_loss)
-				train_std = np.std(train_loss)
-				plt.errorbar(epoch, train_mean, yerr=train_std, fmt='--o', color='red')
+			if (epoch%(USEFUL_LIFE/1000)) == 0:
+				train_loss_mean = np.mean(train_loss)
+				train_loss_std = np.std(train_loss)
+				plt.subplot(2,1,1)
+				plt.errorbar(epoch, train_loss_mean, yerr=train_loss_std, fmt='--o', color='red')
 				plt.draw()
 				train_loss = []
+
+				train_accuracy_mean = np.mean(train_accuracy)
+				train_accuracy_std = np.std(train_accuracy)
+				plt.subplot(2,1,2)
+				plt.errorbar(epoch, train_accuracy_mean, yerr=train_accuracy_std, fmt='--o', color='red')
+				plt.draw()
+				train_accuracy = []
 
 			################### GENERATE VALIDATION SET #################
 			if (epoch%(USEFUL_LIFE/100)) == 0:
 				v_winners, v_states, v_actions, v_masks, _ = generate_winners_episodes(environment, VALIDATION_GAMES, player_list, players_attack_action, train=True)
 				v_loss = []
+				v_accuracy = []
 				v_batch_size = len(v_states)
 				for index in range(v_batch_size):
-					v_loss.append(np.mean(training_policy.batch_train(v_states[index], v_actions[index], v_masks[index], update=False)))
+					v_batch_loss, v_batch_accuracy = training_policy.batch_train(v_states[index], v_actions[index], v_masks[index], update=False)
+					v_loss.append(np.mean(v_batch_loss))
+					v_accuracy.append(np.mean(v_batch_accuracy))
 				loss_mean = np.mean(v_loss)
 				loss_std = np.std(v_loss)
+				plt.subplot(2,1,1)
 				plt.errorbar(epoch, loss_mean, yerr=loss_std, fmt='--o', color='blue')
-				plt.title("Loss: red-training, blue-validation")
-				plt.xlabel('Training epochs')
-				plt.ylabel('Mean validation loss over {} games'.format(VALIDATION_GAMES))
 				plt.draw()
+
+				accuracy_mean = np.mean(v_accuracy)
+				accuracy_std = np.mean(v_accuracy)
+				plt.subplot(2,1,2)
+				plt.errorbar(epoch, accuracy_mean, yerr=accuracy_std, fmt='--o', color='blue')
+				plt.draw()
+
 				if (verbose):
 					print("Completed epoch {}".format(epoch))
 					print("Validation loss: {}".format(loss_mean))
+					print("Validation accuracy: {}".format(accuracy_mean))
 
 		training_policy.close()
 		save_path = './plots/' + MODEL_INSTANCE + '-training'
