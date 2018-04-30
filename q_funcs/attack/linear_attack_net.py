@@ -117,6 +117,7 @@ class LinearAttackNet():
 		self.loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.labels, logits=self.output)
 		# self.loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.labels, logits=self.output)
 		# print("After softmax")
+		self.accuracy = tf.metrics.accuracy(labels=tf.argmax(self.labels, 0), predictions=tf.argmax(self.output, 0))
 
 
 		# optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.0001)

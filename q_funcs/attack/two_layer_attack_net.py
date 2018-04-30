@@ -124,6 +124,7 @@ class TwoLayerAttackNet():
 		self.loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.labels, logits=self.output)
 		# self.loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.labels, logits=self.output)
 		# print("After softmax")
+		self.accuracy = tf.metrics.accuracy(labels=tf.argmax(self.labels, 0), predictions=tf.argmax(self.output, 0))
 
 		# optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.0001)
 
@@ -134,6 +135,7 @@ class TwoLayerAttackNet():
 		# Begin session, initialize variables
 		self.sess = tf.Session(config=config)
 		self.sess.run(tf.global_variables_initializer())
+		self.sess.run(tf.local_variables_initializer())
 		
 		# Create saver
 		self.saver = tf.train.Saver(max_to_keep=self.max_saves, keep_checkpoint_every_n_hours=1)
@@ -273,14 +275,14 @@ class TwoLayerAttackNet():
 		# for batch in range(len(state_batches)):
 		state_vector /= MAX_ARMIES
 		if update:
-			_, loss = self.sess.run([self.train_op, self.loss], feed_dict={self.features:state_vector, self.valid_mask:valid_mask, self.labels:action_vector, self.loss_weights:valid_mask})
+			_, loss, accuracy = self.sess.run([self.train_op, self.loss, self.accuracy], feed_dict={self.features:state_vector, self.valid_mask:valid_mask, self.labels:action_vector, self.loss_weights:valid_mask})
 			self.num_updates += 1
 			if self.num_updates >= self.next_save:
 				self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 				self.next_save += np.ceil(np.sqrt(self.num_updates))
 		else:
-			loss = self.sess.run([self.loss], feed_dict={self.features:state_vector, self.valid_mask:valid_mask, self.labels:action_vector, self.loss_weights:valid_mask})
+			loss, accuracy = self.sess.run([self.loss, self.accuracy], feed_dict={self.features:state_vector, self.valid_mask:valid_mask, self.labels:action_vector, self.loss_weights:valid_mask})
 			
 		# self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 
-		return loss
+		return loss, accuracy
