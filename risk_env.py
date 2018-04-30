@@ -419,8 +419,8 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 	USEFUL_LIFE = num_epochs
 	VALIDATION_GAMES = 10
 	MODEL_INSTANCE = '0'
-	LEARNING_RATE = 1e-4
-	TRIM_TO_STATES = 318  ## mean - standard deviation
+	LEARNING_RATE = 1e-5
+	TRIM_TO_STATES = 10000 ## max number of states  # 318  ## mean - standard deviation
 
 	######### 0-44 is conservative-conservative ###############
 	######### 0... is conservative-aggressive #################
@@ -508,7 +508,7 @@ def imitation_learn(board, matchup, verbose, print_game, train=False, num_games=
 				train_loss = []
 
 			################### GENERATE VALIDATION SET #################
-			if (epoch%(USEFUL_LIFE/10)) == 0:
+			if (epoch%(USEFUL_LIFE/100)) == 0:
 				v_winners, v_states, v_actions, v_masks, _ = generate_winners_episodes(environment, VALIDATION_GAMES, player_list, players_attack_action, train=True)
 				v_loss = []
 				v_batch_size = len(v_states)

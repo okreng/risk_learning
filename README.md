@@ -174,3 +174,25 @@ Newly constructed models built off existing models will have the structure:
 c1-c2-c3 where c1 is the number from the tree base
 These save a single number that indicates the number of models built off the tree head
 
+# Using the Imitation Learning Method
+
+## Training a model
+The parameters in the existing model should not be changed, as they correspond to the full risk board.
+In order to train a model, select the model to be trained by toggling the 2 lines corresponding 
+to the desired model at line 437 in risk_env.py
+The hyperparameters to be used can be modified in lines 419-423 of risk_env.py
+Run the model from the commandline, in your tensorflow environment, with:
+
+Python3 risk_env.py -t --training-type I -m all_conservative --num-games <games> --num-epochs <epochs>
+
+The model will be saved in a specified folder that will print to your shell at the beginning and end of training.
+
+To load this model and test against other players, change the model argument in agent.py 
+corresponding to the model used, e.g. line 48, column 112 for three_layer_attack_net: change to '0-1' instead of '0'
+Next, run the test with:
+
+Python3 risk_env.py -m test_im_learner_1_easy --num-games 100
+
+The results will print to the shell.
+Try matchups (-m argument) test_im_learner_1 and test_im_learner_1_easy.
+New matchups can be easily made in the matchups folder, many exist aleady as well.
