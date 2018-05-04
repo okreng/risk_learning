@@ -1,0 +1,123 @@
+(tensorflow) oliver@oliver-Nitro-AN515-51:~/Documents/10-703/risk$ python3 risk_env.py --num-games 100 -m test_im_learner_1
+Reading file: ./matchups/test_im_learner_1.mu
+Reading file: ./boards/Original.risk
+Player 0: im_learner_1
+Player 1: conservative
+Player 2: conservative
+Player 3: conservative
+Player 4: aggressive
+Player 5: aggressive
+Player 6: aggressive
+Creating player 0: im_learner_1
+Branching off of ./q_funcs/attack/three_layer_attack_net.logs/0-96-0
+Creating new instance ./q_funcs/attack/three_layer_attack_net.logs/0-96-0-11.instance
+Creating new folder ./q_funcs/attack/three_layer_attack_net.logs/0-96-0-11
+save_folder is ./q_funcs/attack/three_layer_attack_net.logs/0-96-0-11
+restore_folder is ./q_funcs/attack/three_layer_attack_net.logs/0-96-0
+2018-04-21 20:53:11.537755: I tensorflow/core/platform/cpu_feature_guard.cc:137] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2018-04-21 20:53:11.538684: E tensorflow/stream_executor/cuda/cuda_driver.cc:406] failed call to cuInit: CUDA_ERROR_UNKNOWN
+2018-04-21 20:53:11.538714: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:158] retrieving CUDA diagnostic information for host: oliver-Nitro-AN515-51
+2018-04-21 20:53:11.538729: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:165] hostname: oliver-Nitro-AN515-51
+2018-04-21 20:53:11.538869: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:189] libcuda reported version is: 387.34.0
+2018-04-21 20:53:11.538922: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:369] driver version file contents: """NVRM version: NVIDIA UNIX x86_64 Kernel Module  387.34  Tue Nov 21 03:09:00 PST 2017
+GCC version:  gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.9) 
+"""
+2018-04-21 20:53:11.538950: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:193] kernel reported version is: 387.34.0
+2018-04-21 20:53:11.539000: I tensorflow/stream_executor/cuda/cuda_diagnostics.cc:300] kernel version seems to match DSO: 387.34.0
+Loading model:  ./q_funcs/attack/three_layer_attack_net.logs/0-96-0/model.ckpt-273006
+Loaded weights are:
+<tf.Variable 'dense1/kernel:0' shape=(42, 512) dtype=float32_ref>
+[array([[ 0.11212865, -0.09835304,  0.051926  , ..., -0.02262019,
+         0.04131788, -0.1243444 ],
+       [ 0.04526176,  0.00116918,  0.02029742, ..., -0.00192203,
+         0.03533772,  0.00814858],
+       [ 0.09967452,  0.10578416,  0.13610488, ..., -0.12600842,
+        -0.01277174, -0.03898856],
+       ...,
+       [-0.0065605 , -0.04018712, -0.10051571, ..., -0.09448757,
+        -0.01111282, -0.05092726],
+       [ 0.08264905, -0.05687009,  0.07689796, ..., -0.01956388,
+        -0.08469357, -0.10461298],
+       [ 0.13833174, -0.10266923,  0.04955888, ..., -0.15196596,
+        -0.06772754, -0.0386698 ]], dtype=float32)]
+<tf.Variable 'dense2/kernel:0' shape=(512, 256) dtype=float32_ref>
+[array([[ 7.14232624e-02,  1.05151273e-01, -2.81819925e-02, ...,
+         2.60255598e-02, -5.02390899e-02, -2.32920852e-02],
+       [-6.86918274e-02, -6.28093407e-02,  3.91693749e-02, ...,
+         7.34078139e-02,  2.90679056e-02, -3.66399102e-02],
+       [-4.52545434e-02, -5.71589619e-02,  4.04319800e-02, ...,
+         8.70737135e-02,  6.68808445e-02, -1.52180763e-02],
+       ...,
+       [ 5.54901250e-02,  4.73861173e-02, -7.77449012e-02, ...,
+         5.17040566e-02,  5.69257140e-02, -5.55336374e-05],
+       [ 2.65351702e-02,  2.90537849e-02,  6.62991330e-02, ...,
+         1.05773084e-01,  1.01679318e-01,  2.64980383e-02],
+       [ 8.11651349e-02, -3.67623083e-02,  5.33978939e-02, ...,
+         4.86744232e-02,  6.37902096e-02, -7.14850575e-02]], dtype=float32)]
+<tf.Variable 'dense3/kernel:0' shape=(256, 128) dtype=float32_ref>
+[array([[ 0.04365547,  0.11516213,  0.00425312, ...,  0.08687183,
+         0.10947788, -0.09236239],
+       [-0.02699939,  0.13135989, -0.11763342, ..., -0.0451792 ,
+        -0.05233106,  0.04976195],
+       [-0.07767709,  0.0217686 , -0.04122047, ...,  0.11172447,
+         0.0561339 ,  0.07101332],
+       ...,
+       [ 0.00975107, -0.05459708,  0.12799405, ...,  0.00260127,
+         0.02593935,  0.07966681],
+       [-0.02755487, -0.12837484,  0.12264156, ...,  0.01862878,
+         0.09326225,  0.10562018],
+       [-0.03890375,  0.17880501, -0.16072354, ..., -0.08956166,
+         0.12465137,  0.1100468 ]], dtype=float32)]
+<tf.Variable 'output/kernel:0' shape=(128, 84) dtype=float32_ref>
+[array([[-0.02717323,  0.05863143,  0.02601693, ...,  0.20053253,
+        -0.16091248,  0.17587541],
+       [ 0.0173082 , -0.05903522,  0.10490697, ...,  0.10684299,
+         0.13563041, -0.17244072],
+       [-0.01776686, -0.09048588, -0.04252448, ..., -0.05024492,
+         0.15511975,  0.18430082],
+       ...,
+       [-0.09686335, -0.08574472, -0.15652329, ...,  0.19097659,
+         0.09191408,  0.15600556],
+       [-0.13402016, -0.02029026, -0.14719574, ...,  0.18995333,
+         0.10047303, -0.12745023],
+       [ 0.07204484, -0.00978008,  0.19526479, ..., -0.07212569,
+        -0.10404506, -0.15836334]], dtype=float32)]
+Player 0 successfully instantiated with Q functions:
+	allot: amass
+	attack: three_layer_attack_net
+	reinforce: reinforce_all
+	fortify: skip_fortify
+Creating player 1: conservative
+Player 1 successfully instantiated with Q functions:
+	allot: amass
+	attack: max_success
+	reinforce: reinforce_all
+	fortify: skip_fortify
+Creating player 2: conservative, as reference to player 1
+Creating player 3: conservative, as reference to player 1
+Creating player 4: aggressive
+Player 4 successfully instantiated with Q functions:
+	allot: amass
+	attack: army_difference
+	reinforce: reinforce_all
+	fortify: skip_fortify
+Creating player 5: aggressive, as reference to player 4
+Creating player 6: aggressive, as reference to player 4
+Completed game 0
+Completed game 10
+Completed game 20
+Completed game 30
+Completed game 40
+Completed game 50
+Completed game 60
+Completed game 70
+Completed game 80
+Completed game 90
+Player 0 won 7.0 games
+Player 1 won 18.0 games
+Player 2 won 25.0 games
+Player 3 won 25.0 games
+Player 4 won 6.0 games
+Player 5 won 10.0 games
+Player 6 won 9.0 games
+

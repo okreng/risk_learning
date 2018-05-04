@@ -13,6 +13,12 @@ TODO: How to determine this?  Is there an optimal decision?
 import numpy as np
 import random
 
+##### Working from root directory #####
+import repackage
+repackage.up(2)
+import utils
+##### End Working from root directory #####
+
 global MAX_ARMIES #max armies per player
 
 class RandomFortify():
@@ -62,4 +68,10 @@ class RandomFortify():
 
 		return action_vector
 
-		
+	def get_action(self, state_vector, valid_mask, update=None, action_taken=None, target=None, loss_weights=None):
+		"""
+		Chooses an action based on the state vector and valid_mask inputted
+		"""
+		q = self.call_Q(state_vector)
+		action = utils.epsilon_greedy_valid(q, valid_mask, 0)
+		return np.argmax(action)

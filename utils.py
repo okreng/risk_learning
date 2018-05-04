@@ -33,6 +33,22 @@ def validate_q_func_for_argmax(q_func, valid_mask):
     return valid_q_func
 
 
+# https://stackoverflow.com/questions/34968722/how-to-implement-the-softmax-function-in-python
+def softmax_valid(q_func):
+    """
+    Returns the softmax output of a general linear activation
+    """
+    EFFECTIVE_ZERO = 1e-20
+    # print(q_func)
+    for i in range(len(q_func)):
+        if abs(q_func[i]) <= EFFECTIVE_ZERO:
+            q_func[i] = float("-inf")  ####### Invalidate q's
+    num = np.exp(q_func)
+    den = np.sum(num)
+    softmax_q = num/den
+    # print(softmax_q)
+    return softmax_q
+
 
 def choose_by_weight(q_func):
     """

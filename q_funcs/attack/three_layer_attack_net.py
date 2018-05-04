@@ -17,11 +17,13 @@ import os, sys
 # # statement below appears to re-run from inner directory
 # # from risk_definitions import ROOT_DIR
 
+MAX_ARMIES = 12
 
 ##### Working from root directory #####
 import repackage
-repackage.up(1)
-from model_tree import model_tree
+repackage.up(2)
+from q_funcs.model_tree import model_tree
+import utils
 ##### End Working from root directory #####
 
 class ThreeLayerAttackNet():
@@ -56,6 +58,8 @@ class ThreeLayerAttackNet():
 		self.action_type_string = 'attack'
 		self.max_saves = 1
 		self.exact_load = True
+		#### will be overwritten unless instantiating a new random network #########3
+		self.num_updates = 0
 
 		self.verbose = verbose
 
@@ -95,15 +99,18 @@ class ThreeLayerAttackNet():
 		self.loss_weights = tf.placeholder(dtype = tf.float32, shape = [None, self.nA], name='loss_weights')
 
 		# First hidden Layer
-		self.dense1 = tf.layers.dense(inputs = self.features, units = 512, activation = tf.nn.sigmoid, use_bias = False, name = 'dense1')
-		self.dense2 = tf.layers.dense(inputs = self.dense1, units = 256, activation = tf.nn.sigmoid, use_bias = False, name = 'dense2')
-		self.dense3 = tf.layers.dense(inputs = self.dense2, units = 128,  activation = tf.nn.sigmoid, use_bias = False, name = 'dense3')
+		self.dense1 = tf.layers.dense(inputs = self.features, units = 512, activation = tf.nn.tanh, use_bias = False, name = 'dense1')
+		self.dense2 = tf.layers.dense(inputs = self.dense1, units = 256, activation = tf.nn.tanh, use_bias = False, name = 'dense2')
+		self.dense3 = tf.layers.dense(inputs = self.dense2, units = 128,  activation = tf.nn.tanh, use_bias = False, name = 'dense3')
 
 		
-
+		self.valid_mask = tf.placeholder(dtype=tf.float32, shape=[None, self.nA], name='valid_mask')
 		# Output Layer
 		# self.output = tf.layers.dense(inputs = self.dense3, units = self.nA, use_bias = True, name = 'output')
-		self.output = tf.layers.dense(inputs = self.dense3, units = self.nA, activation = tf.nn.sigmoid, use_bias = False, name = 'output')
+		# self.pre_mask_output = tf.layers.dense(inputs = self.dense3, units = self.nA, activation = tf.nn.sigmoid, use_bias = False, name = 'output')
+		self.pre_mask_output = tf.layers.dense(inputs = self.dense3, units = self.nA, activation = None, use_bias = False, name = 'output')
+
+		self.output = tf.multiply(x = self.pre_mask_output, y = self.valid_mask)
 
 		#####################
 		# self.loss = tf.losses.mean_squared_error(labels=self.labels, predictions=self.output, weights=self.loss_weights)
@@ -111,6 +118,7 @@ class ThreeLayerAttackNet():
 		# self.loss = tf.losses.softmax_cross_entropy(onehot_labels=[self.batch_size, self.nA], logits=[self.batch_size, self.nA])
 		self.loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.labels, logits=self.output)
 		# print("After softmax")
+		self.accuracy = tf.metrics.accuracy(labels=tf.argmax(self.labels, 0), predictions=tf.argmax(self.output, 0))
 
 		# optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.0001)
 
@@ -121,6 +129,7 @@ class ThreeLayerAttackNet():
 		# Begin session, initialize variables
 		self.sess = tf.Session(config=config)
 		self.sess.run(tf.global_variables_initializer())
+		self.sess.run(tf.local_variables_initializer())
 		
 		# Create saver
 		self.saver = tf.train.Saver(max_to_keep=self.max_saves, keep_checkpoint_every_n_hours=1)
@@ -172,19 +181,8 @@ class ThreeLayerAttackNet():
 		else:
 			self.num_updates = 0
 
+		self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 		self.next_save = self.num_updates + 1
-
-############# I believe this is causing checkpoint to be overwritten #########
-		# # Save first copy of model if new instance
-		# if not (self.exact_load):
-		# 	self.num_updates = 0
-		# 	# self.checkpoint_path = self.save_folder + '/model.ckpt'
-		# 	self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
-		# 	if verbose:
-		# 		print("Saved first copy in: {}".format(self.checkpoint_path))
-
-		# else:
-		# 	print("---------------WARNING--------------\nModel did not load or save correctly")
 
 		return
 
@@ -219,7 +217,7 @@ class ThreeLayerAttackNet():
 		return
 
 
-	def call_Q(self, state_vector, update=False, action_taken=0, target=0, loss_weights=None):
+	def call_Q(self, state_vector, valid_mask, update=False, action_taken=0, target=0, loss_weights=None):
 		"""
 		This Q function will output the action specified by the function approximator
 		:param state_vector: int the state of the board
@@ -228,9 +226,10 @@ class ThreeLayerAttackNet():
 		:return action_vector: float The Q-function outputted by the network
 		"""
 		# print(is_training)
+		valid_mask = np.array([valid_mask])
 
 		if not update:
-			q_function = self.sess.run([self.output], feed_dict={self.features:state_vector})
+			q_function = self.sess.run([self.output], feed_dict={self.features:state_vector, self.valid_mask:valid_mask})
 			
 			###### Leave in here in case of troubleshooting #######
 			# print(q_function)
@@ -240,15 +239,27 @@ class ThreeLayerAttackNet():
 			return q_function[0][0]
 		else:
 			self.num_updates += 1
-			_, q_function, loss = self.sess.run([self.train_op, self.output, self.loss], feed_dict={self.features:state_vector, self.act: action_taken, self.labels:target, self.loss_weights:loss_weights})
-			if self.num_updates == self.next_save:
+			_, q_function, loss = self.sess.run([self.train_op, self.output, self.loss], feed_dict={self.features:state_vector, self.valid_mask:valid_mask, self.act: action_taken, self.labels:target, self.loss_weights:loss_weights})
+			if self.num_updates >= self.next_save:
 				self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 				self.next_save += np.ceil(np.sqrt(self.num_updates))
 			
 ################### Determine how best to return q function ##########
 			return q_function[0][0], loss
 
-	def batch_train(self, state_vector, action_vector, mask, update=True, batch_size=32, loss_weights=None):
+	def get_action(self, state_vector, valid_mask, update=None, action_taken=None, target=None, loss_weights=None):
+		"""
+		Chooses an action based on the state vector and valid_mask inputted
+		"""
+		q = self.call_Q(state_vector, valid_mask)
+		soft_q = utils.softmax_valid(q)
+		if update:
+			action = utils.choose_by_weight(soft_q)
+		else:
+			action = np.argmax(soft_q)
+		return action
+
+	def batch_train(self, state_vector, action_vector, valid_mask, update=True, batch_size=32, loss_weights=None):
 		"""
 		Function to perform batch gradient descent on an input tensor
 		"""
@@ -256,15 +267,16 @@ class ThreeLayerAttackNet():
 		# action_batches = tf.train.batch(action_vector, batch_size)
 
 		# for batch in range(len(state_batches)):
+		state_vector /= MAX_ARMIES
 		if update:
-			_, loss = self.sess.run([self.train_op, self.loss], feed_dict={self.features:state_vector, self.labels:action_vector, self.loss_weights:mask})
+			_, loss, accuracy = self.sess.run([self.train_op, self.loss, self.accuracy], feed_dict={self.features:state_vector, self.valid_mask:valid_mask, self.labels:action_vector, self.loss_weights:valid_mask})
 			self.num_updates += 1
-			if self.num_updates == self.next_save:
+			if self.num_updates >= self.next_save:
 				self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 				self.next_save += np.ceil(np.sqrt(self.num_updates))
 		else:
-			loss = self.sess.run([self.loss], feed_dict={self.features:state_vector, self.labels:action_vector, self.loss_weights:mask})
+			loss, accuracy = self.sess.run([self.loss, self.accuracy], feed_dict={self.features:state_vector, self.valid_mask:valid_mask, self.labels:action_vector, self.loss_weights:valid_mask})
 			
 		# self.saver.save(self.sess, self.checkpoint_path, global_step=self.num_updates)
 
-		return loss
+		return loss, accuracy

@@ -20,9 +20,16 @@ class ActionType(Enum):
         return self.value
 
 
+############ For original #######
 MIN_ARMIES_PER_TURN = 3
 ARMIES_PER_TERRITORY = 0.33333
-INITIAL_PLACEMENT_ARMIES = 120
+INITIAL_PLACEMENT_ARMIES = 105
+
+########### For Australia
+# MIN_ARMIES_PER_TURN = 2
+# ARMIES_PER_TERRITORY = 1
+# INITIAL_PLACEMENT_ARMIES = 10
+
 
 class RiskGame():
     """
@@ -47,8 +54,8 @@ class RiskGame():
         for player_id in range(self.num_players):
             self.add_player(player_id)
             # self.activate_player(player_id) # Maybe do this here
-            if verbose:
-                print("Created inactive player: {}".format(player_id))
+            # if verbose:
+            #     print("Created inactive player: {}".format(player_id))
 
         # global MAX_ARMIES_PER_PLAYER
         # MAX_ARMIES_PER_PLAYER = 42
@@ -314,6 +321,21 @@ class RiskGame():
             # continent_string = ("Asia, " if c_asia else "") + ("Europe, " if c_europe else "") + ("North America, " if c_north_america else "") \
             #     + ("Africa, " if c_africa else "") + ("South America, " if c_south_america else "") + ("Australia" if c_australia else "")
             # print("\nPlayer owns: \n{}\nThey have {} armies to allocate for those\n".format(continent_string, armies_by_continent))
+
+            self.unallocated_armies = max(MIN_ARMIES_PER_TURN, armies_by_territory + armies_by_continent)
+
+        elif self.graph.board == 'Australia':
+            armies_by_continent = 0
+            p = self.player_turn
+
+            player_control = []
+            for terr in self.board_state():
+                player_control.append(terr[0])
+
+            eastern_australia = [1]
+            c_eastern_australia = self.controls_continent(p, player_control, eastern_australia)
+
+            armies_by_continent = c_eastern_australia  ## Plus one to whoever owns eastern australia
 
             self.unallocated_armies = max(MIN_ARMIES_PER_TURN, armies_by_territory + armies_by_continent)
 
